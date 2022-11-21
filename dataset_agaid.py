@@ -119,6 +119,9 @@ class Agaid_Dataset(Dataset):
         else:
             s["gt_mask"] = self.gt_masks[index]
         return s
+    
+    def __len__(self):
+        return len(self.observed_values)
 
         
 def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, missing_ratio=0.2, seed=10, is_test=False):
