@@ -24,7 +24,7 @@ def parse_data(sample, rate, is_test=False):
 
         mask = ~np.isnan(values)
         mask = mask.reshape(shp)
-        mask = torch.tensor(mask, dtype=torch.float32)
+        # mask = torch.tensor(mask, dtype=torch.float32)
     else:
         mask = None
 
@@ -34,8 +34,8 @@ def parse_data(sample, rate, is_test=False):
     # values = values.reshape(shp)
     
     
-    obs_mask = torch.tensor(obs_mask, dtype=torch.float32)
-    obs_data = torch.tensor(obs_data, dtype=torch.float32)
+    # obs_mask = torch.tensor(obs_mask, dtype=torch.float32)
+    # obs_data = torch.tensor(obs_data, dtype=torch.float32)
     return obs_data, obs_mask, mask
 
 
@@ -92,8 +92,8 @@ class Agaid_Dataset(Dataset):
         self.observed_masks = []
         self.gt_masks = []
         
-        self.mean = torch.tensor(mean)
-        self.std = torch.tensor(std)
+        self.mean = torch.tensor(mean, dtype=torch.float32)
+        self.std = torch.tensor(std, dtype=torch.float32)
         
         
         for i in range(len(X)):
@@ -102,9 +102,9 @@ class Agaid_Dataset(Dataset):
                 self.gt_masks.append(gt_mask)
             self.observed_values.append(obs_data)
             self.observed_masks.append(obs_mask)
-        self.gt_masks = torch.tensor(self.gt_masks)
-        self.observed_values = torch.tensor(self.observed_values)
-        self.observed_masks = torch.tensor(self.observed_masks)
+        self.gt_masks = torch.tensor(self.gt_masks, dtype=torch.float32)
+        self.observed_values = torch.tensor(self.observed_values, dtype=torch.float32)
+        self.observed_masks = torch.tensor(self.observed_masks, dtype=torch.float32)
         self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
 
     def __getitem__(self, index):
