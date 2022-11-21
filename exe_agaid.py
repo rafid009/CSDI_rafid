@@ -55,5 +55,6 @@ train(
     valid_loader=valid_loader,
     foldername=model_folder,
 )
-
-# model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
+nsample = 50
+model.load_state_dict(torch.load(f"{model_folder}/model.pth"))
+evaluate(model, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)

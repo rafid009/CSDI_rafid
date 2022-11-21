@@ -137,5 +137,8 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     test_dataset = Agaid_Dataset(X[-2:], mean, std, rate=missing_ratio, is_test=is_test)
-    test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
+    if is_test:
+        test_loader = DataLoader(test_dataset, batch_size=1)
+    else:
+        test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
