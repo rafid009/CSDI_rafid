@@ -12,7 +12,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 seed = 10
 config_dict = {
     'train': {
-        'epochs': 800,
+        'epochs': 1500,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
