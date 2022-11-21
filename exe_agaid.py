@@ -36,7 +36,7 @@ config_dict = {
 
 file_name = 'ColdHardiness_Grape_Merlot_2.csv'
 
-train_loader, valid_loader, test_loader = get_dataloader(
+train_loader, valid_loader = get_dataloader(
     seed=seed,
     filename=file_name,
     batch_size=config_dict["train"]["batch_size"],
