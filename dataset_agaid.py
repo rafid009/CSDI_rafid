@@ -142,3 +142,17 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
     else:
         test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
+
+def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, missing_ratio=0.2, seed=10, is_test=False, season_idx=-1):
+    np.random.seed(seed=seed)
+    df = pd.read_csv(filename)
+    modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+    season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+    train_season_df = season_df.drop(season_array[-1], axis=0)
+    train_season_df = train_season_df.drop(season_array[-2], axis=0)
+    mean, std = get_mean_std(train_season_df, features)
+    X, Y = split_XY(season_df, max_length, season_array, features)
+    test_dataset = Agaid_Dataset(X[season_idx], mean, std, rate=missing_ratio)
+    test_loader = DataLoader(test_dataset, batch_size=1)
+
+    return test_loader

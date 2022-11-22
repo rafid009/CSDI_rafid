@@ -23,7 +23,7 @@ config_dict = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 50,
+        'num_steps': 100,
         'schedule': "quad"
     },
     'model': {

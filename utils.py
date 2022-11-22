@@ -58,10 +58,9 @@ def train(
                             },
                             refresh=False,
                         )
-            if best_valid_loss > avg_loss_valid:
-                best_valid_loss = avg_loss_valid
+
                 print(
-                    "\n best loss is updated to ",
+                    "\n avg loss is now ",
                     avg_loss_valid / batch_no,
                     "at",
                     epoch_no,
@@ -141,7 +140,7 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
 
                 it.set_postfix(
                     ordered_dict={
-                        "rmse_total": np.sqrt(mse_total / evalpoints_total),
+                        "mse_total": mse_total / evalpoints_total,
                         "mae_total": mae_total / evalpoints_total,
                         "batch_no": batch_no,
                     },
@@ -179,12 +178,45 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
             ) as f:
                 pickle.dump(
                     [
-                        np.sqrt(mse_total / evalpoints_total),
+                        mse_total / evalpoints_total,
                         mae_total / evalpoints_total,
                         CRPS,
                     ],
                     f,
                 )
-                print("RMSE:", np.sqrt(mse_total / evalpoints_total))
+                print("MSE:", mse_total / evalpoints_total)
                 print("MAE:", mae_total / evalpoints_total)
                 print("CRPS:", CRPS)
+
+def evaluate_imputation(X, seasons, given_features, mse_folder):
+    given_features = [
+        'MEAN_AT', # mean temperature is the calculation of (max_f+min_f)/2 and then converted to Celsius. # they use this one
+        'MIN_AT',
+        'AVG_AT', # average temp is AgWeather Network
+        'MAX_AT',
+        'MIN_REL_HUMIDITY',
+        'AVG_REL_HUMIDITY',
+        'MAX_REL_HUMIDITY',
+        'MIN_DEWPT',
+        'AVG_DEWPT',
+        'MAX_DEWPT',
+        'P_INCHES', # precipitation
+        'WS_MPH', # wind speed. if no sensor then value will be na
+        'MAX_WS_MPH', 
+        'LW_UNITY', # leaf wetness sensor
+        'SR_WM2', # solar radiation # different from zengxian
+        'MIN_ST8', # diff from zengxian
+        'ST8', # soil temperature # diff from zengxian
+        'MAX_ST8', # diff from zengxian
+        #'MSLP_HPA', # barrometric pressure # diff from zengxian
+        'ETO', # evaporation of soil water lost to atmosphere
+        'ETR',
+        'LTE50' # ???
+    ]
+    
+    for season in seasons.keys():
+        print(f"For season: {season}")
+        season_idx = seasons[season]
+        for feature in given_features:
+            feature_idx = given_features.index(feature)
+
