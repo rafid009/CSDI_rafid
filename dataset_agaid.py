@@ -104,7 +104,7 @@ class Agaid_Dataset(Dataset):
             "observed_data": self.observed_values[index],
             "observed_mask": self.observed_masks[index],
             # "gt_mask": self.gt_masks[index],
-            "obs_intact": self.obs_data_intact[index],
+            "obs_data_intact": self.obs_data_intact[index],
             "timepoints": np.arange(self.eval_length),
         }
         if len(self.gt_masks) == 0:

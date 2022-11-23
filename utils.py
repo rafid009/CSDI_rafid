@@ -272,7 +272,7 @@ def evaluate_imputation(models, mse_folder):
                 observed_points = observed_points.permute(0, 2, 1)
                 samples_median = samples.median(dim=1)
 
-                saits_X = test_batch['obs_data']
+                saits_X = test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
 
                 for feature in given_features:
