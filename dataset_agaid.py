@@ -5,51 +5,38 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-def parse_data(sample, rate, is_test=False):
+def parse_data(sample, rate, is_test=False, length=100):
     """Get mask of random points (missing at random) across channels based on k,
     where k == number of data points. Mask of sample's shape where 0's to be imputed, and 1's to preserved
     as per ts imputers"""
     if isinstance(sample, torch.Tensor):
         sample = sample.numpy()
 
-    shp = sample.shape
     obs_mask = ~np.isnan(sample)
-    evals = sample.reshape(-1)
-
+    
     if not is_test:
+        shp = sample.shape
+        evals = sample.reshape(-1)
         indices = np.where(~np.isnan(evals))[0].tolist()
         indices = np.random.choice(indices, int(len(indices) * rate))
         values = evals.copy()
         values[indices] = np.nan
-
         mask = ~np.isnan(values)
         mask = mask.reshape(shp)
-        # mask = torch.tensor(mask, dtype=torch.float32)
-    else:
-        mask = None
+        obs_data = np.nan_to_num(evals, copy=True)
+        obs_data = obs_data.reshape(shp)
+        obs_data_intact = evals.reshape(shp)
+    else:       
+        start_idx = np.random.choice(np.arange(sample.shape[1] - length))
+        end_idx = start_idx + length
+        obs_data = sample.copy()
+        obs_data_intact[:, start_idx:end_idx, :] = np.nan
+        mask = ~np.isnan(obs_data_intact)
+        obs_data = np.nan_to_num(obs_data_intact, copy=True)
 
-    # eval_masks = (~np.isnan(values)) ^ (~np.isnan(evals))
-    obs_data = np.nan_to_num(evals, copy=True)
-    obs_data = obs_data.reshape(shp)
-    # values = values.reshape(shp)
-    
-    
-    # obs_mask = torch.tensor(obs_mask, dtype=torch.float32)
-    # obs_data = torch.tensor(obs_data, dtype=torch.float32)
-    return obs_data, obs_mask, mask
-
+    return obs_data, obs_mask, mask, obs_data_intact
 
 
-    # flatten_sample = np.reshape(sample, -1)
-    # k = int(len(flatten_sample) * rate)
-    # mask = torch.ones(sample.shape)
-    # length_index = torch.tensor(range(mask.shape[0]))  # lenght of series indexes
-    # for channel in range(mask.shape[1]):
-    #     perm = torch.randperm(len(length_index))
-    #     idx = perm[0:k]
-    #     mask[:, channel][idx] = 0
-
-    # return mask
 
 
 def get_mask_mnr(sample, rate):
@@ -89,6 +76,7 @@ class Agaid_Dataset(Dataset):
         super().__init__()
         self.eval_length = eval_length
         self.observed_values = []
+        self.obs_data_intact = []
         self.observed_masks = []
         self.gt_masks = []
         
@@ -97,13 +85,14 @@ class Agaid_Dataset(Dataset):
         
         
         for i in range(len(X)):
-            obs_data, obs_mask, gt_mask = parse_data(X[i], rate=rate, is_test=is_test)
-            if not is_test:
-                self.gt_masks.append(gt_mask)
+            obs_data, obs_mask, gt_mask, obs_data_intact = parse_data(X[i], rate=rate, is_test=is_test)
+            self.obs_data_intact.append(obs_data_intact)
+            self.gt_masks.append(gt_mask)
             self.observed_values.append(obs_data)
             self.observed_masks.append(obs_mask)
         self.gt_masks = torch.tensor(self.gt_masks, dtype=torch.float32)
         self.observed_values = torch.tensor(self.observed_values, dtype=torch.float32)
+        self.obs_data_intact = np.array(self.obs_data_intact)
         self.observed_masks = torch.tensor(self.observed_masks, dtype=torch.float32)
         self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
 
@@ -112,6 +101,7 @@ class Agaid_Dataset(Dataset):
             "observed_data": self.observed_values[index],
             "observed_mask": self.observed_masks[index],
             # "gt_mask": self.gt_masks[index],
+            "obs_intact": self.obs_data_intact[index],
             "timepoints": np.arange(self.eval_length),
         }
         if len(self.gt_masks) == 0:
@@ -143,7 +133,7 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
         test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
 
-def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, missing_ratio=0.2, seed=10, is_test=False, season_idx=-1):
+def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.2, seed=10, season_idx=-1):
     np.random.seed(seed=seed)
     df = pd.read_csv(filename)
     modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
@@ -152,7 +142,8 @@ def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
     train_season_df = train_season_df.drop(season_array[-2], axis=0)
     mean, std = get_mean_std(train_season_df, features)
     X, Y = split_XY(season_df, max_length, season_array, features)
-    test_dataset = Agaid_Dataset(X[season_idx], mean, std, rate=missing_ratio)
+    X = np.expand_dims(X[season_idx], 0)
+    test_dataset = Agaid_Dataset(X, mean, std, rate=missing_ratio, is_test=True)
     test_loader = DataLoader(test_dataset, batch_size=1)
 
     return test_loader

@@ -1,10 +1,13 @@
 from main_model import CSDI_Agaid
 from dataset_agaid import get_dataloader
-from utils import train, evaluate
+from utils import train, evaluate, evaluate_imputation
 import numpy as np
 import torch
 import sys
 import os
+from pypots.imputation import SAITS
+from process_data import *
+import pickle
 np.set_printoptions(threshold=sys.maxsize)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,5 +59,32 @@ train(
     foldername=model_folder,
 )
 nsample = 50
-model.load_state_dict(torch.load(f"{model_folder}/model.pth"))
-evaluate(model, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
+model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
+# evaluate(model, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
+
+
+filename = "ColdHardiness_Grape_Merlot_2.csv"
+df = pd.read_csv(filename)
+modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+train_season_df = season_df.drop(season_array[-1], axis=0)
+train_season_df = train_season_df.drop(season_array[-2], axis=0)
+mean, std = get_mean_std(train_season_df, features)
+X, Y = split_XY(season_df, max_length, season_array, features)
+
+observed_mask = ~np.isnan(X)
+
+X = X[:-2]
+X = (X - mean) / std
+saits_model_file = f"{model_folder}/model_saits.pth"
+saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
+
+models = {
+    'CSDI': model,
+    'SAITS': saits
+}
+mse_folder = "results_mse"
+evaluate_imputation(models, mse_folder)
