@@ -146,6 +146,7 @@ def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.
     X, Y = split_XY(season_df, max_length, season_array, features)
     print(f"X: {X.shape}\nidx: {season_idx}")
     X = np.expand_dims(X[season_idx], 0)
+    print(f"X expand: {X.shape}")
     test_dataset = Agaid_Dataset(X, mean, std, rate=missing_ratio, is_test=True)
     test_loader = DataLoader(test_dataset, batch_size=1)
 
