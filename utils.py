@@ -16,7 +16,7 @@ def train(
 ):
     optimizer = Adam(model.parameters(), lr=config["lr"], weight_decay=1e-6)
     if foldername != "":
-        output_path = foldername + "/model.pth"
+        output_path = foldername + "/model_csdi.pth"
 
     p1 = int(0.75 * config["epochs"])
     p2 = int(0.9 * config["epochs"])
