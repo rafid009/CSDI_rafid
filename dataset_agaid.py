@@ -27,7 +27,7 @@ def parse_data(sample, rate, is_test=False, length=100):
         obs_data = obs_data.reshape(shp)
         obs_data_intact = evals.reshape(shp)
     else:
-        a = np.arange(sample.shape[1] - length)
+        a = np.arange(sample.shape[0] - length)
         print(f"a: {a}\nsample: {sample.shape}")
         start_idx = np.random.choice(a)
         end_idx = start_idx + length
