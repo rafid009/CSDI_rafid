@@ -6,6 +6,8 @@ import pickle
 import json
 from dataset_agaid import *
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 def train(
     model,
     config,
@@ -285,7 +287,7 @@ def evaluate_imputation(models, mse_folder):
                     else:
                         mse_csdi_total[feature] += mse_csdi
 
-                    mse_saits = ((torch.tensor(saits_output[0, :, feature_idx])- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                    mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                     mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                     if feature not in mse_saits_total.keys():
                         mse_saits_total[feature] = mse_saits
