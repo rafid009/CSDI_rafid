@@ -277,6 +277,7 @@ def evaluate_imputation(models, mse_folder):
 
                 for feature in given_features:
                     feature_idx = given_features.index(feature)
+                    print(f"samp median: {samples_median.shape}\ntarget: {c_target.shape}\neval: {eval_points.shape}")
                     mse_csdi = ((samples_median[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                     mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                     if feature not in mse_csdi_total.keys():
