@@ -26,8 +26,10 @@ def parse_data(sample, rate, is_test=False, length=100):
         obs_data = np.nan_to_num(evals, copy=True)
         obs_data = obs_data.reshape(shp)
         obs_data_intact = evals.reshape(shp)
-    else:       
-        start_idx = np.random.choice(np.arange(sample.shape[1] - length))
+    else:
+        a = np.arange(sample.shape[1] - length)
+        print(f"a: {a}\nsample: {sample.shape}")
+        start_idx = np.random.choice(a)
         end_idx = start_idx + length
         obs_data = sample.copy()
         obs_data_intact[:, start_idx:end_idx, :] = np.nan
