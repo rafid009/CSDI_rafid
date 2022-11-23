@@ -32,6 +32,7 @@ def parse_data(sample, rate, is_test=False, length=100):
         start_idx = np.random.choice(a)
         end_idx = start_idx + length
         obs_data = sample.copy()
+        obs_data_intact = sample.copy()
         obs_data_intact[:, start_idx:end_idx, :] = np.nan
         mask = ~np.isnan(obs_data_intact)
         obs_data = np.nan_to_num(obs_data_intact, copy=True)
