@@ -51,13 +51,13 @@ model_folder = "./saved_model"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 
-train(
-    model,
-    config_dict["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-)
+# train(
+#     model,
+#     config_dict["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+# )
 nsample = 50
 model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
 # evaluate(model, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
@@ -77,10 +77,12 @@ observed_mask = ~np.isnan(X)
 X = X[:-2]
 X = (X - mean) / std
 saits_model_file = f"{model_folder}/model_saits.pth"
-saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+# saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
-saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-pickle.dump(saits, open(saits_model_file, 'wb'))
+# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+# pickle.dump(saits, open(saits_model_file, 'wb'))
+
+saits = pickle.load(open(saits_model_file, 'rb'))
 
 models = {
     'CSDI': model,

@@ -295,7 +295,10 @@ def evaluate_imputation(models, mse_folder, trials=30):
                         if feature not in mse_csdi_total.keys():
                             mse_csdi_total[feature] = {str(i): mse_csdi}
                         else:
-                            mse_csdi_total[feature][str(i)] += mse_csdi
+                            if str(i) in mse_csdi_total[feature].keys():
+                                mse_csdi_total[feature][str(i)] = mse_csdi
+                            else:
+                                mse_csdi_total[feature][str(i)] += mse_csdi
 
                         
                     mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
