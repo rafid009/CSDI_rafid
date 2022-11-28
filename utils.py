@@ -295,7 +295,7 @@ def evaluate_imputation(models, mse_folder, trials=30):
                         if feature not in mse_csdi_total.keys():
                             mse_csdi_total[feature] = {str(i): mse_csdi}
                         else:
-                            if str(i) in mse_csdi_total[feature].keys():
+                            if str(i) not in mse_csdi_total[feature].keys():
                                 mse_csdi_total[feature][str(i)] = mse_csdi
                             else:
                                 mse_csdi_total[feature][str(i)] += mse_csdi
