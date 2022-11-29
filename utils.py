@@ -358,7 +358,7 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
     plt.close()
 
 
-def evaluate_imputation_data(models, mse_folder, lengths):
+def evaluate_imputation_data(models, mse_folder, length):
     seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -453,7 +453,7 @@ def evaluate_imputation_data(models, mse_folder, lengths):
                     'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
                     'saits': saits_output[0, :, feature_idx]
                 }
-                draw_data_plot(results, feature, season, folder='subplots', num_missing=100)
+                draw_data_plot(results, feature, season, folder='subplots', num_missing=length)
                 
         # print(f"For season = {season}:")
         # for feature in features:
