@@ -5,6 +5,7 @@ from tqdm import tqdm
 import pickle
 import json
 from dataset_agaid import *
+import matplotlib.pyplot as plt
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -266,7 +267,6 @@ def evaluate_imputation(models, mse_folder, trials=30):
             test_loader = get_testloader(seed=(10 + i), season_idx=season_idx)
             for i, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
-
                 samples, c_target, eval_points, observed_points, observed_time = output
                 samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
                 c_target = c_target.permute(0, 2, 1)  # (B,L,K)
@@ -279,9 +279,6 @@ def evaluate_imputation(models, mse_folder, trials=30):
 
                 for feature in given_features:
                     feature_idx = given_features.index(feature)
-                    # print(f"samp median: {samples_median.values.shape}\ntarget: {c_target.shape}\neval: {eval_points.shape}")
-                    
-                    
                     mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                     mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                     if feature not in mse_csdi_total.keys():
@@ -299,7 +296,6 @@ def evaluate_imputation(models, mse_folder, trials=30):
                                 mse_csdi_total[feature][str(i)] = mse_csdi
                             else:
                                 mse_csdi_total[feature][str(i)] += mse_csdi
-
                         
                     mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                     mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
@@ -326,4 +322,152 @@ def evaluate_imputation(models, mse_folder, trials=30):
     json.dump(season_avg_mse, out_file, indent = 4)
     
     out_file.close()
+
+
+def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
+    
+    plt.figure(figsize=(40,28))
+    plt.title(f"For feature = {f} in Season {season}", fontsize=30)
+
+    ax = plt.subplot(411)
+    ax.set_title('Feature = '+f+' Season = '+season+' original data', fontsize=27)
+    plt.plot(np.arange(results['real'].shape[0]), results['real'], 'tab:blue')
+    ax.set_xlabel('Days', fontsize=25)
+    ax.set_ylabel('Values', fontsize=25)
+    plt.plot(np.arange(results['missing'].shape[0]), results['missing'], 'tab:blue')
+    ax.set_xlabel('Days', fontsize=25)
+    ax.set_ylabel('Values', fontsize=25)
+    plt.plot(np.arange(results['csdi'].shape[0]), results['csdi'], 'tab:orange')
+    ax.set_xlabel('Days', fontsize=25)
+    ax.set_ylabel('Values', fontsize=25)
+    plt.plot(np.arange(results['saits'].shape[0]), results['saits'], 'tab:green')
+    ax.set_xlabel('Days', fontsize=25)
+    ax.set_ylabel('Values', fontsize=25)
+    
+    plt.tight_layout(pad=5)
+    folder = f"{folder}/{season}/{f}"
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    plt.savefig(f"{folder}/{f}-imputations-season-{season}-{num_missing}.png", dpi=300)
+    plt.close()
+
+
+def evaluate_imputation_data(models, mse_folder, lengths):
+    seasons = {
+    # '1988-1989': 0,
+    # '1989-1990': 1,
+    # '1990-1991': 2,
+    # '1991-1992': 3,
+    # '1992-1993': 4,
+    # '1993-1994': 5,
+    # '1994-1995': 6,
+    # '1995-1996': 7,
+    # '1996-1997': 8,
+    # '1997-1998': 9,
+    # '1998-1999': 10,
+    # '1999-2000': 11,
+    # '2000-2001': 12,
+    # '2001-2002': 13,
+    # '2002-2003': 14,
+    # '2003-2004': 15,
+    # '2004-2005': 16,
+    # '2005-2006': 17,
+    # '2006-2007': 18,
+    # '2007-2008': 19,
+    # '2008-2009': 20,
+    # '2009-2010': 21,
+    # '2010-2011': 22,
+    # '2011-2012': 23,
+    # '2012-2013': 24,
+    # '2013-2014': 25,
+    # '2014-2015': 26,
+    # '2015-2016': 27,
+    # '2016-2017': 28,
+    # '2017-2018': 29,
+    # '2018-2019': 30,
+    # '2019-2020': 31,
+    '2020-2021': 32,
+    '2021-2022': 33,
+    }
+
+
+    given_features = [
+        'MEAN_AT', # mean temperature is the calculation of (max_f+min_f)/2 and then converted to Celsius. # they use this one
+        'MIN_AT',
+        'AVG_AT', # average temp is AgWeather Network
+        'MAX_AT',
+        'MIN_REL_HUMIDITY',
+        'AVG_REL_HUMIDITY',
+        'MAX_REL_HUMIDITY',
+        'MIN_DEWPT',
+        'AVG_DEWPT',
+        'MAX_DEWPT',
+        'P_INCHES', # precipitation
+        'WS_MPH', # wind speed. if no sensor then value will be na
+        'MAX_WS_MPH', 
+        'LW_UNITY', # leaf wetness sensor
+        'SR_WM2', # solar radiation # different from zengxian
+        'MIN_ST8', # diff from zengxian
+        'ST8', # soil temperature # diff from zengxian
+        'MAX_ST8', # diff from zengxian
+        #'MSLP_HPA', # barrometric pressure # diff from zengxian
+        'ETO', # evaporation of soil water lost to atmosphere
+        'ETR',
+        'LTE50' # ???
+    ]
+    nsample = 50
+    # trials = 30
+    season_avg_mse = {}
+    for season in seasons.keys():
+        print(f"For season: {season}")
+        season_idx = seasons[season]
+        mse_csdi_total = {}
+        mse_saits_total = {}
+        # for i in range(trials):
+        test_loader = get_testloader(seed=(10 + i), season_idx=season_idx)
+        for i, test_batch in enumerate(test_loader, start=1):
+            output = models['CSDI'].evaluate(test_batch, nsample)
+            samples, c_target, eval_points, observed_points, observed_time = output
+            samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
+            c_target = c_target.permute(0, 2, 1)  # (B,L,K)
+            eval_points = eval_points.permute(0, 2, 1)
+            observed_points = observed_points.permute(0, 2, 1)
+            samples_median = samples.median(dim=1)
+
+            saits_X = test_batch['obs_data_intact']
+            saits_output = models['SAITS'].impute(saits_X)
+
+            for feature in given_features:
+                feature_idx = given_features.index(feature)
+                cond_mask = observed_points - eval_points
+                missing = c_target * cond_mask
+                results = {
+                    'real': c_target[0, :, feature_idx],
+                    'missing': missing[0, :, feature_idx],
+                    'csdi': samples_median.values[0, :, feature_idx],
+                    'saits': saits_output[0, :, feature_idx]
+
+                }
+
+                draw_data_plot(results, feature, season, folder='subplots', num_missing=100)
+                
+        # print(f"For season = {season}:")
+        # for feature in features:
+        #     for i in mse_csdi_total[feature].keys():
+        #         mse_csdi_total[feature][i] /= trials
+        #     mse_saits_total[feature] /= trials
+        #     print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tSAITS mse: {mse_saits_total[feature]}")
+        # season_avg_mse[season] = {
+        #     'CSDI': mse_csdi_total,
+        #     'SAITS': mse_saits_total
+        # }
+
+    # if not os.path.isdir(mse_folder):
+    #     os.makedirs(mse_folder)
+
+    # out_file = open(f"{mse_folder}/test_avg_mse_seasons.json", "w")
+  
+    # json.dump(season_avg_mse, out_file, indent = 4)
+    
+    # out_file.close()
 

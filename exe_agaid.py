@@ -1,6 +1,6 @@
 from main_model import CSDI_Agaid
 from dataset_agaid import get_dataloader
-from utils import train, evaluate, evaluate_imputation
+from utils import *
 import numpy as np
 import torch
 import sys
@@ -89,4 +89,7 @@ models = {
     'SAITS': saits
 }
 mse_folder = "results_mse"
-evaluate_imputation(models, mse_folder)
+# evaluate_imputation(models, mse_folder)
+lengths = [50, 100, 150, 200, 250]
+for l in lengths:
+    evaluate_imputation_data(models, "", l)

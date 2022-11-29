@@ -28,7 +28,7 @@ def parse_data(sample, rate, is_test=False, length=100):
         obs_data_intact = evals.reshape(shp)
     else:
         a = np.arange(sample.shape[0] - length)
-        print(f"a: {a}\nsample: {sample.shape}")
+        # print(f"a: {a}\nsample: {sample.shape}")
         start_idx = np.random.choice(a)
         end_idx = start_idx + length
         obs_data_intact = sample.copy()
@@ -75,7 +75,7 @@ def get_mask_bm(sample, rate):
 
 
 class Agaid_Dataset(Dataset):
-    def __init__(self, X, mean, std, eval_length=252, rate=0.2, is_test=False) -> None:
+    def __init__(self, X, mean, std, eval_length=252, rate=0.2, is_test=False, length=100) -> None:
         super().__init__()
         self.eval_length = eval_length
         self.observed_values = []
@@ -88,7 +88,7 @@ class Agaid_Dataset(Dataset):
         
         
         for i in range(len(X)):
-            obs_data, obs_mask, gt_mask, obs_data_intact = parse_data(X[i], rate=rate, is_test=is_test)
+            obs_data, obs_mask, gt_mask, obs_data_intact = parse_data(X[i], rate=rate, is_test=is_test, length=length)
             self.obs_data_intact.append(obs_data_intact)
             self.gt_masks.append(gt_mask)
             self.observed_values.append(obs_data)
