@@ -335,20 +335,23 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
     ax.set_xlabel('Days', fontsize=25)
     ax.set_ylabel('Values', fontsize=25)
     ax = plt.subplot(412)
+    ax.set_title('Feature = '+f+' Season = '+season+' original data', fontsize=27)
     plt.plot(np.arange(results['missing'].shape[0]), results['missing'], 'tab:blue')
     ax.set_xlabel('Days', fontsize=25)
     ax.set_ylabel('Values', fontsize=25)
     ax = plt.subplot(413)
+    ax.set_title('Feature = '+f+' Season = '+season+' original data', fontsize=27)
     plt.plot(np.arange(results['csdi'].shape[0]), results['csdi'], 'tab:orange')
     ax.set_xlabel('Days', fontsize=25)
     ax.set_ylabel('Values', fontsize=25)
     ax = plt.subplot(414)
+    ax.set_title('Feature = '+f+' Season = '+season+' original data', fontsize=27)
     plt.plot(np.arange(results['saits'].shape[0]), results['saits'], 'tab:green')
     ax.set_xlabel('Days', fontsize=25)
     ax.set_ylabel('Values', fontsize=25)
     
     plt.tight_layout(pad=5)
-    folder = f"{folder}/{season}/{f}"
+    folder = f"{season}/{f}"
     if not os.path.isdir(folder):
         os.makedirs(folder)
     plt.savefig(f"{folder}/{f}-imputations-season-{season}-{num_missing}.png", dpi=300)
@@ -449,9 +452,7 @@ def evaluate_imputation_data(models, mse_folder, lengths):
                     'missing': missing[0, :, feature_idx].cpu().numpy(),
                     'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
                     'saits': saits_output[0, :, feature_idx]
-
                 }
-
                 draw_data_plot(results, feature, season, folder='subplots', num_missing=100)
                 
         # print(f"For season = {season}:")
