@@ -442,10 +442,10 @@ def evaluate_imputation_data(models, mse_folder, lengths):
                 cond_mask = observed_points - eval_points
                 missing = c_target * cond_mask
                 results = {
-                    'real': c_target[0, :, feature_idx],
-                    'missing': missing[0, :, feature_idx],
-                    'csdi': samples_median.values[0, :, feature_idx],
-                    'saits': saits_output[0, :, feature_idx]
+                    'real': c_target[0, :, feature_idx].cpu().numpy(),
+                    'missing': missing[0, :, feature_idx].cpu().numpy(),
+                    'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
+                    'saits': saits_output[0, :, feature_idx].cpu().numpy()
 
                 }
 
