@@ -445,7 +445,7 @@ def evaluate_imputation_data(models, mse_folder, lengths):
                     'real': c_target[0, :, feature_idx].cpu().numpy(),
                     'missing': missing[0, :, feature_idx].cpu().numpy(),
                     'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
-                    'saits': saits_output[0, :, feature_idx].cpu().numpy()
+                    'saits': saits_output[0, :, feature_idx]
 
                 }
 
