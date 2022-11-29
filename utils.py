@@ -424,7 +424,7 @@ def evaluate_imputation_data(models, mse_folder, lengths):
         mse_csdi_total = {}
         mse_saits_total = {}
         # for i in range(trials):
-        test_loader = get_testloader(seed=(10 + i), season_idx=season_idx)
+        test_loader = get_testloader(seed=10, season_idx=season_idx)
         for i, test_batch in enumerate(test_loader, start=1):
             output = models['CSDI'].evaluate(test_batch, nsample)
             samples, c_target, eval_points, observed_points, observed_time = output
