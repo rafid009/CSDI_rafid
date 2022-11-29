@@ -351,7 +351,7 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
     ax.set_ylabel('Values', fontsize=25)
     
     plt.tight_layout(pad=5)
-    folder = f"{season}/{f}"
+    folder = f"{folder}/{season}"
     if not os.path.isdir(folder):
         os.makedirs(folder)
     plt.savefig(f"{folder}/{f}-imputations-season-{season}-{num_missing}.png", dpi=300)
