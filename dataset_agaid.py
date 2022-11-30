@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-def parse_data(sample, rate, is_test=False, length=100):
+def parse_data(sample, rate, is_test=False, length=100, include_features=None):
     """Get mask of random points (missing at random) across channels based on k,
     where k == number of data points. Mask of sample's shape where 0's to be imputed, and 1's to preserved
     as per ts imputers"""
@@ -34,7 +34,10 @@ def parse_data(sample, rate, is_test=False, length=100):
         print(f"random choice: {start_idx}")
         end_idx = start_idx + length
         obs_data_intact = sample.copy()
-        obs_data_intact[start_idx:end_idx, :] = np.nan
+        if include_features is None or len(include_features) == 0:
+            obs_data_intact[start_idx:end_idx, :] = np.nan
+        else:
+            obs_data_intact[start_idx:end_idx, include_features] = np.nan
         mask = ~np.isnan(obs_data_intact)
         obs_intact = obs_data_intact.copy()
         obs_data = np.nan_to_num(obs_intact, copy=True)
@@ -76,7 +79,7 @@ def get_mask_bm(sample, rate):
 
 
 class Agaid_Dataset(Dataset):
-    def __init__(self, X, mean, std, eval_length=252, rate=0.2, is_test=False, length=100) -> None:
+    def __init__(self, X, mean, std, eval_length=252, rate=0.2, is_test=False, length=100, exclude_features=None) -> None:
         super().__init__()
         self.eval_length = eval_length
         self.observed_values = []
@@ -88,9 +91,12 @@ class Agaid_Dataset(Dataset):
         self.mean = torch.tensor(mean, dtype=torch.float32)
         self.std = torch.tensor(std, dtype=torch.float32)
         
-        
+        include_features = []
+        for feature in features:
+            if feature not in exclude_features:
+                include_features.append(features.index(feature))
         for i in range(len(X)):
-            obs_data, obs_mask, gt_mask, obs_data_intact, gt_intact_data = parse_data(X[i], rate=rate, is_test=is_test, length=length)
+            obs_data, obs_mask, gt_mask, obs_data_intact, gt_intact_data = parse_data(X[i], rate=rate, is_test=is_test, length=length, include_features=include_features)
             self.obs_data_intact.append(obs_data_intact)
             self.gt_masks.append(gt_mask)
             self.observed_values.append(obs_data)
@@ -143,7 +149,7 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
         test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
 
-def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.2, seed=10, season_idx=-1):
+def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.2, seed=10, season_idx=-1, exclude_features=None):
     np.random.seed(seed=seed)
     df = pd.read_csv(filename)
     modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)

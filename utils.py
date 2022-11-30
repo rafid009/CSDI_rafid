@@ -258,13 +258,14 @@ def evaluate_imputation(models, mse_folder, trials=30):
     nsample = 50
     # trials = 30
     season_avg_mse = {}
+    exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
     for season in seasons.keys():
         print(f"For season: {season}")
         season_idx = seasons[season]
         mse_csdi_total = {}
         mse_saits_total = {}
         for i in range(trials):
-            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx)
+            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features)
             for i, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time = output
@@ -448,7 +449,7 @@ def evaluate_imputation_data(models, mse_folder, length):
             for feature in given_features:
                 feature_idx = given_features.index(feature)
                 cond_mask = observed_points - eval_points
-                missing = c_target * cond_mask
+                missing = gt_intact
                 results = {
                     'real': obs_data_intact[0, :, feature_idx].cpu().numpy(),
                     'missing': missing[0, :, feature_idx].cpu().numpy(),
