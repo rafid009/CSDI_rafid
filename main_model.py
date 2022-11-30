@@ -295,7 +295,7 @@ class CSDI_Agaid(CSDI_base):
         observed_tp = batch["timepoints"].to(self.device).float()
         gt_mask = batch["gt_mask"].to(self.device).float()
         observed_data_intact = batch["obs_data_intact"].to(self.device).float()
-        gt_intact = batch["gt_intact"].to(self.device).float()
+        gt_intact = batch["gt_intact"]#.to(self.device).float()
 
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
