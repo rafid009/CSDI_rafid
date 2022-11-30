@@ -424,16 +424,18 @@ def evaluate_imputation_data(models, mse_folder, length):
     nsample = 50
     # trials = 30
     season_avg_mse = {}
+    i = 0
     for season in seasons.keys():
         print(f"For season: {season}")
+        i += 1
         season_idx = seasons[season]
         mse_csdi_total = {}
         mse_saits_total = {}
         # for i in range(trials):
-        test_loader = get_testloader(seed=100, season_idx=season_idx)
+        test_loader = get_testloader(seed=10 + 10 * i, season_idx=season_idx)
         for i, test_batch in enumerate(test_loader, start=1):
             output = models['CSDI'].evaluate(test_batch, nsample)
-            samples, c_target, eval_points, observed_points, observed_time = output
+            samples, c_target, eval_points, observed_points, observed_time, obs_data_intact = output
             samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
             c_target = c_target.permute(0, 2, 1)  # (B,L,K)
             eval_points = eval_points.permute(0, 2, 1)
@@ -448,7 +450,7 @@ def evaluate_imputation_data(models, mse_folder, length):
                 cond_mask = observed_points - eval_points
                 missing = c_target * cond_mask
                 results = {
-                    'real': c_target[0, :, feature_idx].cpu().numpy(),
+                    'real': obs_data_intact[0, :, feature_idx].cpu().numpy(),
                     'missing': missing[0, :, feature_idx].cpu().numpy(),
                     'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
                     'saits': saits_output[0, :, feature_idx]

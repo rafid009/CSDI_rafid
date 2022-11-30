@@ -190,7 +190,7 @@ class CSDI_base(nn.Module):
             observed_tp,
             gt_mask,
             for_pattern_mask,
-            _,
+            _, _
         ) = self.process_data(batch)
         if is_train == 0:
             cond_mask = gt_mask
@@ -215,6 +215,7 @@ class CSDI_base(nn.Module):
             gt_mask,
             _,
             cut_length,
+            obs_data_inact
         ) = self.process_data(batch)
 
         with torch.no_grad():
@@ -227,7 +228,7 @@ class CSDI_base(nn.Module):
 
             for i in range(len(cut_length)):  # to avoid double evaluation
                 target_mask[i, ..., 0 : cut_length[i].item()] = 0
-        return samples, observed_data, target_mask, observed_mask, observed_tp
+        return samples, observed_data, target_mask, observed_mask, observed_tp, obs_data_inact
 
 
 class CSDI_PM25(CSDI_base):
@@ -292,6 +293,7 @@ class CSDI_Agaid(CSDI_base):
         observed_mask = batch["observed_mask"].to(self.device).float()
         observed_tp = batch["timepoints"].to(self.device).float()
         gt_mask = batch["gt_mask"].to(self.device).float()
+        observed_data_intact = batch["obs_data_intact"].to(self.device).float()
 
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
@@ -307,4 +309,5 @@ class CSDI_Agaid(CSDI_base):
             gt_mask,
             for_pattern_mask,
             cut_length,
+            observed_data_intact
         )
