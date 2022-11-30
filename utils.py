@@ -192,7 +192,7 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
                 print("MAE:", mae_total / evalpoints_total)
                 print("CRPS:", CRPS)
 
-def evaluate_imputation(models, mse_folder, trials=30):
+def evaluate_imputation(models, mse_folder, trials=30, length=100):
     seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -265,7 +265,7 @@ def evaluate_imputation(models, mse_folder, trials=30):
         mse_csdi_total = {}
         mse_saits_total = {}
         for i in range(trials):
-            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features)
+            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
             for i, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time, _, _ = output
@@ -322,7 +322,7 @@ def evaluate_imputation(models, mse_folder, trials=30):
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
 
-    out_file = open(f"{mse_folder}/test_avg_mse_seasons.json", "w")
+    out_file = open(f"{mse_folder}/test_avg_mse_seasons_{length}.json", "w")
   
     json.dump(season_avg_mse, out_file, indent = 4)
     
@@ -437,7 +437,7 @@ def evaluate_imputation_data(models, mse_folder, length):
         mse_csdi_total = {}
         mse_saits_total = {}
         # for i in range(trials):
-        test_loader = get_testloader(seed=10 + 10 * i, season_idx=season_idx)
+        test_loader = get_testloader(seed=10 + 10 * i, season_idx=season_idx, length=length)
         for i, test_batch in enumerate(test_loader, start=1):
             output = models['CSDI'].evaluate(test_batch, nsample)
             samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output

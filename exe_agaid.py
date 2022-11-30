@@ -89,7 +89,8 @@ models = {
     'SAITS': saits
 }
 mse_folder = "results_mse"
-evaluate_imputation(models, mse_folder)
-# lengths = [50, 100, 150, 200, 250]
-# for l in lengths:
-#     evaluate_imputation_data(models, "", l)
+
+lengths = [50, 100, 150, 200, 250]
+for l in lengths:
+    evaluate_imputation(models, mse_folder, length=l, trials=20)
+    evaluate_imputation_data(models, "", l)

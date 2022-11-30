@@ -150,8 +150,8 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
         test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
 
-def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.2, seed=10, season_idx=-1, exclude_features=None):
-    np.random.seed(seed=seed)
+def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.2, seed=10, season_idx=-1, exclude_features=None, length=100):
+    # np.random.seed(seed=seed)
     df = pd.read_csv(filename)
     modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
     season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
@@ -162,7 +162,7 @@ def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.
     # print(f"X: {X.shape}\nidx: {season_idx}")
     X = np.expand_dims(X[season_idx], 0)
     # print(f"X expand: {X.shape}")
-    test_dataset = Agaid_Dataset(X, mean, std, rate=missing_ratio, is_test=True)
+    test_dataset = Agaid_Dataset(X, mean, std, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features)
     test_loader = DataLoader(test_dataset, batch_size=1)
 
     return test_loader
