@@ -179,7 +179,7 @@ class CSDI_base(nn.Module):
                         (1.0 - self.alpha[t - 1]) / (1.0 - self.alpha[t]) * self.beta[t]
                     ) ** 0.5
                     current_sample += sigma * noise
-
+            current_sample = (1 - cond_mask) * current_sample + cond_mask * observed_data
             imputed_samples[:, i] = current_sample.detach()
         return imputed_samples
 

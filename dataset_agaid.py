@@ -30,6 +30,7 @@ def parse_data(sample, rate, is_test=False, length=100):
         a = np.arange(sample.shape[0] - length)
         # print(f"a: {a}\nsample: {sample.shape}")
         start_idx = np.random.choice(a)
+        print(f"random choice: {start_idx}")
         end_idx = start_idx + length
         obs_data_intact = sample.copy()
         obs_data_intact = sample.copy()
@@ -145,9 +146,9 @@ def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.
     train_season_df = train_season_df.drop(season_array[-2], axis=0)
     mean, std = get_mean_std(train_season_df, features)
     X, Y = split_XY(season_df, max_length, season_array, features)
-    print(f"X: {X.shape}\nidx: {season_idx}")
+    # print(f"X: {X.shape}\nidx: {season_idx}")
     X = np.expand_dims(X[season_idx], 0)
-    print(f"X expand: {X.shape}")
+    # print(f"X expand: {X.shape}")
     test_dataset = Agaid_Dataset(X, mean, std, rate=missing_ratio, is_test=True)
     test_loader = DataLoader(test_dataset, batch_size=1)
 
