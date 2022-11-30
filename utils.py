@@ -279,6 +279,8 @@ def evaluate_imputation(models, mse_folder, trials=30):
                 saits_output = models['SAITS'].impute(saits_X)
 
                 for feature in given_features:
+                    if feature in exclude_features:
+                        continue
                     feature_idx = given_features.index(feature)
                     mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                     mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
@@ -306,6 +308,8 @@ def evaluate_imputation(models, mse_folder, trials=30):
                         mse_saits_total[feature] += mse_saits
         print(f"For season = {season}:")
         for feature in features:
+            if feature in exclude_features:
+                continue
             for i in mse_csdi_total[feature].keys():
                 mse_csdi_total[feature][i] /= trials
             mse_saits_total[feature] /= trials
