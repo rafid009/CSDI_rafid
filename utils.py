@@ -268,7 +268,7 @@ def evaluate_imputation(models, mse_folder, trials=30):
             test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features)
             for i, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
-                samples, c_target, eval_points, observed_points, observed_time = output
+                samples, c_target, eval_points, observed_points, observed_time, _, _ = output
                 samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
                 c_target = c_target.permute(0, 2, 1)  # (B,L,K)
                 eval_points = eval_points.permute(0, 2, 1)

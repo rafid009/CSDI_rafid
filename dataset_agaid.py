@@ -92,9 +92,10 @@ class Agaid_Dataset(Dataset):
         self.std = torch.tensor(std, dtype=torch.float32)
         
         include_features = []
-        for feature in features:
-            if feature not in exclude_features:
-                include_features.append(features.index(feature))
+        if exclude_features is not None:
+            for feature in features:
+                if feature not in exclude_features:
+                    include_features.append(features.index(feature))
         for i in range(len(X)):
             obs_data, obs_mask, gt_mask, obs_data_intact, gt_intact_data = parse_data(X[i], rate=rate, is_test=is_test, length=length, include_features=include_features)
             self.obs_data_intact.append(obs_data_intact)
