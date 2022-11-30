@@ -33,7 +33,6 @@ def parse_data(sample, rate, is_test=False, length=100):
         print(f"random choice: {start_idx}")
         end_idx = start_idx + length
         obs_data_intact = sample.copy()
-        obs_data_intact = sample.copy()
         obs_data_intact[start_idx:end_idx, :] = np.nan
         mask = ~np.isnan(obs_data_intact)
         obs_data = np.nan_to_num(obs_data_intact, copy=True)
@@ -98,7 +97,7 @@ class Agaid_Dataset(Dataset):
         self.observed_values = torch.tensor(self.observed_values, dtype=torch.float32)
         self.obs_data_intact = np.array(self.obs_data_intact)
         self.observed_masks = torch.tensor(self.observed_masks, dtype=torch.float32)
-        self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
+        self.observed_values = ((self.observed_values - self.mean) / self.std) * self.gt_masks
 
     def __getitem__(self, index):
         s = {
