@@ -268,14 +268,14 @@ def evaluate_imputation(models, mse_folder, trials=30, length=100):
             test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
             for i, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
-                samples, c_target, eval_points, observed_points, observed_time, _, _ = output
+                samples, c_target, eval_points, observed_points, observed_time, obs_intact, gt_intact = output
                 samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
                 c_target = c_target.permute(0, 2, 1)  # (B,L,K)
                 eval_points = eval_points.permute(0, 2, 1)
                 observed_points = observed_points.permute(0, 2, 1)
                 samples_median = samples.median(dim=1)
-
-                saits_X = test_batch['obs_data_intact']
+                gt_intact = gt_intact.squeeze(axis=0)
+                saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
 
                 for feature in given_features:
@@ -452,7 +452,7 @@ def evaluate_imputation_data(models, mse_folder, length):
 
             for feature in given_features:
                 feature_idx = given_features.index(feature)
-                cond_mask = observed_points - eval_points
+                # cond_mask = observed_points - eval_points
                 missing = gt_intact
                 results = {
                     'real': obs_data_intact[0, :, feature_idx].cpu().numpy(),

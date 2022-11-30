@@ -96,7 +96,6 @@ class CSDI_base(nn.Module):
         if self.is_unconditional == False:
             side_mask = cond_mask.unsqueeze(1)  # (B,1,K,L)
             side_info = torch.cat([side_info, side_mask], dim=1)
-
         return side_info
 
     def calc_loss_valid(
