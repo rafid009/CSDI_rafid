@@ -441,7 +441,8 @@ def evaluate_imputation_data(models, mse_folder, length):
             eval_points = eval_points.permute(0, 2, 1)
             observed_points = observed_points.permute(0, 2, 1)
             samples_median = samples.median(dim=1)
-            gt_intact = gt_intact.squeeze()
+            gt_intact = np.expand_dims(gt_intact, axis=0)
+            print(f"gt_intact: {gt_intact.shape}")
             saits_output = models['SAITS'].impute(gt_intact)
 
             for feature in given_features:
