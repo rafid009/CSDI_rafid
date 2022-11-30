@@ -37,7 +37,7 @@ def parse_data(sample, rate, is_test=False, length=100):
         mask = ~np.isnan(obs_data_intact)
         obs_data = np.nan_to_num(obs_data_intact, copy=True)
 
-    return obs_data, obs_mask, mask, obs_data_intact
+    return obs_data, obs_mask, mask, sample
 
 
 
