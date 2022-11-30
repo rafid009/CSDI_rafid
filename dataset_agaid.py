@@ -35,9 +35,9 @@ def parse_data(sample, rate, is_test=False, length=100):
         obs_data_intact = sample.copy()
         obs_data_intact[start_idx:end_idx, :] = np.nan
         mask = ~np.isnan(obs_data_intact)
-        obs_data = np.nan_to_num(obs_data_intact, copy=True)
-
-    return obs_data, obs_mask, mask, sample
+        obs_intact = obs_data_intact.copy()
+        obs_data = np.nan_to_num(obs_intact, copy=True)
+    return obs_data, obs_mask, mask, sample, obs_intact
 
 
 
@@ -82,23 +82,26 @@ class Agaid_Dataset(Dataset):
         self.obs_data_intact = []
         self.observed_masks = []
         self.gt_masks = []
+        self.gt_intact = []
         
         self.mean = torch.tensor(mean, dtype=torch.float32)
         self.std = torch.tensor(std, dtype=torch.float32)
         
         
         for i in range(len(X)):
-            obs_data, obs_mask, gt_mask, obs_data_intact = parse_data(X[i], rate=rate, is_test=is_test, length=length)
+            obs_data, obs_mask, gt_mask, obs_data_intact, gt_intact_data = parse_data(X[i], rate=rate, is_test=is_test, length=length)
             self.obs_data_intact.append(obs_data_intact)
             self.gt_masks.append(gt_mask)
             self.observed_values.append(obs_data)
             self.observed_masks.append(obs_mask)
+            self.gt_intact.append(gt_intact_data)
         self.gt_masks = torch.tensor(self.gt_masks, dtype=torch.float32)
         self.observed_values = torch.tensor(self.observed_values, dtype=torch.float32)
         self.obs_data_intact = np.array(self.obs_data_intact)
+        self.gt_intact = np.array(self.gt_intact)
         self.observed_masks = torch.tensor(self.observed_masks, dtype=torch.float32)
         self.observed_values = ((self.observed_values - self.mean) / self.std) * self.gt_masks
-
+        
     def __getitem__(self, index):
         s = {
             "observed_data": self.observed_values[index],
@@ -106,6 +109,7 @@ class Agaid_Dataset(Dataset):
             # "gt_mask": self.gt_masks[index],
             "obs_data_intact": self.obs_data_intact[index],
             "timepoints": np.arange(self.eval_length),
+            "gt_intact": self.gt_intact
         }
         if len(self.gt_masks) == 0:
             s["gt_mask"] = None

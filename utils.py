@@ -435,15 +435,14 @@ def evaluate_imputation_data(models, mse_folder, length):
         test_loader = get_testloader(seed=10 + 10 * i, season_idx=season_idx)
         for i, test_batch in enumerate(test_loader, start=1):
             output = models['CSDI'].evaluate(test_batch, nsample)
-            samples, c_target, eval_points, observed_points, observed_time, obs_data_intact = output
+            samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output
             samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
             c_target = c_target.permute(0, 2, 1)  # (B,L,K)
             eval_points = eval_points.permute(0, 2, 1)
             observed_points = observed_points.permute(0, 2, 1)
             samples_median = samples.median(dim=1)
 
-            saits_X = test_batch['obs_data_intact']
-            saits_output = models['SAITS'].impute(saits_X)
+            saits_output = models['SAITS'].impute(gt_intact)
 
             for feature in given_features:
                 feature_idx = given_features.index(feature)
