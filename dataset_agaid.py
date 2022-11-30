@@ -23,6 +23,7 @@ def parse_data(sample, rate, is_test=False, length=100):
         values[indices] = np.nan
         mask = ~np.isnan(values)
         mask = mask.reshape(shp)
+        obs_intact = values.reshape(shp).copy()
         obs_data = np.nan_to_num(evals, copy=True)
         obs_data = obs_data.reshape(shp)
         obs_data_intact = evals.reshape(shp)
