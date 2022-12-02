@@ -152,7 +152,7 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
     return train_loader, test_loader
 
 def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.2, seed=10, season_idx=-1, exclude_features=None, length=100):
-    # np.random.seed(seed=seed)
+    np.random.seed(seed=seed)
     df = pd.read_csv(filename)
     modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
     season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)

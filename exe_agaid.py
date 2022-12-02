@@ -90,7 +90,7 @@ models = {
 }
 mse_folder = "results_mse"
 
-lengths = [10, 20, 100, 150, 200, 250]
+lengths = [20, 100, 150, 200, 250]
 for l in lengths:
     evaluate_imputation(models, mse_folder, length=l, trials=20)
     evaluate_imputation_data(models, length=l)
