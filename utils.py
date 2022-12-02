@@ -315,7 +315,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_saits_total[feature] += mse_saits
         print(f"For season = {season}:")
         for feature in features:
-            if feature in exclude_features:
+            if exclude_features is not None and feature in exclude_features:
                 continue
             for i in mse_csdi_total[feature].keys():
                 mse_csdi_total[feature][i] /= trials
