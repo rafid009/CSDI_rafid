@@ -6,8 +6,12 @@ import pickle
 import json
 from dataset_agaid import *
 import matplotlib.pyplot as plt
+import matplotlib
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+matplotlib.rc('xtick', labelsize=20) 
+matplotlib.rc('ytick', labelsize=20) 
+
 
 def train(
     model,
@@ -192,7 +196,7 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
                 print("MAE:", mae_total / evalpoints_total)
                 print("CRPS:", CRPS)
 
-def evaluate_imputation(models, mse_folder, trials=30, length=100):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100):
     seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -258,7 +262,7 @@ def evaluate_imputation(models, mse_folder, trials=30, length=100):
     nsample = 50
     # trials = 30
     season_avg_mse = {}
-    exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
+    # exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
     for season in seasons.keys():
         print(f"For season: {season}")
         season_idx = seasons[season]
@@ -279,7 +283,7 @@ def evaluate_imputation(models, mse_folder, trials=30, length=100):
                 saits_output = models['SAITS'].impute(saits_X)
 
                 for feature in given_features:
-                    if feature in exclude_features:
+                    if exclude_features is not None and feature in exclude_features:
                         continue
                     feature_idx = given_features.index(feature)
                     mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
@@ -322,7 +326,7 @@ def evaluate_imputation(models, mse_folder, trials=30, length=100):
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
 
-    out_file = open(f"{mse_folder}/test_avg_mse_seasons_{length}.json", "w")
+    out_file = open(f"{mse_folder}/test_avg_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}.json", "w")
   
     json.dump(season_avg_mse, out_file, indent = 4)
     
@@ -363,7 +367,7 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
     plt.close()
 
 
-def evaluate_imputation_data(models, mse_folder, length):
+def evaluate_imputation_data(models, exclude_key='', exclude_features=None, length=50):
     seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -427,17 +431,12 @@ def evaluate_imputation_data(models, mse_folder, length):
         'LTE50' # ???
     ]
     nsample = 50
-    # trials = 30
-    season_avg_mse = {}
     i = 0
     for season in seasons.keys():
         print(f"For season: {season}")
         i += 1
         season_idx = seasons[season]
-        mse_csdi_total = {}
-        mse_saits_total = {}
-        # for i in range(trials):
-        test_loader = get_testloader(seed=10 + 10 * i, season_idx=season_idx, length=length)
+        test_loader = get_testloader(seed=10 + 10 * i, season_idx=season_idx, length=length, exclude_features=exclude_features)
         for i, test_batch in enumerate(test_loader, start=1):
             output = models['CSDI'].evaluate(test_batch, nsample)
             samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output
@@ -447,10 +446,12 @@ def evaluate_imputation_data(models, mse_folder, length):
             observed_points = observed_points.permute(0, 2, 1)
             samples_median = samples.median(dim=1)
             gt_intact = gt_intact.squeeze(axis=0)
-            print(f"gt_intact: {gt_intact.shape}")
+            # print(f"gt_intact: {gt_intact.shape}")
             saits_output = models['SAITS'].impute(gt_intact)
 
             for feature in given_features:
+                if exclude_features is not None and feature in exclude_features:
+                    continue
                 feature_idx = given_features.index(feature)
                 # cond_mask = observed_points - eval_points
                 missing = gt_intact
@@ -460,7 +461,7 @@ def evaluate_imputation_data(models, mse_folder, length):
                     'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
                     'saits': saits_output[0, :, feature_idx]
                 }
-                draw_data_plot(results, feature, season, folder='subplots', num_missing=length)
+                draw_data_plot(results, feature, season, folder=f"subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
                 
         # print(f"For season = {season}:")
         # for feature in features:

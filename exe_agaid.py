@@ -90,7 +90,24 @@ models = {
 }
 mse_folder = "results_mse"
 
-lengths = [50, 100, 150, 200, 250]
+lengths = [10, 20, 100, 150, 200, 250]
 for l in lengths:
     evaluate_imputation(models, mse_folder, length=l, trials=20)
-    evaluate_imputation_data(models, "", l)
+    evaluate_imputation_data(models, length=l)
+
+feature_combinations = {
+    "temp": ["MEAN_AT", "MIN_AT", "AVG_AT", "MAX_AT"],
+    "hum": ["AVG_REL_HUMIDITY", "MIN_REL_HUMIDITY", "MAX_REL_HUMIDITY"],
+    "dew": ["AVG_DEWPT", "MIN_DEWPT", "MAX_DEWPT"],
+    "pinch": ["P_INCHES"],
+    "wind": ["WS_MPH", "MAX_WS_MPH"],
+    "sr": ["SR_WM2"],
+    "leaf": ["LW_UNITY"],
+    "et": ["ETO", "ETR"],
+    "st": ["ST8", "MIN_ST8", "MAX_ST8"]
+}
+
+for key in feature_combinations.keys():
+    for l in lengths:
+        evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=20)
+        evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
