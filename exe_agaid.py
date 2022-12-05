@@ -8,6 +8,7 @@ import os
 from pypots.imputation import SAITS
 from process_data import *
 import pickle
+
 np.set_printoptions(threshold=sys.maxsize)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -64,13 +65,13 @@ model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
 
 
 filename = "ColdHardiness_Grape_Merlot_2.csv"
-# df = pd.read_csv(filename)
-# modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
-# season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
-# train_season_df = season_df.drop(season_array[-1], axis=0)
-# train_season_df = train_season_df.drop(season_array[-2], axis=0)
-# mean, std = get_mean_std(train_season_df, features)
-# X, Y = split_XY(season_df, max_length, season_array, features)
+df = pd.read_csv(filename)
+modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+train_season_df = season_df.drop(season_array[-1], axis=0)
+train_season_df = train_season_df.drop(season_array[-2], axis=0)
+mean, std = get_mean_std(train_season_df, features)
+X, Y = split_XY(season_df, max_length, season_array, features)
 
 # # observed_mask = ~np.isnan(X)
 
