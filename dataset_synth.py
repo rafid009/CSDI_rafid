@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
-from synthetic_data import create_synthetic_data
+from synthetic_data import create_synthetic_data, feats
 
 def parse_data(sample, rate, is_test=False, length=100, include_features=None):
     """
@@ -37,6 +37,7 @@ def parse_data(sample, rate, is_test=False, length=100, include_features=None):
         if include_features is None or len(include_features) == 0:
             obs_data_intact[start_idx:end_idx, :] = np.nan
         else:
+            print(f"inlude features: {include_features}")
             obs_data_intact[start_idx:end_idx, include_features] = np.nan
         mask = ~np.isnan(obs_data_intact)
         obs_intact = obs_data_intact.copy()
@@ -56,8 +57,15 @@ class Synth_Dataset(Dataset):
         X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
         self.mean = mean
         self.std = std
+
+        include_features = []
+        if exclude_features is not None:
+            for feature in feats:
+                if feature not in exclude_features:
+                    include_features.append(feats.index(feature))
+
         for i in range(X.shape[0]):
-            obs_val, obs_mask, mask, sample, obs_intact = parse_data(X[i], rate, is_test, length, exclude_features)
+            obs_val, obs_mask, mask, sample, obs_intact = parse_data(X[i], rate, is_test, length, include_features=include_features)
             self.observed_values.append(obs_val)
             self.observed_masks.append(obs_mask)
             self.gt_masks.append(mask)

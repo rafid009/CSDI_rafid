@@ -1,9 +1,9 @@
 import numpy as np
-
+feats = ['sin', 'cos2', 'harmonic', 'weight', 'inv']
 def create_synthetic_data(n_steps, num_seasons, seed=10):
     # num_seasons = 32
     np.random.seed(seed)
-    feats = ['sin', 'cos2', 'harmonic', 'weight', 'inv']
+    
     synth_features = {
         'sin': (0.00001, np.pi/2, np.pi/3),
         'cos2': (np.pi/4, 2 * np.pi, np.pi/4),
