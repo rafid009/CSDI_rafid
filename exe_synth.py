@@ -200,6 +200,7 @@ config_dict = {
 }
 n_steps = 50
 n_features = 5
+num_seasons = 32
 train_loader, valid_loader = get_dataloader(n_steps, n_features, batch_size=16, missing_ratio=0.2, seed=10, is_test=False)
 
 
@@ -220,7 +221,7 @@ nsample = 30
 evaluate(model, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 saits_model_file = f"{model_folder}/saits_model_synth.pkl"
 saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
-X, mean, std = create_synthetic_data()
+X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
 saits.fit(X)
 pickle.dump(saits, open(saits_model_file, 'wb'))
 

@@ -53,7 +53,7 @@ class Synth_Dataset(Dataset):
         self.observed_masks = []
         self.gt_masks = []
         self.gt_intact = []
-        X, mean, std = create_synthetic_data(n_steps, n_features, num_seasons)
+        X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
         self.mean = mean
         self.std = std
         for i in range(X.shape[0]):
