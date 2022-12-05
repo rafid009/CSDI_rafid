@@ -189,7 +189,7 @@ class CSDI_base(nn.Module):
             observed_tp,
             gt_mask,
             for_pattern_mask,
-            _, _
+            _, _, _
         ) = self.process_data(batch)
         if is_train == 0:
             cond_mask = gt_mask
