@@ -32,7 +32,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_csdi_total = {}
         mse_saits_total = {}
         for i in range(trials):
-            test_loader = get_testloader(50, len(given_features), 1, exclude_features=exclude_features, length=length)
+            test_loader = get_testloader(50, len(given_features), 1, exclude_features=exclude_features, length=length, seed=50+10*i)
             for i, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time, obs_intact, gt_intact = output
@@ -145,7 +145,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
     for season in range(n_samples):
         print(f"For season: {season}")
         i += 1
-        test_loader = get_testloader(50, len(given_features), 1, length=length, exclude_features=exclude_features)
+        test_loader = get_testloader(50, len(given_features), 1, length=length, exclude_features=exclude_features, seed=50+10*i)
         for i, test_batch in enumerate(test_loader, start=1):
             output = models['CSDI'].evaluate(test_batch, nsample)
             samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output
