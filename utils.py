@@ -122,7 +122,7 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
             for batch_no, test_batch in enumerate(it, start=1):
                 output = model.evaluate(test_batch, nsample)
 
-                samples, c_target, eval_points, observed_points, observed_time = output
+                samples, c_target, eval_points, observed_points, observed_time, _, _ = output
                 samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
                 c_target = c_target.permute(0, 2, 1)  # (B,L,K)
                 eval_points = eval_points.permute(0, 2, 1)
