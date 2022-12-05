@@ -48,7 +48,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 for feature in given_features:
                     if exclude_features is not None and feature in exclude_features:
                         continue
-                    print(f"For feature: {feature}")
+                    # print(f"For feature: {feature}")
                     feature_idx = given_features.index(feature)
                     if eval_points[0, :, feature_idx].sum().item() == 0:
                         continue
@@ -161,7 +161,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
             for feature in given_features:
                 if exclude_features is not None and feature in exclude_features:
                     continue
-                print(f"For feature: {feature}")
+                # print(f"For feature: {feature}")
                 feature_idx = given_features.index(feature)
                 # cond_mask = observed_points - eval_points
                 missing = gt_intact
@@ -241,7 +241,7 @@ for l in lengths:
 feature_combinations = {
     'sin': ['sin'],
     'cos': ['cos2'],
-    'sin-cos': ['sin', 'cos']
+    'sin-cos': ['sin', 'cos2']
 }
 print(f"The exclusions")
 for key in feature_combinations.keys():
