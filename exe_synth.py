@@ -201,7 +201,7 @@ config_dict = {
 n_steps = 50
 n_features = 5
 num_seasons = 32
-train_loader, valid_loader = get_dataloader(n_steps, n_features, batch_size=16, missing_ratio=0.2, seed=10, is_test=False)
+train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, is_test=False)
 
 
 model = CSDI_Synth(config_dict, device).to(device)
