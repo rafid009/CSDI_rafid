@@ -139,6 +139,9 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
     
     nsample = 30
     i = 0
+    data_folder = "data_synth"
+    if not os.path.isdir(data_folder):
+        os.makedirs(data_folder)
     for season in range(n_samples):
         print(f"For season: {season}")
         i += 1
@@ -168,7 +171,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
                     'csdi': samples_median.values[0, :, feature_idx].cpu().numpy(),
                     'saits': saits_output[0, :, feature_idx]
                 }
-                draw_data_plot(results, feature, season, folder=f"subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
+                draw_data_plot(results, feature, season, folder=f"{data_folder}/subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
                 
 
 seed = 10
@@ -225,7 +228,7 @@ models = {
     'CSDI': model,
     'SAITS': saits
 }
-mse_folder = "results_mse"
+mse_folder = "results_mse_synth"
 
 lengths = [20, 100, 150, 200, 250]
 print("For All")
