@@ -472,7 +472,10 @@ def graph_bar_diff_multi(diff_folder, GT_values, result_dict, title, x, xlabel, 
     plt.figure(figsize=(32,20))
     for key, value in result_dict.items():
         # print(f"key: {key}")
-        plot_dict[key] = np.abs(GT_values) - np.abs(value[missing])
+        if missing is None:
+            plot_dict[key] = np.abs(GT_values) - np.abs(value)
+        else:
+            plot_dict[key] = np.abs(GT_values) - np.abs(value[missing])
     # ind = np.arange(prediction.shape[0])
     # x = np.array(x)
     width = 0.3
