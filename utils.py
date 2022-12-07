@@ -466,24 +466,118 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
                     'saits': saits_output[0, :, feature_idx]
                 }
                 draw_data_plot(results, feature, season, folder=f"subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
+
+def graph_bar_diff_multi(diff_folder, GT_values, result_dict, title, x, xlabel, ylabel, season, feature, missing=None, existing=-1):
+    plot_dict = {}
+    plt.figure(figsize=(32,20))
+    for key, value in result_dict.items():
+        # print(f"key: {key}")
+        plot_dict[key] = np.abs(GT_values) - np.abs(value[missing])
+    # ind = np.arange(prediction.shape[0])
+    # x = np.array(x)
+    width = 0.3
+    pos = 0
+    remove_keys = ['real', 'missing']
+
+    colors = ['tab:orange', 'tab:blue', 'tab:cyan', 'tab:purple']
+    # if drop_linear:
+    #   remove_keys.append('LinearInterp')
+    i = 0
+    for key, value in plot_dict.items():
+        if key not in remove_keys:
+            # print(f"x = {len(x)}, value = {len(value)}")
+            plt.bar(x + pos, value, width, label = key, color=colors[i])
+            i += 1
+            pos += width
+
+    plt.xlabel(xlabel, fontsize=20)
+    plt.ylabel(ylabel, fontsize=20)
+    plt.title(title, fontsize=25)
+    plt.xticks([r + width for r in range(len(x))], [str(i) for i in x],fontsize=20)
+    plt.yticks(fontsize=20)
+    # plt.axis([0, 80, -2, 3])
+
+    plt.legend(loc='best', fontsize=25)
+    plt.tight_layout(pad=5)
+    folder = f"{diff_folder}/{season}"
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    plt.savefig(f'{folder}/diff-{feature}-{season}-{existing}.png', dpi=300)
+    plt.close()
+
+def forward_evaluation(models, filename, features):
+    seasons = {
+        # '1988-1989': 0,
+        # '1989-1990': 1,
+        # '1990-1991': 2,
+        # '1991-1992': 3,
+        # '1992-1993': 4,
+        # '1993-1994': 5,
+        # '1994-1995': 6,
+        # '1995-1996': 7,
+        # '1996-1997': 8,
+        # '1997-1998': 9,
+        # '1998-1999': 10,
+        # '1999-2000': 11,
+        # '2000-2001': 12,
+        # '2001-2002': 13,
+        # '2002-2003': 14,
+        # '2003-2004': 15,
+        # '2004-2005': 16,
+        # '2005-2006': 17,
+        # '2006-2007': 18,
+        # '2007-2008': 19,
+        # '2008-2009': 20,
+        # '2009-2010': 21,
+        # '2010-2011': 22,
+        # '2011-2012': 23,
+        # '2012-2013': 24,
+        # '2013-2014': 25,
+        # '2014-2015': 26,
+        # '2015-2016': 27,
+        # '2016-2017': 28,
+        # '2017-2018': 29,
+        # '2018-2019': 30,
+        # '2019-2020': 31,
+        '2020-2021': 32,
+        '2021-2022': 33,
+    }
+    nsample = 50
+    for season in seasons.key():
+        season_idx = seasons.index(season)
+        df = pd.read_csv(filename)
+        modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+        season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+        train_season_df = season_df.drop(season_array[-1], axis=0)
+        train_season_df = train_season_df.drop(season_array[-2], axis=0)
+        mean, std = get_mean_std(train_season_df, features)
+        X, Y = split_XY(season_df, max_length, season_array, features)
+        X = np.expand_dims(X[season_idx], 0)
+        lte_idx = features.index('LTE50')
+        indices = np.where(~np.isnan(X[0, :, lte_idx]))[0].tolist()
+        for i in range(1, len(indices) - 1):
+            test_loader = get_forward_testloader(X, mean, std, forward_trial=i, lte_idx=lte_idx)
+
+            for i, test_batch in enumerate(test_loader, start=1):
+                output = models['CSDI'].evaluate(test_batch, nsample)
+                samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output
+                samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
+                c_target = c_target.permute(0, 2, 1)  # (B,L,K)
+                eval_points = eval_points.permute(0, 2, 1)
+                observed_points = observed_points.permute(0, 2, 1)
+                samples_median = samples.median(dim=1)
+                gt_intact = gt_intact.squeeze(axis=0)
+                saits_output = models['SAITS'].impute(gt_intact)
+                start = indices[i]
+                mse_saits_same = ((torch.tensor(saits_output[0, start, lte_idx], device=device)- c_target[0, start, lte_idx])) ** 2
+                mse_saits_next = ((torch.tensor(saits_output[0, indices[i+1], lte_idx], device=device)- c_target[0, indices[i+1], lte_idx])) ** 2
                 
-        # print(f"For season = {season}:")
-        # for feature in features:
-        #     for i in mse_csdi_total[feature].keys():
-        #         mse_csdi_total[feature][i] /= trials
-        #     mse_saits_total[feature] /= trials
-        #     print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tSAITS mse: {mse_saits_total[feature]}")
-        # season_avg_mse[season] = {
-        #     'CSDI': mse_csdi_total,
-        #     'SAITS': mse_saits_total
-        # }
+                mse_csdi_same = ((samples_median.values[0, start, lte_idx] - c_target[0, start, lte_idx])) ** 2
+                mse_csdi_next = ((samples_median.values[0, indices[i+1], lte_idx] - c_target[0, indices[i+1], lte_idx])) ** 2
 
-    # if not os.path.isdir(mse_folder):
-    #     os.makedirs(mse_folder)
-
-    # out_file = open(f"{mse_folder}/test_avg_mse_seasons.json", "w")
-  
-    # json.dump(season_avg_mse, out_file, indent = 4)
-    
-    # out_file.close()
-
+                print(f"Season: {season} LTE50 Existing: {i-1} :\n\tSAITS:\n\t\tSame day: {mse_saits_same}\n\t\tNext LTE: {mse_saits_next}\n\tCSDI:\n\t\tSame day: {mse_csdi_same}\n\t\tNext day: {mse_csdi_next}")
+                results_for_diff = {
+                    'SAITS': saits_output[0, :, lte_idx] * eval_points[0, :, lte_idx].numpy(),
+                    'CSDI': samples_median.values[0, :, lte_idx].numpy() * eval_points[0, : lte_idx].numpy()
+                }
+                graph_bar_diff_multi(f"diff_LTE", c_target[0, :, lte_idx].numpy(), f'Season: {season}, LTE50 prediction existing GT: {i-1}', results_for_diff, len(c_target[0, :, lte_idx]), 'Days', 'Difference from GT (LTE50)', season, 'LTE50', existing=(i-1))
