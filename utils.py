@@ -559,10 +559,10 @@ def forward_evaluation(models, filename, features):
         X = np.expand_dims(X[season_idx], 0)
         lte_idx = features.index('LTE50')
         indices = np.where(~np.isnan(X[0, :, lte_idx]))[0].tolist()
-        for i in range(1, len(indices) - 1):
+        for i in range(2, len(indices) - 1):
             test_loader = get_forward_testloader(X, mean, std, forward_trial=i, lte_idx=lte_idx)
 
-            for i, test_batch in enumerate(test_loader, start=1):
+            for j, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output
                 samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
