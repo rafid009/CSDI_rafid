@@ -580,4 +580,4 @@ def forward_evaluation(models, filename, features):
                     'SAITS': saits_output[0, :, lte_idx] * eval_points[0, :, lte_idx].cpu().numpy(),
                     'CSDI': samples_median.values[0, :, lte_idx].cpu().numpy() * eval_points[0, :, lte_idx].cpu().numpy()
                 }
-                graph_bar_diff_multi(f"diff_LTE", c_target[0, :, lte_idx].numpy(), f'Season: {season}, LTE50 prediction existing GT: {i-1}', results_for_diff, len(c_target[0, :, lte_idx]), 'Days', 'Difference from GT (LTE50)', season, 'LTE50', existing=(i-1))
+                graph_bar_diff_multi(f"diff_LTE", c_target[0, :, lte_idx].cpu().numpy(), f'Season: {season}, LTE50 prediction existing GT: {i-1}', results_for_diff, len(c_target[0, :, lte_idx]), 'Days', 'Difference from GT (LTE50)', season, 'LTE50', existing=(i-1))
