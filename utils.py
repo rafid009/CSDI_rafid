@@ -543,8 +543,8 @@ def forward_evaluation(models, filename, features):
         '2021-2022': 33,
     }
     nsample = 50
-    for season in seasons.key():
-        season_idx = seasons.index(season)
+    for season in seasons.keys():
+        season_idx = seasons[season]
         df = pd.read_csv(filename)
         modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
         season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
