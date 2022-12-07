@@ -486,6 +486,7 @@ def graph_bar_diff_multi(diff_folder, GT_values, result_dict, title, x, xlabel, 
     for key, value in plot_dict.items():
         if key not in remove_keys:
             # print(f"x = {len(x)}, value = {len(value)}")
+            print(f"x={x}\npos={pos}\nvalue={value}\nwidth={width}")
             plt.bar(x + pos, value, width, label = key, color=colors[i])
             i += 1
             pos += width
