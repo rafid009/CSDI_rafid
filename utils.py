@@ -478,7 +478,7 @@ def graph_bar_diff_multi(diff_folder, GT_values, result_dict, title, x, xlabel, 
             plot_dict[key] = np.abs(GT_values) - np.abs(value[missing])
     # ind = np.arange(prediction.shape[0])
     # x = np.array(x)
-    width = 0.3
+    width = 0.7
     pos = 0
     remove_keys = ['real', 'missing']
 
@@ -544,7 +544,7 @@ def forward_evaluation(models, filename, features):
         # '2018-2019': 30,
         # '2019-2020': 31,
         '2020-2021': 32,
-        '2021-2022': 33,
+        # '2021-2022': 33,
     }
     nsample = 50
     for season in seasons.keys():
@@ -584,4 +584,4 @@ def forward_evaluation(models, filename, features):
                     'SAITS': saits_output[0, :, lte_idx] * eval_points[0, :, lte_idx].cpu().numpy(),
                     'CSDI': samples_median.values[0, :, lte_idx].cpu().numpy() * eval_points[0, :, lte_idx].cpu().numpy()
                 }
-                graph_bar_diff_multi(f"diff_LTE", c_target[0, :, lte_idx].cpu().numpy(), results_for_diff, f'Season: {season}, LTE50 prediction existing GT: {i-1}', np.arange(len(c_target[0, :, lte_idx])), 'Days', 'Difference from GT (LTE50)', season, 'LTE50', existing=(i-1))
+                graph_bar_diff_multi(f"diff_LTE", c_target[0, :, lte_idx].cpu().numpy() * eval_points[0, :, lte_idx].cpu().numpy(), results_for_diff, f'Season: {season}, LTE50 prediction existing GT: {i-1}', np.arange(len(c_target[0, :, lte_idx])), 'Days', 'Difference from GT (LTE50)', season, 'LTE50', existing=(i-1))
