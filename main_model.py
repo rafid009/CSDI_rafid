@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from diff_models import diff_CSDI
+from diff_models import diff_CSDI, diff_SAITS
 from process_data import features
 
 
@@ -15,6 +15,7 @@ class CSDI_base(nn.Module):
         self.emb_feature_dim = config["model"]["featureemb"]
         self.is_unconditional = config["model"]["is_unconditional"]
         self.target_strategy = config["model"]["target_strategy"]
+        self.model_type = config["model"]["type"]
 
         self.emb_total_dim = self.emb_time_dim + self.emb_feature_dim
         if self.is_unconditional == False:
@@ -27,7 +28,23 @@ class CSDI_base(nn.Module):
         config_diff["side_dim"] = self.emb_total_dim
 
         input_dim = 1 if self.is_unconditional == True else 2
-        self.diffmodel = diff_CSDI(config_diff, input_dim)
+        if config['model']['type'] == 'SAITS':
+            self.is_saits = True
+            self.diffmodel = diff_SAITS(
+                n_layers=config['model']['n_layers'],
+                d_time=config['model']['d_time'],
+                d_feature=config['model']['n_feature'],
+                d_model=config['model']['d_model'],
+                d_inner=config['model']['d_inner'],
+                n_head=config['model']['n_head'],
+                d_k=config['model']['d_k'],
+                d_v=config['model']['d_v'],
+                dropout=config['model']['dropout'],
+                diagonal_attention_mask=config['model']['diagonal_attention_mask']
+            )
+        else:
+            self.is_saits = False
+            self.diffmodel = diff_CSDI(config_diff, input_dim)
 
         # parameters for diffusion models
         self.num_steps = config_diff["num_steps"]
@@ -76,7 +93,7 @@ class CSDI_base(nn.Module):
             mask_choice = np.random.rand()
             if self.target_strategy == "mix" and mask_choice > 0.5:
                 cond_mask[i] = rand_mask[i]
-            else:  # draw another sample for histmask (i-1 corresponds to another sample)
+            else:
                 cond_mask[i] = cond_mask[i] * for_pattern_mask[i - 1] 
         return cond_mask
 
@@ -89,7 +106,6 @@ class CSDI_base(nn.Module):
             torch.arange(self.target_dim).to(self.device)
         )  # (K,emb)
         feature_embed = feature_embed.unsqueeze(0).unsqueeze(0).expand(B, L, -1, -1)
-
         side_info = torch.cat([time_embed, feature_embed], dim=-1)  # (B,L,K,*)
         side_info = side_info.permute(0, 3, 2, 1)  # (B,*,K,L)
 
@@ -122,8 +138,16 @@ class CSDI_base(nn.Module):
         noisy_data = (current_alpha ** 0.5) * observed_data + (1.0 - current_alpha) ** 0.5 * noise
 
         total_input = self.set_input_to_diffmodel(noisy_data, observed_data, cond_mask)
-
-        predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
+        
+        if self.is_saits:
+            total_mask = torch.cat([cond_mask, (1 - cond_mask)], dim=1)
+            inputs = {
+                'X': total_input,
+                'missing_mask': total_mask
+            }
+            predicted = self.diffmodel(inputs, t)
+        else:
+            predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
 
         target_mask = observed_mask - cond_mask
         residual = (noise - predicted) * target_mask
@@ -138,12 +162,11 @@ class CSDI_base(nn.Module):
             cond_obs = (cond_mask * observed_data).unsqueeze(1)
             noisy_target = ((1 - cond_mask) * noisy_data).unsqueeze(1)
             total_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
-
+            
         return total_input
 
     def impute(self, observed_data, cond_mask, side_info, n_samples):
         B, K, L = observed_data.shape
-
         imputed_samples = torch.zeros(B, n_samples, K, L).to(self.device)
 
         for i in range(n_samples):
@@ -199,11 +222,8 @@ class CSDI_base(nn.Module):
             )
         else:
             cond_mask = self.get_randmask(observed_mask)
-
         side_info = self.get_side_info(observed_tp, cond_mask)
-
         loss_func = self.calc_loss if is_train == 1 else self.calc_loss_valid
-
         return loss_func(observed_data, cond_mask, observed_mask, side_info, is_train)
 
     def evaluate(self, batch, n_samples):
@@ -221,9 +241,7 @@ class CSDI_base(nn.Module):
         with torch.no_grad():
             cond_mask = gt_mask
             target_mask = observed_mask - cond_mask
-
             side_info = self.get_side_info(observed_tp, cond_mask)
-
             samples = self.impute(observed_data, cond_mask, side_info, n_samples)
 
             for i in range(len(cut_length)):  # to avoid double evaluation
@@ -242,7 +260,6 @@ class CSDI_PM25(CSDI_base):
         gt_mask = batch["gt_mask"].to(self.device).float()
         cut_length = batch["cut_length"].to(self.device).long()
         for_pattern_mask = batch["hist_mask"].to(self.device).float()
-
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
         gt_mask = gt_mask.permute(0, 2, 1)
@@ -267,7 +284,6 @@ class CSDI_Physio(CSDI_base):
         observed_mask = batch["observed_mask"].to(self.device).float()
         observed_tp = batch["timepoints"].to(self.device).float()
         gt_mask = batch["gt_mask"].to(self.device).float()
-
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
         gt_mask = gt_mask.permute(0, 2, 1)
@@ -295,7 +311,6 @@ class CSDI_Agaid(CSDI_base):
         gt_mask = batch["gt_mask"].to(self.device).float()
         observed_data_intact = batch["obs_data_intact"].to(self.device).float()
         gt_intact = batch["gt_intact"]#.to(self.device).float()
-
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
         gt_mask = gt_mask.permute(0, 2, 1)

@@ -263,6 +263,9 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     # trials = 30
     season_avg_mse = {}
     # exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
+    results = {
+        '2020-2021': {}, '2021-2022': {}
+    }
     for season in seasons.keys():
         print(f"For season: {season}")
         season_idx = seasons[season]
@@ -270,7 +273,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_saits_total = {}
         for i in range(trials):
             test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
-            for i, test_batch in enumerate(test_loader, start=1):
+            for j, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time, obs_intact, gt_intact = output
                 samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
@@ -281,59 +284,73 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 gt_intact = gt_intact.squeeze(axis=0)
                 saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
-
-                for feature in given_features:
-                    if exclude_features is not None and feature in exclude_features:
-                        continue
-                    print(f"For feature: {feature}")
-                    feature_idx = given_features.index(feature)
-                    if eval_points[0, :, feature_idx].sum().item() == 0:
-                        continue
-                    mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                    mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                    if feature not in mse_csdi_total.keys():
-                        mse_csdi_total[feature] = {"median": mse_csdi}
-                    else:
-                        mse_csdi_total[feature]["median"] += mse_csdi
-
-                    for i in range(samples.shape[1]):
-                        mse_csdi = ((samples[0, i, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                if trials == 1:
+                    results[season] = {
+                        'target mask': eval_points[0, :, :],
+                        'target': c_target[0, :, :],
+                        'median': samples_median.values[0, :, :],
+                        'samples': samples[0],
+                        'saits': saits_output[0, :, :]
+                        }
+                else:
+                    for feature in given_features:
+                        if exclude_features is not None and feature in exclude_features:
+                            continue
+                        print(f"For feature: {feature}")
+                        feature_idx = given_features.index(feature)
+                        if eval_points[0, :, feature_idx].sum().item() == 0:
+                            continue
+                        mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if feature not in mse_csdi_total.keys():
-                            mse_csdi_total[feature] = {str(i): mse_csdi}
+                            mse_csdi_total[feature] = {"median": mse_csdi}
                         else:
-                            if str(i) not in mse_csdi_total[feature].keys():
-                                mse_csdi_total[feature][str(i)] = mse_csdi
-                            else:
-                                mse_csdi_total[feature][str(i)] += mse_csdi
-                        
-                    mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                    mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                    if feature not in mse_saits_total.keys():
-                        mse_saits_total[feature] = mse_saits
-                    else:
-                        mse_saits_total[feature] += mse_saits
-        print(f"For season = {season}:")
-        for feature in features:
-            if exclude_features is not None and feature in exclude_features:
-                continue
-            for i in mse_csdi_total[feature].keys():
-                mse_csdi_total[feature][i] /= trials
-            mse_saits_total[feature] /= trials
-            print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tSAITS mse: {mse_saits_total[feature]}")
-        season_avg_mse[season] = {
-            'CSDI': mse_csdi_total,
-            'SAITS': mse_saits_total
-        }
+                            mse_csdi_total[feature]["median"] += mse_csdi
 
+                        for k in range(samples.shape[1]):
+                            mse_csdi = ((samples[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                            mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                            if feature not in mse_csdi_total.keys():
+                                mse_csdi_total[feature] = {str(k): mse_csdi}
+                            else:
+                                if str(i) not in mse_csdi_total[feature].keys():
+                                    mse_csdi_total[feature][str(k)] = mse_csdi
+                                else:
+                                    mse_csdi_total[feature][str(k)] += mse_csdi
+                            
+                        mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        if feature not in mse_saits_total.keys():
+                            mse_saits_total[feature] = mse_saits
+                        else:
+                            mse_saits_total[feature] += mse_saits
+        if trials > 1:
+            print(f"For season = {season}:")
+            for feature in features:
+                if exclude_features is not None and feature in exclude_features:
+                    continue
+                for i in mse_csdi_total[feature].keys():
+                    mse_csdi_total[feature][i] /= trials
+                mse_saits_total[feature] /= trials
+                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tSAITS mse: {mse_saits_total[feature]}")
+            season_avg_mse[season] = {
+                'CSDI': mse_csdi_total,
+                'SAITS': mse_saits_total
+            }
+
+    
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
-
-    out_file = open(f"{mse_folder}/test_avg_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}.json", "w")
-  
-    json.dump(season_avg_mse, out_file, indent = 4)
+    if trials == 1:
+        fp = open(f"{mse_folder}/all-sample-results-l{length}.json", "w")
+        json.dump(results, fp=fp, indent=4)
+        fp.close()
+    else:
+        out_file = open(f"{mse_folder}/test_avg_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}.json", "w")
     
-    out_file.close()
+        json.dump(season_avg_mse, out_file, indent = 4)
+        
+        out_file.close()
 
 
 def draw_data_plot(results, f, season, folder='subplots', num_missing=100):

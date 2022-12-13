@@ -34,7 +34,18 @@ config_dict = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random"
+        'target_strategy': "random",
+        'type': 'CSDI',
+        'n_layers': 3, 
+        'd_time': 252,
+        'n_feature': len(features),
+        'd_model': 256,
+        'd_inner': 128,
+        'n_head': 4,
+        'd_k': 64,
+        'd_v': 64,
+        'dropout': 0.1,
+        'diagonal_attention_mask': True
     }
 }
 
@@ -91,12 +102,12 @@ models = {
 }
 mse_folder = "results_mse"
 
-# lengths = [20, 100, 150, 200, 250]
-# print("For All")
-# for l in lengths:
-#     print(f"For length: {l}")
-#     evaluate_imputation(models, mse_folder, length=l, trials=20)
-#     evaluate_imputation_data(models, length=l)
+lengths = [20, 100, 150, 200, 250]
+print("For All")
+for l in lengths:
+    print(f"For length: {l}")
+    evaluate_imputation(models, mse_folder, length=l, trials=1)
+    # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
 #     "temp": ["MEAN_AT", "MIN_AT", "AVG_AT", "MAX_AT"],
@@ -115,4 +126,4 @@ mse_folder = "results_mse"
 #         print(f"For length: {l}")
 #         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=20)
 #         evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
-forward_evaluation(models, filename, features)
+# forward_evaluation(models, filename, features)

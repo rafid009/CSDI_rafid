@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from pypots.imputation.transformer import EncoderLayer, PositionalEncoding
 
 
 def get_torch_trans(heads=8, layers=1, channels=64):
@@ -13,6 +14,11 @@ def get_torch_trans(heads=8, layers=1, channels=64):
 
 def Conv1d_with_init(in_channels, out_channels, kernel_size):
     layer = nn.Conv1d(in_channels, out_channels, kernel_size)
+    nn.init.kaiming_normal_(layer.weight)
+    return layer
+
+def Conv2d_with_init(in_channels, out_channels, kernel_size):
+    layer = nn.Conv2d(in_channels, out_channels, kernel_size, padding='same')
     nn.init.kaiming_normal_(layer.weight)
     return layer
 
@@ -45,7 +51,6 @@ class DiffusionEmbedding(nn.Module):
         table = torch.cat([torch.sin(table), torch.cos(table)], dim=1)  # (T,dim*2)
         return table
 
-
 class diff_CSDI(nn.Module):
     def __init__(self, config, inputdim=2):
         super().__init__()
@@ -75,14 +80,11 @@ class diff_CSDI(nn.Module):
 
     def forward(self, x, cond_info, diffusion_step):
         B, inputdim, K, L = x.shape
-
         x = x.reshape(B, inputdim, K * L)
         x = self.input_projection(x)
         x = F.relu(x)
         x = x.reshape(B, self.channels, K, L)
-
         diffusion_emb = self.diffusion_embedding(diffusion_step)
-
         skip = []
         for layer in self.residual_layers:
             x, skip_connection = layer(x, cond_info, diffusion_emb)
@@ -95,7 +97,6 @@ class diff_CSDI(nn.Module):
         x = self.output_projection2(x)  # (B,1,K*L)
         x = x.reshape(B, K, L)
         return x
-
 
 class ResidualBlock(nn.Module):
     def __init__(self, side_dim, channels, diffusion_embedding_dim, nheads):
@@ -152,3 +153,119 @@ class ResidualBlock(nn.Module):
         residual = residual.reshape(base_shape)
         skip = skip.reshape(base_shape)
         return (x + residual) / math.sqrt(2.0), skip
+
+class ResidualEncoderLayer(nn.Module):
+    def __init__(self, channels, d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout,
+            diffusion_embedding_dim, diagonal_attention_mask=True) -> None:
+        super().__init__()
+        self.enc_layer = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+                         diagonal_attention_mask)
+        self.mid_projection = Conv2d_with_init(channels, 2 * channels, 1)
+        self.output_projection = Conv2d_with_init(channels, 2 * channels, 1)
+        self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
+        self.init_projection = Conv2d_with_init(2, channels, 3)
+        self.pre_enc_layer = Conv2d_with_init(channels, 1, 3)
+
+    def forward(self, x, diffusion_emb):
+        B, channel, K, L = x.shape
+        x_proj = self.init_projection(x)
+        _, channel_out, K1, L1 = x_proj.shape
+        print(f"x_proj: {x_proj.shape}")
+        x_proj = x_proj.reshape(B, channel_out, K * L)
+        diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
+
+
+        y = x_proj + diff_proj
+        y = self.mid_projection(y)
+        gate, filter = torch.chunk(y, 2, dim=1)
+        y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+
+        y = y.reshape(B, channel_out, K, L)
+        y = self.pre_enc_layer(y).squeeze(dim=1)
+        
+
+
+        y = self.output_projection(y)
+
+        residual, skip = torch.chunk(y, 2, dim=1)
+        x = x.reshape(B, channel, K, L)
+        residual = residual.reshape(B, channel, K, L)
+        skip = skip.reshape(B, channel, K, L)
+
+        return (x + residual) / math.sqrt(2.0), skip
+
+
+
+        
+
+
+class diff_SAITS(nn.Module):
+    def __init__(self, diff_steps, diff_emb_dim, n_layers, d_time, d_feature, d_model, d_inner, n_head, d_k, d_v, dropout,
+                 diagonal_attention_mask=True):
+        super().__init__()
+        self.n_layers = n_layers
+        actual_d_feature = d_feature * 2
+        # self.ORT_weight = ORT_weight
+        # self.MIT_weight = MIT_weight
+
+        self.layer_stack_for_first_block = nn.ModuleList([
+            EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+                         diagonal_attention_mask)
+            for _ in range(n_layers)
+        ])
+        self.layer_stack_for_second_block = nn.ModuleList([
+            EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+                         diagonal_attention_mask)
+            for _ in range(n_layers)
+        ])
+        self.diffusion_embedding = DiffusionEmbedding(diff_steps, diff_emb_dim)
+        self.dropout = nn.Dropout(p=dropout)
+        self.position_enc = PositionalEncoding(d_model, n_position=d_time)
+        # for operation on time dim
+        self.embedding_1 = nn.Linear(actual_d_feature, d_model)
+        self.reduce_dim_z = nn.Linear(d_model, d_feature)
+        # for operation on measurement dim
+        self.embedding_2 = nn.Linear(actual_d_feature, d_model)
+        self.reduce_dim_beta = nn.Linear(d_model, d_feature)
+        self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
+        # for delta decay factor
+        self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
+
+    def forward(self, inputs, diffusion_step):
+        X, masks = inputs['X'], inputs['missing_mask']
+        diff_emb = self.diffusion_embedding(diffusion_step)
+        # first DMSA block
+        input_X_for_first = torch.cat([X, masks], dim=4)
+        input_X_for_first = self.embedding_1(input_X_for_first)
+        enc_output = self.dropout(self.position_enc(input_X_for_first))  # namely, term e in the math equation
+        for encoder_layer in self.layer_stack_for_first_block:
+            enc_output, _ = encoder_layer(enc_output)
+
+        X_tilde_1 = self.reduce_dim_z(enc_output)
+        # X_prime = masks * X + (1 - masks) * X_tilde_1
+
+        # second DMSA block
+        input_X_for_second = torch.cat([X_tilde_1, masks], dim=2)
+        input_X_for_second = self.embedding_2(input_X_for_second)
+        enc_output = self.position_enc(input_X_for_second)  # namely term alpha in math algo
+        for encoder_layer in self.layer_stack_for_second_block:
+            enc_output, attn_weights = encoder_layer(enc_output)
+
+        X_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(enc_output)))
+
+        # attention-weighted combine
+        attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
+        if len(attn_weights.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights = torch.transpose(attn_weights, 1, 3)
+            attn_weights = attn_weights.mean(dim=3)
+            attn_weights = torch.transpose(attn_weights, 1, 2)
+
+        combining_weights = torch.sigmoid(
+            self.weight_combine(torch.cat([masks, attn_weights], dim=2))
+        )  # namely term eta
+        # combine X_tilde_1 and X_tilde_2
+        X_tilde_3 = (1 - combining_weights) * X_tilde_2 + combining_weights * X_tilde_1
+        # X_c = masks * X + (1 - masks) * X_tilde_3  # replace non-missing part with original data
+        return X_tilde_1, X_tilde_2, X_tilde_3
+
