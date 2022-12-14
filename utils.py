@@ -260,12 +260,12 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         'ETR',
         'LTE50' # ???
     ]
-    nsample = 50
+    nsample = 20
     # trials = 30
     season_avg_mse = {}
     # exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
     results = {
-        '2020-2021': {}, '2021-2022': {}
+        '2020-2021': {}#, '2021-2022': {}
     }
     for season in seasons.keys():
         print(f"For season: {season}")
@@ -294,11 +294,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 
                 if trials == 1:
                     results[season] = {
-                        'target mask': eval_points[0, :, :],
-                        'target': c_target[0, :, :],
-                        'median': samples_median.values[0, :, :],
-                        'samples': samples[0],
-                        'saits': saits_output[0, :, :]
+                        'target mask': eval_points[0, :, :].cpu().numpy(),
+                        'target': c_target[0, :, :].cpu().numpy(),
+                        'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
+                        'csdi_samples': samples[0].cpu().numpy(),
+                        'saits': saits_output[0, :, :],
+                        'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
+                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy()
                         }
                 else:
                     for feature in given_features:
