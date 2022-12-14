@@ -196,7 +196,16 @@ class CSDI_base(nn.Module):
                     cond_obs = (cond_mask * observed_data).unsqueeze(1)
                     noisy_target = ((1 - cond_mask) * current_sample).unsqueeze(1)
                     diff_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
-                predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
+                if self.is_saits:
+                    temp_mask = cond_mask.unsqueeze(dim=1)
+                    total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
+                    inputs = {
+                        'X': diff_input,
+                        'missing_mask': total_mask
+                    }
+                    _, _, predicted = self.diffmodel(inputs, torch.tensor([t]).to(self.device))
+                else:
+                    predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
 
                 coeff1 = 1 / self.alpha_hat[t] ** 0.5
                 coeff2 = (1 - self.alpha_hat[t]) / (1 - self.alpha[t]) ** 0.5
