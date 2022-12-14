@@ -4,6 +4,7 @@ from torch.optim import Adam
 from tqdm import tqdm
 import pickle
 import json
+from json import JSONEncoder
 from dataset_agaid import *
 import matplotlib.pyplot as plt
 import matplotlib
@@ -197,6 +198,12 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
                 print("MAE:", mae_total / evalpoints_total)
                 print("CRPS:", CRPS)
 
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, numpy.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
+
 def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100):
     seasons = {
     # '1988-1989': 0,
@@ -376,7 +383,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         os.makedirs(mse_folder)
     if trials == 1:
         fp = open(f"{mse_folder}/all-sample-results-l{length}.json", "w")
-        json.dump(results, fp=fp, indent=4)
+        json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
         out_file = open(f"{mse_folder}/model_{len(models.keys())}_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}.json", "w")
