@@ -154,7 +154,7 @@ models = {
 }
 mse_folder = "results_samples"
 
-lengths = [50, 100, 200, 250]
+lengths = [100]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
