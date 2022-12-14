@@ -152,7 +152,7 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_mse"
+mse_folder = "results_samples"
 
 lengths = [50, 100, 200, 250]
 print("For All")
