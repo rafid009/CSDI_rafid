@@ -31,6 +31,7 @@ class CSDI_base(nn.Module):
         if config['model']['type'] == 'SAITS':
             self.is_saits = True
             self.diffmodel = diff_SAITS(
+                diff_steps=config['diffusion']['num_steps'],
                 n_layers=config['model']['n_layers'],
                 d_time=config['model']['d_time'],
                 d_feature=config['model']['n_feature'],
@@ -40,6 +41,7 @@ class CSDI_base(nn.Module):
                 d_k=config['model']['d_k'],
                 d_v=config['model']['d_v'],
                 dropout=config['model']['dropout'],
+                diff_emb_dim=config['diffusion']['diffusion_embedding_dim'],
                 diagonal_attention_mask=config['model']['diagonal_attention_mask']
             )
         else:
@@ -138,21 +140,26 @@ class CSDI_base(nn.Module):
         noisy_data = (current_alpha ** 0.5) * observed_data + (1.0 - current_alpha) ** 0.5 * noise
 
         total_input = self.set_input_to_diffmodel(noisy_data, observed_data, cond_mask)
-        
+        target_mask = observed_mask - cond_mask
+        num_eval = target_mask.sum()
         if self.is_saits:
-            total_mask = torch.cat([cond_mask, (1 - cond_mask)], dim=1)
+            temp_mask = cond_mask.unsqueeze(dim=1)
+            total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
             inputs = {
                 'X': total_input,
                 'missing_mask': total_mask
             }
-            predicted = self.diffmodel(inputs, t)
+            predicted_1, predicted_2, predicted_3 = self.diffmodel(inputs, t)
+            residual_1 = (noise - predicted_1) * target_mask
+            residual_2 = (noise - predicted_2) * target_mask
+            residual_3 = (noise - predicted_3) * target_mask
+
+            loss = ((residual_1 ** 2).sum() + (residual_2 ** 2).sum() + (residual_3 ** 2).sum()) / (3 * (num_eval if num_eval > 0 else 1))
         else:
             predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
-
-        target_mask = observed_mask - cond_mask
-        residual = (noise - predicted) * target_mask
-        num_eval = target_mask.sum()
-        loss = (residual ** 2).sum() / (num_eval if num_eval > 0 else 1)
+            residual = (noise - predicted) * target_mask
+            
+            loss = (residual ** 2).sum() / (num_eval if num_eval > 0 else 1)
         return loss
 
     def set_input_to_diffmodel(self, noisy_data, observed_data, cond_mask):
