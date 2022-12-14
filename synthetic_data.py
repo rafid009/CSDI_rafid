@@ -1,5 +1,5 @@
 import numpy as np
-feats = ['sin', 'cos2', 'harmonic', 'weight', 'inv']
+feats = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb']
 def create_synthetic_data(n_steps, num_seasons, seed=10):
     # num_seasons = 32
     np.random.seed(seed)
@@ -9,7 +9,7 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
         'cos2': (np.pi/4, 2 * np.pi, np.pi/4),
         'harmonic': np.pi/2,
         'weight': (0.3, 0.6),
-        'inv': (0.2, 0.003)
+        'lin_comb': (0.2, 0.03)
     }
     num_steps = n_steps # config['n_steps']
     num_features = len(feats) # config['n_features']
@@ -32,8 +32,12 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
                 data[i, :, feats.index(feature)] = (synth_features['harmonic'] * data[i, :, feats.index('sin')] + synth_features['harmonic'] * data[i, :, feats.index('cos2')]) / (1/data[i, :, feats.index('sin')] + 1/data[i, :, feats.index('cos2')])
             elif feature == 'weight':
                 data[i, :, feats.index(feature)] = (synth_features['weight'][0] * data[i, :, feats.index('sin')] + synth_features['weight'][1] * data[i, :, feats.index('cos2')]) / (1/synth_features['weight'][0] + 1/synth_features['weight'][1])
-            elif feature == 'inv':
-                data[i, :, feats.index(feature)] = (synth_features['inv'][0] * data[i, :, feats.index('sin')] - synth_features['inv'][1] / data[i, :, feats.index('sin')])
+            elif feature == 'lin_comb':
+                data[i, 0, feats.index(feature)] = 0 + np.random.uniform(0.001, 1)
+                f5 = data[i, 0:-1, feats.index(feature)]
+                data[i, 1:, feats.index(feature)]
+            # elif feature == 'inv':
+            #     data[i, :, feats.index(feature)] = (synth_features['inv'][0] * data[i, :, feats.index('sin')] - synth_features['inv'][1] / data[i, :, feats.index('sin')])
     data_rows = data.reshape((-1, num_features))
     mean = np.mean(data_rows, axis=0)
     std = np.std(data_rows, axis=0)

@@ -113,14 +113,14 @@ config_dict = {
 model_diff_saits = CSDI_Agaid(config_dict, device).to(device)
 
 filename = 'model_diff_saits.pth'
-train(
-    model_diff_saits,
-    config_dict["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=filename
-)
+# train(
+#     model_diff_saits,
+#     config_dict["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=filename
+# )
 nsample = 50
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
