@@ -4,9 +4,8 @@ import torch.nn as nn
 from diff_models import diff_CSDI, diff_SAITS
 from process_data import features
 
-
 class CSDI_base(nn.Module):
-    def __init__(self, target_dim, config, device):
+    def __init__(self, target_dim, config, device, is_simple=False):
         super().__init__()
         self.device = device
         self.target_dim = target_dim
@@ -16,6 +15,7 @@ class CSDI_base(nn.Module):
         self.is_unconditional = config["model"]["is_unconditional"]
         self.target_strategy = config["model"]["target_strategy"]
         self.model_type = config["model"]["type"]
+        self.is_simple = is_simple
 
         self.emb_total_dim = self.emb_time_dim + self.emb_feature_dim
         if self.is_unconditional == False:
@@ -42,7 +42,8 @@ class CSDI_base(nn.Module):
                 d_v=config['model']['d_v'],
                 dropout=config['model']['dropout'],
                 diff_emb_dim=config['diffusion']['diffusion_embedding_dim'],
-                diagonal_attention_mask=config['model']['diagonal_attention_mask']
+                diagonal_attention_mask=config['model']['diagonal_attention_mask'],
+                is_simple=self.is_simple
             )
         else:
             self.is_saits = False
@@ -317,8 +318,8 @@ class CSDI_Physio(CSDI_base):
         )
 
 class CSDI_Agaid(CSDI_base):
-    def __init__(self, config, device, target_dim=len(features)):
-        super(CSDI_Agaid, self).__init__(target_dim, config, device)
+    def __init__(self, config, device, target_dim=len(features), is_simple=False):
+        super(CSDI_Agaid, self).__init__(target_dim, config, device, is_simple=is_simple)
 
     def process_data(self, batch):
         observed_data = batch["observed_data"].to(self.device).float()
@@ -346,8 +347,8 @@ class CSDI_Agaid(CSDI_base):
         )
 
 class CSDI_Synth(CSDI_base):
-    def __init__(self, config, device, target_dim=5):
-        super(CSDI_Synth, self).__init__(target_dim, config, device)
+    def __init__(self, config, device, target_dim=5, is_simple=False):
+        super(CSDI_Synth, self).__init__(target_dim, config, device, is_simple=is_simple)
 
     def process_data(self, batch):
         observed_data = batch["observed_data"].to(self.device).float()

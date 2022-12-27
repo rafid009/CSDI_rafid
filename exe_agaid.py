@@ -110,20 +110,22 @@ config_dict = {
     }
 }
 
+model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict, device).to(device)
-
+filename_simple = 'model_diff_saits_simple.pth'
 filename = 'model_diff_saits.pth'
-# train(
-#     model_diff_saits,
-#     config_dict["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=filename
-# )
+train(
+    model_diff_saits_simple,
+    config_dict["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=filename_simple
+)
 nsample = 50
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
-evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
+model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
+# evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 
 
 # filename = "ColdHardiness_Grape_Merlot_2.csv"
@@ -150,9 +152,10 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 models = {
     'CSDI': model_csdi,
     'SAITS': saits,
-    'DiffSAITS': model_diff_saits
+    'DiffSAITS': model_diff_saits,
+    'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples"
+mse_folder = "results_samples_simple"
 
 lengths = [100]
 print("For All")

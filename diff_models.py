@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 from pypots.imputation.transformer import EncoderLayer, PositionalEncoding
-
+from pypots.imputation import SAITS
 
 def get_torch_trans(heads=8, layers=1, channels=64):
     encoder_layer = nn.TransformerEncoderLayer(
@@ -175,55 +175,101 @@ class ResidualEncoderLayer(nn.Module):
         print(f"x_proj: {x_proj.shape}")
         # x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-
-
         y = x_proj + diff_proj
         y = self.mid_projection(y)
         gate, filter = torch.chunk(y, 2, dim=1)
         y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
-
         # y = y.reshape(B, channel_out, K, L)
         y = self.pre_enc_layer(y)
         y = y.reshape(B, K, L)
-
         y, attn_weights = self.enc_layer(y)
-
         _, K3, L3 = y.shape
         print(f"y shape: {y.shape}")
         y = y.reshape(B, 1, K3 * L3)
         y = self.output_projection(y)
-
         residual, skip = torch.chunk(y, 2, dim=1)
         x = x.reshape(B, channel, K3, L3)
         residual = residual.reshape(B, channel, K3, L3)
         skip = F.relu(self.out_skip_proj(skip))
         skip = skip.reshape(B, K3, L3)
+        return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
+
+class ResidualEncoderLayer_v2(nn.Module):
+    def __init__(self, channels, d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout,
+            diffusion_embedding_dim=128, diagonal_attention_mask=True) -> None:
+        super().__init__()
+        self.enc_layer = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+                         diagonal_attention_mask)
+        self.mid_projection = Conv1d_with_init(channels, 2 * channels, 1)
+        self.output_projection = Conv1d_with_init(1, 2, 1)
+        self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
+        self.init_projection = Conv1d_with_init(1, channels, 1)
+        self.pre_enc_layer = Conv1d_with_init(channels, 1, 1)
+        self.out_skip_proj = Conv1d_with_init(1, 1, 1)
+
+    def forward(self, x, diffusion_emb):
+        B, K, L = x.shape
+        x_temp = x.reshape(B, 1, K * L)
+        x_proj = self.init_projection(x_temp)
+        _, channel_out, _ = x_proj.shape
+        print(f"x_proj: {x_proj.shape}")
+        # x_proj = x_proj.reshape(B, channel_out, K * L)
+        diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
+        y = x_proj + diff_proj
+        y = self.mid_projection(y)
+        gate, filter = torch.chunk(y, 2, dim=1)
+        y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+        # y = y.reshape(B, channel_out, K, L)
+        y = self.pre_enc_layer(y)
+        y = y.reshape(B, K, L)
+        y, attn_weights = self.enc_layer(y)
+        _, K3, L3 = y.shape
+        print(f"y shape: {y.shape}")
+        y = y.reshape(B, 1, K3 * L3)
+        y = self.output_projection(y)
+        residual, skip = torch.chunk(y, 2, dim=1)
+        x = x.reshape(B, K3, L3)
+        residual = residual.reshape(B, K3, L3)
+        skip = F.relu(self.out_skip_proj(skip))
+        skip = skip.reshape(B, K3, L3)
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
 class diff_SAITS(nn.Module):
     def __init__(self, diff_steps, diff_emb_dim, n_layers, d_time, d_feature, d_model, d_inner, n_head, d_k, d_v,
-            dropout, diagonal_attention_mask=True):
+            dropout, diagonal_attention_mask=True, is_simple=False):
         super().__init__()
         self.n_layers = n_layers
         actual_d_feature = d_feature * 2
+        self.is_simple = is_simple
         # self.ORT_weight = ORT_weight
         # self.MIT_weight = MIT_weight
-
-        self.layer_stack_for_first_block = nn.ModuleList([
-            # EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
-            #              diagonal_attention_mask),
-            ResidualEncoderLayer(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
-                        d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
-                        diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
-            for _ in range(n_layers)
-        ])
-        self.layer_stack_for_second_block = nn.ModuleList([
-            ResidualEncoderLayer(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
-                        d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
-                        diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
-            for _ in range(n_layers)
-        ])
+        if self.is_simple:
+            self.layer_stack_for_first_block = nn.ModuleList([
+                ResidualEncoderLayer_v2(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
+                            d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
+                            diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
+                for _ in range(n_layers)
+            ])
+            self.layer_stack_for_second_block = nn.ModuleList([
+                ResidualEncoderLayer_v2(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
+                            d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
+                            diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
+                for _ in range(n_layers)
+            ])
+        else:
+            self.layer_stack_for_first_block = nn.ModuleList([
+                ResidualEncoderLayer(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
+                            d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
+                            diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
+                for _ in range(n_layers)
+            ])
+            self.layer_stack_for_second_block = nn.ModuleList([
+                ResidualEncoderLayer(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
+                            d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
+                            diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
+                for _ in range(n_layers)
+            ])
         self.diffusion_embedding = DiffusionEmbedding(diff_steps, diff_emb_dim)
         self.dropout = nn.Dropout(p=dropout)
         self.position_enc_x = PositionalEncoding(d_model, n_position=d_time)
@@ -241,20 +287,27 @@ class diff_SAITS(nn.Module):
 
     def forward(self, inputs, diffusion_step):
         X, masks = inputs['X'], inputs['missing_mask']
-        X = torch.transpose(X, 2, 3)
-        masks = torch.transpose(masks, 2, 3)
+        if self.is_simple:
+            X = torch.transpose(X, 1, 2)
+            masks = torch.transpose(masks, 1, 2)
+        else:    
+            X = torch.transpose(X, 2, 3)
+            masks = torch.transpose(masks, 2, 3)
         print(f"X: {X.shape}, masks: {masks.shape}")
         diff_emb = self.diffusion_embedding(diffusion_step)
         # first DMSA block
-        input_X_for_first = torch.cat([X, masks], dim=3)
-        print(f"input X first: {input_X_for_first.shape}")
-        input_X_for_first = self.embedding_1(input_X_for_first)
-        print(f"input X first 2: {input_X_for_first.shape}")
-        enc_output_x = self.dropout(self.position_enc_x(input_X_for_first[:, 0, :, :]))  # namely, term e in the math equation
-        enc_output_mask = self.dropout(self.position_enc_mask(input_X_for_first[:, 1, :, :]))
-        enc_output_x = enc_output_x.unsqueeze(1)
-        enc_output_mask = enc_output_mask.unsqueeze(1)
-        enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
+        if self.is_simple:
+            input_X_for_first = torch.cat([X, masks], dim=2)
+            input_X_for_first = self.embedding_1(input_X_for_first)
+            enc_output = self.dropout(self.position_enc_x(input_X_for_first))
+        else:
+            input_X_for_first = torch.cat([X, masks], dim=3)
+            input_X_for_first = self.embedding_1(input_X_for_first)
+            enc_output_x = self.dropout(self.position_enc_x(input_X_for_first[:, 0, :, :]))  # namely, term e in the math equation
+            enc_output_mask = self.dropout(self.position_enc_mask(input_X_for_first[:, 1, :, :]))
+            enc_output_x = enc_output_x.unsqueeze(1)
+            enc_output_mask = enc_output_mask.unsqueeze(1)
+            enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
         skips_tilde_1 = []
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, diff_emb)
@@ -267,13 +320,18 @@ class diff_SAITS(nn.Module):
         # X_prime = masks * X + (1 - masks) * X_tilde_1
 
         # second DMSA block
-        input_X_for_second = torch.cat([X_tilde_1, masks], dim=3)
-        input_X_for_second = self.embedding_2(input_X_for_second)
-        enc_output_x = self.position_enc_x(input_X_for_second[:, 0, :, :])
-        enc_output_mask = self.position_enc_mask(input_X_for_second[:, 1, :, :])
-        enc_output_x = enc_output_x.unsqueeze(1)
-        enc_output_mask = enc_output_mask.unsqueeze(1)
-        enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
+        if self.is_simple:
+            input_X_for_second = torch.cat([X_tilde_1, masks], dim=2)
+            input_X_for_second = self.embedding_2(input_X_for_second)
+            enc_output = self.position_enc_x(input_X_for_second)
+        else:
+            input_X_for_second = torch.cat([X_tilde_1, masks], dim=3)
+            input_X_for_second = self.embedding_2(input_X_for_second)
+            enc_output_x = self.position_enc_x(input_X_for_second[:, 0, :, :])
+            enc_output_mask = self.position_enc_mask(input_X_for_second[:, 1, :, :])
+            enc_output_x = enc_output_x.unsqueeze(1)
+            enc_output_mask = enc_output_mask.unsqueeze(1)
+            enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
         skips_tilde_2 = []
         for encoder_layer in self.layer_stack_for_second_block:
             enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
@@ -288,10 +346,14 @@ class diff_SAITS(nn.Module):
             attn_weights = torch.transpose(attn_weights, 1, 3)
             attn_weights = attn_weights.mean(dim=3)
             attn_weights = torch.transpose(attn_weights, 1, 2)
-
-        combining_weights = torch.sigmoid(
-            self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
-        )  # namely term eta
+        if self.is_simple:
+            combining_weights = torch.sigmoid(
+                self.weight_combine(torch.cat([masks, attn_weights], dim=2))
+            )
+        else:
+            combining_weights = torch.sigmoid(
+                self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
+            )  # namely term eta
         # combine X_tilde_1 and X_tilde_2
         skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)

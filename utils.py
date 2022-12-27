@@ -280,6 +280,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_csdi_total = {}
         mse_saits_total = {}
         mse_diff_saits_total = {}
+        mse_diff_saits_simple_total = {}
         for i in range(trials):
             test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
             for j, test_batch in enumerate(test_loader, start=1):
@@ -298,6 +299,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 samples_diff_saits, _, _, _, _, _, _ = output_diff_saits
                 samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
                 samples_diff_saits_median = samples_diff_saits.median(dim=1)
+
+                output_diff_saits_simple = models['DiffSAITSsimple'].evaluate(test_batch, nsample)
+                samples_diff_saits_simple, _, _, _, _, _, _ = output_diff_saits_simple
+                samples_diff_saits_simple = samples_diff_saits_simple.permute(0, 1, 3, 2)
+                samples_diff_saits_median_simple = samples_diff_saits_simple.median(dim=1)
                 
                 if trials == 1:
                     results[season] = {
@@ -307,7 +313,9 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         'csdi_samples': samples[0].cpu().numpy(),
                         'saits': saits_output[0, :, :],
                         'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
-                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy()
+                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
+                        'diff_saits_median_simple': samples_diff_saits_median_simple.values[0, :, :].cpu().numpy(),
+                        'diff_saits_samples_simple': samples_diff_saits_simple[0].cpu().numpy()
                         }
                 else:
                     for feature in given_features:
@@ -354,6 +362,25 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                                 else:
                                     mse_diff_saits_total[feature][str(k)] += mse_diff_saits
 
+                        
+                        mse_diff_saits_simple = ((samples_diff_saits_median_simple.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        if feature not in mse_diff_saits_simple_total.keys():
+                            mse_diff_saits_simple_total[feature] = {"median": mse_diff_saits_simple}
+                        else:
+                            mse_diff_saits_simple_total[feature]["median"] += mse_diff_saits_simple
+
+                        for k in range(samples.shape[1]):
+                            mse_diff_saits_simple = ((samples_diff_saits_simple[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                            mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                            if feature not in mse_diff_saits_simple_total.keys():
+                                mse_diff_saits_simple_total[feature] = {str(k): mse_diff_saits_simple}
+                            else:
+                                if str(k) not in mse_diff_saits_total[feature].keys():
+                                    mse_diff_saits_simple_total[feature][str(k)] = mse_diff_saits_simple
+                                else:
+                                    mse_diff_saits_simple_total[feature][str(k)] += mse_diff_saits_simple
+
 
                         mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
@@ -370,12 +397,17 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     mse_csdi_total[feature][i] /= trials
                 for i in mse_diff_saits_total[feature].keys():
                     mse_diff_saits_total[feature][i] /= trials
+                for i in mse_diff_saits_simple_total[feature].keys():
+                    mse_diff_saits_simple_total[feature][i] /= trials
                 mse_saits_total[feature] /= trials
-                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")
+                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
+                \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]} \
+                DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
                 'SAITS': mse_saits_total,
-                'DiffSAITS': mse_diff_saits_total
+                'DiffSAITS': mse_diff_saits_total,
+                'DiffSAITSsimple': mse_diff_saits_simple_total
             }
 
     
@@ -419,7 +451,7 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
     ax.set_xlabel('Days', fontsize=25)
     ax.set_ylabel('Values', fontsize=25)
     ax = plt.subplot(515)
-    ax.set_title('Feature = '+f+' Season = '+season+' SAITS data', fontsize=27)
+    ax.set_title('Feature = '+f+' Season = '+season+' DiffSAITS data', fontsize=27)
     plt.plot(np.arange(results['diffsaits'].shape[0]), results['diffsaits'], 'tab:olive')
     ax.set_xlabel('Days', fontsize=25)
     ax.set_ylabel('Values', fontsize=25)
@@ -533,7 +565,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
                     'saits': saits_output[0, :, feature_idx],
                     'diffsaits': samples_diff_saits_median.values[0, :, feature_idx].cpu().numpy()
                 }
-                draw_data_plot(results, feature, season, folder=f"subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
+                draw_data_plot(results, feature, season, folder=f"subplots_result/subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
 
 def graph_bar_diff_multi(diff_folder, GT_values, result_dict, title, x, xlabel, ylabel, season, feature, missing=None, existing=-1):
     plot_dict = {}
