@@ -213,7 +213,8 @@ class CSDI_base(nn.Module):
                         diff_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
                 if self.is_saits:
                     temp_mask = cond_mask.unsqueeze(dim=1)
-                    total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
+                    if not self.is_simple:
+                        total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
                     inputs = {
                         'X': diff_input,
                         'missing_mask': total_mask
