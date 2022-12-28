@@ -267,7 +267,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         'ETR',
         'LTE50' # ???
     ]
-    nsample = 20
+    nsample = 50
     # trials = 30
     season_avg_mse = {}
     # exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
