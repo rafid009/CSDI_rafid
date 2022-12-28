@@ -145,11 +145,17 @@ class CSDI_base(nn.Module):
         num_eval = target_mask.sum()
         if self.is_saits:
             temp_mask = cond_mask.unsqueeze(dim=1)
-            total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
-            inputs = {
-                'X': total_input,
-                'missing_mask': total_mask
-            }
+            if self.is_simple:
+                inputs = {
+                    'X': total_input,
+                    'missing_mask': observed_mask
+                }
+            else:
+                total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
+                inputs = {
+                    'X': total_input,
+                    'missing_mask': total_mask
+                }
             predicted_1, predicted_2, predicted_3 = self.diffmodel(inputs, t)
             residual_1 = (noise - predicted_1) * target_mask
             residual_2 = (noise - predicted_2) * target_mask
@@ -167,6 +173,9 @@ class CSDI_base(nn.Module):
         if self.is_unconditional == True:
             total_input = noisy_data.unsqueeze(1)  # (B,1,K,L)
         else:
+            if self.is_simple:
+                total_input = cond_mask * observed_data + (1 - cond_mask) * noisy_data
+                total_input = total_input.unsqueeze(1)
             cond_obs = (cond_mask * observed_data).unsqueeze(1)
             noisy_target = ((1 - cond_mask) * noisy_data).unsqueeze(1)
             total_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
