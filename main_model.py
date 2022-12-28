@@ -176,9 +176,10 @@ class CSDI_base(nn.Module):
             if self.is_simple:
                 total_input = cond_mask * observed_data + (1 - cond_mask) * noisy_data
                 total_input = total_input.unsqueeze(1)
-            cond_obs = (cond_mask * observed_data).unsqueeze(1)
-            noisy_target = ((1 - cond_mask) * noisy_data).unsqueeze(1)
-            total_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
+            else:
+                cond_obs = (cond_mask * observed_data).unsqueeze(1)
+                noisy_target = ((1 - cond_mask) * noisy_data).unsqueeze(1)
+                total_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
             
         return total_input
 
@@ -203,9 +204,13 @@ class CSDI_base(nn.Module):
                     diff_input = cond_mask * noisy_cond_history[t] + (1.0 - cond_mask) * current_sample
                     diff_input = diff_input.unsqueeze(1)  # (B,1,K,L)
                 else:
-                    cond_obs = (cond_mask * observed_data).unsqueeze(1)
-                    noisy_target = ((1 - cond_mask) * current_sample).unsqueeze(1)
-                    diff_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
+                    if self.is_simple:
+                        diff_input = cond_mask * observed_data + (1 - cond_mask) * noisy_target
+                        diff_input = diff_input.unsqueeze(1)
+                    else:
+                        cond_obs = (cond_mask * observed_data).unsqueeze(1)
+                        noisy_target = ((1 - cond_mask) * current_sample).unsqueeze(1)
+                        diff_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
                 if self.is_saits:
                     temp_mask = cond_mask.unsqueeze(dim=1)
                     total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
