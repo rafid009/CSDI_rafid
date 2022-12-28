@@ -376,7 +376,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             if feature not in mse_diff_saits_simple_total.keys():
                                 mse_diff_saits_simple_total[feature] = {str(k): mse_diff_saits_simple}
                             else:
-                                if str(k) not in mse_diff_saits_total[feature].keys():
+                                if str(k) not in mse_diff_saits_simple_total[feature].keys():
                                     mse_diff_saits_simple_total[feature][str(k)] = mse_diff_saits_simple
                                 else:
                                     mse_diff_saits_simple_total[feature][str(k)] += mse_diff_saits_simple
