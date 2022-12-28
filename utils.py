@@ -414,7 +414,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
     if trials == 1:
-        fp = open(f"{mse_folder}/all-sample-results-l{length}.json", "w")
+        fp = open(f"{mse_folder}/all-sample-results-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
