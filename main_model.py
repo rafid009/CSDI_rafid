@@ -215,9 +215,11 @@ class CSDI_base(nn.Module):
                     temp_mask = cond_mask.unsqueeze(dim=1)
                     if not self.is_simple:
                         total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
+                    else:
+                        total_mask = cond_mask
                     inputs = {
                         'X': diff_input,
-                        'missing_mask': cond_mask
+                        'missing_mask': total_mask
                     }
                     _, _, predicted = self.diffmodel(inputs, torch.tensor([t]).to(self.device))
                 else:
