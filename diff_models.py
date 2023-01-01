@@ -324,12 +324,13 @@ class diff_SAITS(nn.Module):
         skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         # print(f"skip tilde 1: {skips_tilde_1.shape}")
-        X_prime = masks * X + (1 - masks) * X_tilde_1
+        X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
+        X_tilde_1[:, 1, :, :] = masks[:, 1, :, :] * X_tilde_1[:, 1, :, :]
         print(f"X_tilde 1: {X_tilde_1}")
         print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
         if self.is_simple:
-            input_X_for_second = torch.cat([X_prime, masks], dim=2)
+            input_X_for_second = torch.cat([X_tilde_1, masks], dim=2)
             input_X_for_second = self.embedding_2(input_X_for_second)
             enc_output = self.position_enc_x(input_X_for_second)
         else:
@@ -350,7 +351,7 @@ class diff_SAITS(nn.Module):
 
         skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
-        print(f"X_tilde 1: {X_tilde_1}")
+
         print(f"skip tilde 1: {skips_tilde_1}")
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
