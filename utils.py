@@ -300,10 +300,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
                 samples_diff_saits_median = samples_diff_saits.median(dim=1)
 
-                output_diff_saits_simple = models['DiffSAITSsimple'].evaluate(test_batch, nsample)
-                samples_diff_saits_simple, _, _, _, _, _, _ = output_diff_saits_simple
-                samples_diff_saits_simple = samples_diff_saits_simple.permute(0, 1, 3, 2)
-                samples_diff_saits_median_simple = samples_diff_saits_simple.median(dim=1)
+                if 'DiffSAITSsimple' in models.keys():
+                    output_diff_saits_simple = models['DiffSAITSsimple'].evaluate(test_batch, nsample)
+                    samples_diff_saits_simple, _, _, _, _, _, _ = output_diff_saits_simple
+                    samples_diff_saits_simple = samples_diff_saits_simple.permute(0, 1, 3, 2)
+                    samples_diff_saits_median_simple = samples_diff_saits_simple.median(dim=1)
                 
                 if trials == 1:
                     results[season] = {
@@ -313,9 +314,9 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         'csdi_samples': samples[0].cpu().numpy(),
                         'saits': saits_output[0, :, :],
                         'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
-                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
-                        'diff_saits_median_simple': samples_diff_saits_median_simple.values[0, :, :].cpu().numpy(),
-                        'diff_saits_samples_simple': samples_diff_saits_simple[0].cpu().numpy()
+                        # 'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
+                        # 'diff_saits_median_simple': samples_diff_saits_median_simple.values[0, :, :].cpu().numpy(),
+                        # 'diff_saits_samples_simple': samples_diff_saits_simple[0].cpu().numpy()
                         }
                 else:
                     for feature in given_features:
@@ -401,13 +402,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     mse_diff_saits_simple_total[feature][i] /= trials
                 mse_saits_total[feature] /= trials
                 print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
-                \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]} \
-                DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
+                \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")# \
+                # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
                 'SAITS': mse_saits_total,
-                'DiffSAITS': mse_diff_saits_total,
-                'DiffSAITSsimple': mse_diff_saits_simple_total
+                'DiffSAITS': mse_diff_saits_total#,
+                # 'DiffSAITSsimple': mse_diff_saits_simple_total
             }
 
     
