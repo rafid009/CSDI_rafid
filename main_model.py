@@ -188,6 +188,7 @@ class CSDI_base(nn.Module):
         imputed_samples = torch.zeros(B, n_samples, K, L).to(self.device)
 
         for i in range(n_samples):
+            print(f"sample {i}")
             # generate noisy observation for unconditional model
             if self.is_unconditional == True:
                 noisy_obs = observed_data
@@ -198,8 +199,9 @@ class CSDI_base(nn.Module):
                     noisy_cond_history.append(noisy_obs * cond_mask)
 
             current_sample = torch.randn_like(observed_data)
-
+            ti = 0
             for t in range(self.num_steps - 1, -1, -1):
+                print(f"diff step: {ti}")
                 if self.is_unconditional == True:
                     diff_input = cond_mask * noisy_cond_history[t] + (1.0 - cond_mask) * current_sample
                     diff_input = diff_input.unsqueeze(1)  # (B,1,K,L)
@@ -235,6 +237,8 @@ class CSDI_base(nn.Module):
                         (1.0 - self.alpha[t - 1]) / (1.0 - self.alpha[t]) * self.beta[t]
                     ) ** 0.5
                     current_sample += sigma * noise
+                print(f"in time step {ti}: {current_sample}")
+                ti += 1
             current_sample = (1 - cond_mask) * current_sample + cond_mask * observed_data
             imputed_samples[:, i] = current_sample.detach()
         return imputed_samples

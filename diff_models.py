@@ -213,22 +213,26 @@ class ResidualEncoderLayer_v2(nn.Module):
         x_temp = x.reshape(B, 1, K * L)
         x_proj = self.init_projection(x_temp)
         _, channel_out, _ = x_proj.shape
-        print(f"x_proj: {x_proj.shape}")
         # x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
+        print(f"diff proj: {diff_proj}")
         y = x_proj + diff_proj
         y = self.mid_projection(y)
         gate, filter = torch.chunk(y, 2, dim=1)
         y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+        print(f"y gat * filter: {y}")
         # y = y.reshape(B, channel_out, K, L)
         y = self.pre_enc_layer(y)
+        print(f"y pre enc: {y}")
         y = y.reshape(B, K, L)
         y, attn_weights = self.enc_layer(y)
+        print(f"y post enc: {y}")
         _, K3, L3 = y.shape
-        print(f"y shape: {y.shape}")
         y = y.reshape(B, 1, K3 * L3)
         y = self.output_projection(y)
+        print(f"y out proj: {y}")
         residual, skip = torch.chunk(y, 2, dim=1)
+        print(f"res: {residual}\nskip res: {skip}")
         x = x.reshape(B, K3, L3)
         residual = residual.reshape(B, K3, L3)
         skip = F.relu(self.out_skip_proj(skip))
@@ -293,7 +297,7 @@ class diff_SAITS(nn.Module):
         else:    
             X = torch.transpose(X, 2, 3)
             masks = torch.transpose(masks, 2, 3)
-        print(f"X: {X.shape}, masks: {masks.shape}")
+        # print(f"X: {X.shape}, masks: {masks.shape}")
         diff_emb = self.diffusion_embedding(diffusion_step)
         # first DMSA block
         if self.is_simple:
@@ -308,20 +312,24 @@ class diff_SAITS(nn.Module):
             enc_output_x = enc_output_x.unsqueeze(1)
             enc_output_mask = enc_output_mask.unsqueeze(1)
             enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
+            print(f"tilde 1 enc_out before attn: {enc_output}")
         skips_tilde_1 = []
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, diff_emb)
+            print(f"enc out after first encoder: {enc_output}")
+            print(f"after first block each iter: {skip}")
             skips_tilde_1.append(skip)
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
         skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
-        print(f"skip tilde 1: {skips_tilde_1.shape}")
-        # X_prime = masks * X + (1 - masks) * X_tilde_1
-
+        # print(f"skip tilde 1: {skips_tilde_1.shape}")
+        X_prime = masks * X + (1 - masks) * X_tilde_1
+        print(f"X_tilde 1: {X_tilde_1}")
+        print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
         if self.is_simple:
-            input_X_for_second = torch.cat([X_tilde_1, masks], dim=2)
+            input_X_for_second = torch.cat([X_prime, masks], dim=2)
             input_X_for_second = self.embedding_2(input_X_for_second)
             enc_output = self.position_enc_x(input_X_for_second)
         else:
@@ -332,13 +340,18 @@ class diff_SAITS(nn.Module):
             enc_output_x = enc_output_x.unsqueeze(1)
             enc_output_mask = enc_output_mask.unsqueeze(1)
             enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
+            print(f"tilde 2 enc_out before attn: {enc_output}")
         skips_tilde_2 = []
         for encoder_layer in self.layer_stack_for_second_block:
             enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
             skips_tilde_2.append(skip)
+            print(f"enc out after first encoder: {enc_output}")
+            print(f"after first block each iter: {skip}")
 
         skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        print(f"X_tilde 1: {X_tilde_1}")
+        print(f"skip tilde 1: {skips_tilde_1}")
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
         if len(attn_weights.shape) == 4:
@@ -356,6 +369,7 @@ class diff_SAITS(nn.Module):
             )  # namely term eta
         # combine X_tilde_1 and X_tilde_2
         skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
+        print(f"skip tilde 3: {skips_tilde_3}")
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
