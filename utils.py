@@ -8,10 +8,65 @@ from json import JSONEncoder
 from dataset_agaid import *
 import matplotlib.pyplot as plt
 import matplotlib
+from main_model import CSDI_Agaid
+from pypots.imputation import SAITS
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 matplotlib.rc('xtick', labelsize=20) 
 matplotlib.rc('ytick', labelsize=20) 
+
+
+def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
+    seasons = 34
+    model_folder = "./cv_saved_model"
+    for i in range(seasons):
+        model_csdi = CSDI_Agaid(config_csdi, device).to(device) 
+        if not os.path.isdir(model_folder):
+            os.makedirs(model_folder)
+        filename = f'model_csdi_season_{i}.pth'
+        cv_train(model_csdi, f"{model_folder}/{filename}")
+
+        saits_model_file = f"{model_csdi}/model_saits_season_{i}.pth"
+        saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+        saits.fit()
+        pickle.dump(saits, open(saits_model_file, 'wb'))
+
+        model_diff_saits = CSDI_Agaid(config_diffsaits, device).to(device)
+        if not os.path.isdir(model_folder):
+            os.makedirs(model_folder)
+        filename = f'model_diff_saits_season_{i}.pth'
+        cv_train(model_diff_saits, f"{model_folder}/{filename}")
+
+        models = {
+            'CSDI': model_csdi,
+            'SAITS': saits,
+            'DiffSAITS': model_diff_saits
+        }
+        mse_folder = "results_cv"
+        lengths = [100]
+        print("For All")
+        for l in lengths:
+            print(f"For length: {l}")
+            evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=i)
+            evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=i)
+
+
+def cv_train(model, model_file, input_file, config, season_idx, seed=10):
+    train_loader, valid_loader = get_dataloader(
+        seed=seed,
+        filename=input_file,
+        batch_size=config["train"]["batch_size"],
+        missing_ratio=0.2,
+        season_idx=season_idx
+    )
+    train(
+        model,
+        config["train"],
+        train_loader,
+        valid_loader=valid_loader,
+        foldername=model_file,
+        filename=input_file
+    )
 
 
 def train(
@@ -204,7 +259,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100, season_idx=None):
     seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -242,6 +297,47 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     '2021-2022': 33,
     }
 
+    seasons_list = [
+        '1988-1989', 
+        '1989-1990', 
+        '1990-1991', 
+        '1991-1992', 
+        '1992-1993', 
+        '1993-1994', 
+        '1994-1995', 
+        '1995-1996', 
+        '1996-1997', 
+        '1997-1998',
+        '1998-1999',
+        '1999-2000',
+        '2000-2001',
+        '2001-2002',
+        '2002-2003',
+        '2003-2004',
+        '2004-2005',
+        '2005-2006',
+        '2006-2007',
+        '2007-2008',
+        '2008-2009',
+        '2009-2010',
+        '2010-2011',
+        '2011-2012',
+        '2012-2013',
+        '2013-2014',
+        '2014-2015',
+        '2015-2016',
+        '2016-2017',
+        '2017-2018',
+        '2018-2019',
+        '2019-2020',
+        '2020-2021',
+        '2021-2022'
+    ]
+
+    if season_idx is not None:
+        season_names = [seasons_list[season_idx]]
+    else:
+        season_names = ['2020-2021', '2021-2022']
 
     given_features = [
         'MEAN_AT', # mean temperature is the calculation of (max_f+min_f)/2 and then converted to Celsius. # they use this one
@@ -268,19 +364,18 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         'LTE50' # ???
     ]
     nsample = 50
-    # trials = 30
     season_avg_mse = {}
-    # exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
-    results = {
-        '2020-2021': {}#, '2021-2022': {}
-    }
-    for season in seasons.keys():
+    results = {}
+       
+    for season in season_names:
         print(f"For season: {season}")
+        if season not in results.keys():
+            results[season] = {}
         season_idx = seasons[season]
         mse_csdi_total = {}
         mse_saits_total = {}
         mse_diff_saits_total = {}
-        mse_diff_saits_simple_total = {}
+        # mse_diff_saits_simple_total = {}
         for i in range(trials):
             test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
             for j, test_batch in enumerate(test_loader, start=1):
@@ -300,11 +395,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
                 samples_diff_saits_median = samples_diff_saits.median(dim=1)
 
-                if 'DiffSAITSsimple' in models.keys():
-                    output_diff_saits_simple = models['DiffSAITSsimple'].evaluate(test_batch, nsample)
-                    samples_diff_saits_simple, _, _, _, _, _, _ = output_diff_saits_simple
-                    samples_diff_saits_simple = samples_diff_saits_simple.permute(0, 1, 3, 2)
-                    samples_diff_saits_median_simple = samples_diff_saits_simple.median(dim=1)
+                # if 'DiffSAITSsimple' in models.keys():
+                #     output_diff_saits_simple = models['DiffSAITSsimple'].evaluate(test_batch, nsample)
+                #     samples_diff_saits_simple, _, _, _, _, _, _ = output_diff_saits_simple
+                #     samples_diff_saits_simple = samples_diff_saits_simple.permute(0, 1, 3, 2)
+                    # samples_diff_saits_median_simple = samples_diff_saits_simple.median(dim=1)
                 
                 if trials == 1:
                     results[season] = {
@@ -364,23 +459,23 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                                     mse_diff_saits_total[feature][str(k)] += mse_diff_saits
 
                         
-                        mse_diff_saits_simple = ((samples_diff_saits_median_simple.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        if feature not in mse_diff_saits_simple_total.keys():
-                            mse_diff_saits_simple_total[feature] = {"median": mse_diff_saits_simple}
-                        else:
-                            mse_diff_saits_simple_total[feature]["median"] += mse_diff_saits_simple
+                        # mse_diff_saits_simple = ((samples_diff_saits_median_simple.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        # mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        # if feature not in mse_diff_saits_simple_total.keys():
+                        #     mse_diff_saits_simple_total[feature] = {"median": mse_diff_saits_simple}
+                        # else:
+                        #     mse_diff_saits_simple_total[feature]["median"] += mse_diff_saits_simple
 
-                        for k in range(samples.shape[1]):
-                            mse_diff_saits_simple = ((samples_diff_saits_simple[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                            mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                            if feature not in mse_diff_saits_simple_total.keys():
-                                mse_diff_saits_simple_total[feature] = {str(k): mse_diff_saits_simple}
-                            else:
-                                if str(k) not in mse_diff_saits_simple_total[feature].keys():
-                                    mse_diff_saits_simple_total[feature][str(k)] = mse_diff_saits_simple
-                                else:
-                                    mse_diff_saits_simple_total[feature][str(k)] += mse_diff_saits_simple
+                        # for k in range(samples.shape[1]):
+                        #     mse_diff_saits_simple = ((samples_diff_saits_simple[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        #     mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        #     if feature not in mse_diff_saits_simple_total.keys():
+                        #         mse_diff_saits_simple_total[feature] = {str(k): mse_diff_saits_simple}
+                        #     else:
+                        #         if str(k) not in mse_diff_saits_simple_total[feature].keys():
+                        #             mse_diff_saits_simple_total[feature][str(k)] = mse_diff_saits_simple
+                        #         else:
+                        #             mse_diff_saits_simple_total[feature][str(k)] += mse_diff_saits_simple
 
 
                         mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
@@ -398,8 +493,8 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     mse_csdi_total[feature][i] /= trials
                 for i in mse_diff_saits_total[feature].keys():
                     mse_diff_saits_total[feature][i] /= trials
-                for i in mse_diff_saits_simple_total[feature].keys():
-                    mse_diff_saits_simple_total[feature][i] /= trials
+                # for i in mse_diff_saits_simple_total[feature].keys():
+                #     mse_diff_saits_simple_total[feature][i] /= trials
                 mse_saits_total[feature] /= trials
                 print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
                 \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")# \
@@ -420,9 +515,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         fp.close()
     else:
         out_file = open(f"{mse_folder}/model_{len(models.keys())}_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}.json", "w")
-    
         json.dump(season_avg_mse, out_file, indent = 4)
-        
         out_file.close()
 
 
@@ -465,44 +558,85 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
     plt.close()
 
 
-def evaluate_imputation_data(models, exclude_key='', exclude_features=None, length=50):
+def evaluate_imputation_data(models, exclude_key='', exclude_features=None, length=50, season_idx=None):
     seasons = {
-    # '1988-1989': 0,
-    # '1989-1990': 1,
-    # '1990-1991': 2,
-    # '1991-1992': 3,
-    # '1992-1993': 4,
-    # '1993-1994': 5,
-    # '1994-1995': 6,
-    # '1995-1996': 7,
-    # '1996-1997': 8,
-    # '1997-1998': 9,
-    # '1998-1999': 10,
-    # '1999-2000': 11,
-    # '2000-2001': 12,
-    # '2001-2002': 13,
-    # '2002-2003': 14,
-    # '2003-2004': 15,
-    # '2004-2005': 16,
-    # '2005-2006': 17,
-    # '2006-2007': 18,
-    # '2007-2008': 19,
-    # '2008-2009': 20,
-    # '2009-2010': 21,
-    # '2010-2011': 22,
-    # '2011-2012': 23,
-    # '2012-2013': 24,
-    # '2013-2014': 25,
-    # '2014-2015': 26,
-    # '2015-2016': 27,
-    # '2016-2017': 28,
-    # '2017-2018': 29,
-    # '2018-2019': 30,
-    # '2019-2020': 31,
-    '2020-2021': 32,
-    '2021-2022': 33,
+        '1988-1989': 0,
+        '1989-1990': 1,
+        '1990-1991': 2,
+        '1991-1992': 3,
+        '1992-1993': 4,
+        '1993-1994': 5,
+        '1994-1995': 6,
+        '1995-1996': 7,
+        '1996-1997': 8,
+        '1997-1998': 9,
+        '1998-1999': 10,
+        '1999-2000': 11,
+        '2000-2001': 12,
+        '2001-2002': 13,
+        '2002-2003': 14,
+        '2003-2004': 15,
+        '2004-2005': 16,
+        '2005-2006': 17,
+        '2006-2007': 18,
+        '2007-2008': 19,
+        '2008-2009': 20,
+        '2009-2010': 21,
+        '2010-2011': 22,
+        '2011-2012': 23,
+        '2012-2013': 24,
+        '2013-2014': 25,
+        '2014-2015': 26,
+        '2015-2016': 27,
+        '2016-2017': 28,
+        '2017-2018': 29,
+        '2018-2019': 30,
+        '2019-2020': 31,
+        '2020-2021': 32,
+        '2021-2022': 33,
     }
 
+    seasons_list = [
+        '1988-1989', 
+        '1989-1990', 
+        '1990-1991', 
+        '1991-1992', 
+        '1992-1993', 
+        '1993-1994', 
+        '1994-1995', 
+        '1995-1996', 
+        '1996-1997', 
+        '1997-1998',
+        '1998-1999',
+        '1999-2000',
+        '2000-2001',
+        '2001-2002',
+        '2002-2003',
+        '2003-2004',
+        '2004-2005',
+        '2005-2006',
+        '2006-2007',
+        '2007-2008',
+        '2008-2009',
+        '2009-2010',
+        '2010-2011',
+        '2011-2012',
+        '2012-2013',
+        '2013-2014',
+        '2014-2015',
+        '2015-2016',
+        '2016-2017',
+        '2017-2018',
+        '2018-2019',
+        '2019-2020',
+        '2020-2021',
+        '2021-2022'
+    ]
+
+    if season_idx is not None:
+        season_names = [seasons_list[season_idx]]
+    else:
+        season_names = ['2020-2021', '2021-2022']
 
     given_features = [
         'MEAN_AT', # mean temperature is the calculation of (max_f+min_f)/2 and then converted to Celsius. # they use this one
@@ -530,7 +664,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
     ]
     nsample = 50
     i = 0
-    for season in seasons.keys():
+    for season in season_names:
         print(f"For season: {season}")
         i += 1
         season_idx = seasons[season]
@@ -544,7 +678,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
             observed_points = observed_points.permute(0, 2, 1)
             samples_median = samples.median(dim=1)
             gt_intact = gt_intact.squeeze(axis=0)
-            # print(f"gt_intact: {gt_intact.shape}")
+            
             saits_output = models['SAITS'].impute(gt_intact)
 
             output_diff_saits = models['DiffSAITS'].evaluate(test_batch, nsample)

@@ -14,7 +14,7 @@ np.set_printoptions(threshold=sys.maxsize)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 seed = 10
-config_dict = {
+config_dict_csdi = {
     'train': {
         'epochs': 1500,
         'batch_size': 16 ,
@@ -49,19 +49,14 @@ config_dict = {
     }
 }
 
-file_name = 'ColdHardiness_Grape_Merlot_2.csv'
+data_file = 'ColdHardiness_Grape_Merlot_2.csv'
 
-train_loader, valid_loader = get_dataloader(
-    seed=seed,
-    filename=file_name,
-    batch_size=config_dict["train"]["batch_size"],
-    missing_ratio=0.2,
-)
 
-model_csdi = CSDI_Agaid(config_dict, device).to(device)
+
+model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
 model_folder = "./saved_model"
-if not os.path.isdir(model_folder):
-    os.makedirs(model_folder)
+# if not os.path.isdir(model_folder):
+#     os.makedirs(model_folder)
 filename = 'model_csdi.pth'
 # train(
 #     model_csdi,
@@ -71,11 +66,13 @@ filename = 'model_csdi.pth'
 #     foldername=model_folder,
 #     filename=filename
 # )
-nsample = 50
+# nsample = 50
 model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # evaluate(model_csdi, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
-
-config_dict = {
+model_folder_exp = "./saved_model_explode"
+if not os.path.isdir(model_folder_exp):
+    os.makedirs(model_folder_exp)
+config_dict_diffsaits = {
     'train': {
         'epochs': 1500,
         'batch_size': 16 ,
@@ -109,9 +106,14 @@ config_dict = {
         'diagonal_attention_mask': True
     }
 }
-
+train_loader, valid_loader = get_dataloader(
+    seed=seed,
+    filename=data_file,
+    batch_size=config_dict_diffsaits["train"]["batch_size"],
+    missing_ratio=0.2,
+)
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
-model_diff_saits = CSDI_Agaid(config_dict, device, is_simple=False).to(device)
+model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
 filename = 'model_diff_saits_explode.pth'
 # train(
@@ -125,14 +127,14 @@ filename = 'model_diff_saits_explode.pth'
 
 train(
     model_diff_saits,
-    config_dict["train"],
+    config_dict_diffsaits["train"],
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
     filename=filename
 )
-nsample = 100
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# nsample = 100
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
 # evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 

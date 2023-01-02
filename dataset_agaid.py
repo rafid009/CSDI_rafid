@@ -139,7 +139,7 @@ class Agaid_Dataset(Dataset):
         return len(self.observed_values)
 
         
-def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, missing_ratio=0.2, seed=10, is_test=False):
+def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, missing_ratio=0.2, seed=10, is_test=False, season_idx=None):
     np.random.seed(seed=seed)
     df = pd.read_csv(filename)
     modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
@@ -148,10 +148,24 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
     train_season_df = train_season_df.drop(season_array[-2], axis=0)
     mean, std = get_mean_std(train_season_df, features)
     X, Y = split_XY(season_df, max_length, season_array, features)
-    train_dataset = Agaid_Dataset(X[:-2], mean, std, rate=missing_ratio)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    if season_idx is not None:
+        test_dataset = Agaid_Dataset(X[season_idx], mean, std, rate=missing_ratio, is_test=is_test)
+        
+        if season_idx == 0:
+            train_dataset = Agaid_Dataset(X[season_idx:], mean, std, rate=missing_ratio)
+        elif season_idx == len(X) - 1:
+            train_dataset = Agaid_Dataset(X[:season_idx], mean, std, rate=missing_ratio)
+        else:
+            X_copy_1 = X[:season_idx].copy()
+            if season_idx == len(X) - 2:
+                X_copy_2 = X[season_idx + 1].copy() 
+            else:
+                X_copy_2 = X[season_idx + 1:].copy()
+            X_new = np.concatenate((X_copy_1, X_copy_2), axis=0) 
+            train_dataset = Agaid_Dataset(X_new, mean, std, rate=missing_ratio)
 
-    test_dataset = Agaid_Dataset(X[-2:], mean, std, rate=missing_ratio, is_test=is_test)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    
     if is_test:
         test_loader = DataLoader(test_dataset, batch_size=1)
     else:

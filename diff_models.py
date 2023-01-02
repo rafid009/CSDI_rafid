@@ -290,6 +290,7 @@ class diff_SAITS(nn.Module):
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
 
     def forward(self, inputs, diffusion_step):
+        print(f"Entered forward")
         X, masks = inputs['X'], inputs['missing_mask']
         if self.is_simple:
             X = torch.transpose(X, 1, 2)
