@@ -163,7 +163,9 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
                 X_copy_2 = X[season_idx + 1:].copy()
             X_new = np.concatenate((X_copy_1, X_copy_2), axis=0) 
             train_dataset = Agaid_Dataset(X_new, mean, std, rate=missing_ratio)
-
+    else:
+        train_dataset = Agaid_Dataset(X[:-2], mean, std, rate=missing_ratio)
+        test_dataset = Agaid_Dataset(X[-2:], mean, std, rate=missing_ratio, is_test=is_test)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     
     if is_test:

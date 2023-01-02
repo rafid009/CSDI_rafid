@@ -51,7 +51,12 @@ config_dict_csdi = {
 
 data_file = 'ColdHardiness_Grape_Merlot_2.csv'
 
-
+train_loader, valid_loader = get_dataloader(
+    seed=seed,
+    filename=data_file,
+    batch_size=config_dict_csdi["train"]["batch_size"],
+    missing_ratio=0.2,
+)
 
 model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
 model_folder = "./saved_model"
@@ -106,12 +111,7 @@ config_dict_diffsaits = {
         'diagonal_attention_mask': True
     }
 }
-train_loader, valid_loader = get_dataloader(
-    seed=seed,
-    filename=data_file,
-    batch_size=config_dict_diffsaits["train"]["batch_size"],
-    missing_ratio=0.2,
-)
+
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
