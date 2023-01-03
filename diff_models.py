@@ -172,26 +172,31 @@ class ResidualEncoderLayer(nn.Module):
         x_temp = x.reshape(B, channel, K * L)
         x_proj = self.init_projection(x_temp)
         _, channel_out, _ = x_proj.shape
-        print(f"x_proj: {x_proj.shape}")
+        print(f"x_proj: {x_proj}")
         # x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
         y = self.mid_projection(y)
         gate, filter = torch.chunk(y, 2, dim=1)
         y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+        print(f"y gat * filter: {y}")
         # y = y.reshape(B, channel_out, K, L)
         y = self.pre_enc_layer(y)
+        print(f"y pre enc: {y}")
         y = y.reshape(B, K, L)
         y, attn_weights = self.enc_layer(y)
         _, K3, L3 = y.shape
-        print(f"y shape: {y.shape}")
+        print(f"y post enc: {y}")
         y = y.reshape(B, 1, K3 * L3)
         y = self.output_projection(y)
+        print(f"y out proj: {y}")
         residual, skip = torch.chunk(y, 2, dim=1)
+        print(f"res: {residual}\nskip res: {skip}")
         x = x.reshape(B, channel, K3, L3)
         residual = residual.reshape(B, channel, K3, L3)
         skip = F.relu(self.out_skip_proj(skip))
         skip = skip.reshape(B, K3, L3)
+        
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
 

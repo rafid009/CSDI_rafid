@@ -366,7 +366,8 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     nsample = 50
     season_avg_mse = {}
     results = {}
-       
+    models['CSDI'].eval()
+    models['DiffSAITS'].eval()
     for season in season_names:
         print(f"For season: {season}")
         if season not in results.keys():

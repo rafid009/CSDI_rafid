@@ -210,20 +210,24 @@ class CSDI_base(nn.Module):
                         diff_input = cond_mask * observed_data + (1 - cond_mask) * current_sample
                         # diff_input = diff_input.unsqueeze(1)
                     else:
+                        print(f"not simple")
                         cond_obs = (cond_mask * observed_data).unsqueeze(1)
                         noisy_target = ((1 - cond_mask) * current_sample).unsqueeze(1)
                         diff_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
                 if self.is_saits:
+                    print(f"saits")
                     temp_mask = cond_mask.unsqueeze(dim=1)
                     if not self.is_simple:
                         total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
                     else:
+                        print(f"again not simple")
                         total_mask = cond_mask
                     inputs = {
                         'X': diff_input,
                         'missing_mask': total_mask
                     }
                     _, _, predicted = self.diffmodel(inputs, torch.tensor([t]).to(self.device))
+                    print(f"predicted: {predicted}")
                 else:
                     predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
 
