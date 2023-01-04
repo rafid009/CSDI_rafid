@@ -233,8 +233,9 @@ class CSDI_base(nn.Module):
 
                 coeff1 = 1 / self.alpha_hat[t] ** 0.5
                 coeff2 = (1 - self.alpha_hat[t]) / (1 - self.alpha[t]) ** 0.5
+                print(f"coeff1: {coeff1} and coeff2: {coeff2}")
                 current_sample = coeff1 * (current_sample - coeff2 * predicted)
-
+                print(f"current: {current_sample}")
                 if t > 0:
                     noise = torch.randn_like(current_sample)
                     sigma = (

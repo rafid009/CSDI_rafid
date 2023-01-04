@@ -77,6 +77,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 model_folder_exp = "./saved_model_explode"
 if not os.path.isdir(model_folder_exp):
     os.makedirs(model_folder_exp)
+    
 config_dict_diffsaits = {
     'train': {
         'epochs': 1500,
@@ -125,16 +126,16 @@ filename = 'model_diff_saits_explode.pth'
 #     filename=filename_simple
 # )
 
-train(
-    model_diff_saits,
-    config_dict_diffsaits["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=filename
-)
+# train(
+#     model_diff_saits,
+#     config_dict_diffsaits["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=filename
+# )
 # nsample = 100
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
 # evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 
