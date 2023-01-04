@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_explode.pth'
+filename = 'model_diff_saits_explode_2.pth'
 # train(
 #     model_diff_saits_simple,
 #     config_dict["train"],
@@ -126,14 +126,14 @@ filename = 'model_diff_saits_explode.pth'
 #     filename=filename_simple
 # )
 
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=filename
-# )
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=filename
+)
 # nsample = 100
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
@@ -167,7 +167,7 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples_simple"
+mse_folder = "results_samples_explode_2"
 
 lengths = [100]
 print("For All")
