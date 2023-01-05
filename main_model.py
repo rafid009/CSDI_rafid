@@ -230,22 +230,22 @@ class CSDI_base(nn.Module):
                     
                 else:
                     predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
-                print(f"predicted: {predicted}")
-                print(f"alpha hat [t]: {self.alpha_hat[t]}")
+                print(f"{'SAITS' if self.is_saits else 'CSDI'} predicted: {predicted}")
+                print(f"{'SAITS' if self.is_saits else 'CSDI'} alpha hat [t]: {self.alpha_hat[t]}")
                 coeff1 = 1 / self.alpha_hat[t] ** 0.5
-                print(f"alpha [t]: {self.alpha[t]}")
+                print(f"{'SAITS' if self.is_saits else 'CSDI'} alpha [t]: {self.alpha[t]}")
                 coeff2 = (1 - self.alpha_hat[t]) / (1 - self.alpha[t]) ** 0.5
-                print(f"coeff1: {coeff1} and coeff2: {coeff2}")
+                print(f"{'SAITS' if self.is_saits else 'CSDI'} coeff1: {coeff1} and coeff2: {coeff2}")
                 current_sample = coeff1 * (current_sample - coeff2 * predicted)
-                print(f"current: {current_sample}")
+                print(f"{'SAITS' if self.is_saits else 'CSDI'} current: {current_sample}")
                 if t > 0:
                     noise = torch.randn_like(current_sample)
                     sigma = (
                         (1.0 - self.alpha[t - 1]) / (1.0 - self.alpha[t]) * self.beta[t]
                     ) ** 0.5
-                    print(f"beta [t]: {self.beta[t]} and sigma: {sigma}\nnoise: {noise}")
+                    print(f"{'SAITS' if self.is_saits else 'CSDI'} beta [t]: {self.beta[t]} and sigma: {sigma}\nnoise: {noise}")
                     current_sample += sigma * noise
-                print(f"in time step {ti}: {current_sample}")
+                print(f"in time step {ti} {'SAITS' if self.is_saits else 'CSDI'}: {current_sample}")
                 ti += 1
             current_sample = (1 - cond_mask) * current_sample + cond_mask * observed_data
             imputed_samples[:, i] = current_sample.detach()
