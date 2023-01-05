@@ -227,11 +227,13 @@ class CSDI_base(nn.Module):
                         'missing_mask': total_mask
                     }
                     _, _, predicted = self.diffmodel(inputs, torch.tensor([t]).to(self.device))
-                    print(f"predicted: {predicted}")
+                    
                 else:
                     predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
-
+                print(f"predicted: {predicted}")
+                print(f"alpha hat [t]: {self.alpha_hat[t]}")
                 coeff1 = 1 / self.alpha_hat[t] ** 0.5
+                print(f"alpha [t]: {self.alpha[t]}")
                 coeff2 = (1 - self.alpha_hat[t]) / (1 - self.alpha[t]) ** 0.5
                 print(f"coeff1: {coeff1} and coeff2: {coeff2}")
                 current_sample = coeff1 * (current_sample - coeff2 * predicted)
