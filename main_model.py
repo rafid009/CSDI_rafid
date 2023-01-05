@@ -243,6 +243,7 @@ class CSDI_base(nn.Module):
                     sigma = (
                         (1.0 - self.alpha[t - 1]) / (1.0 - self.alpha[t]) * self.beta[t]
                     ) ** 0.5
+                    print(f"beta [t]: {self.beta[t]} and sigma: {sigma}\nnoise: {noise}")
                     current_sample += sigma * noise
                 print(f"in time step {ti}: {current_sample}")
                 ti += 1
