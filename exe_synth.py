@@ -286,6 +286,7 @@ train(
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
+    filename="model_csdi.pth"
 )
 
 
@@ -333,11 +334,12 @@ config_dict_diffsaits = {
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device).to(device)
 
 train(
-    model,
+    model_diff_saits,
     config_dict_diffsaits["train"],
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
+    filename="model_diffsaits"
 )
 
 models = {
