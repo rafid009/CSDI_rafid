@@ -350,7 +350,7 @@ models = {
 }
 mse_folder = "results_mse_synth"
 
-lengths = [20, 30]#[10, 25, 40, 45]
+lengths = [20]#[10, 25, 40, 45]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
