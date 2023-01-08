@@ -25,10 +25,10 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv']
+given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb']
 
 def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100):
-    given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
+    # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
     nsample = 50
     # trials = 30
     season_avg_mse = {}
@@ -193,8 +193,6 @@ def draw_data_plot(results, f, season, folder='subplots', num_missing=100):
 
 def evaluate_imputation_data(models, exclude_key='', exclude_features=None, length=50):
     n_samples = 2
-     
-    
     nsample = 30
     i = 0
     data_folder = "data_synth"
@@ -339,7 +337,7 @@ train(
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
-    filename="model_diffsaits"
+    filename="model_diffsaits.pth"
 )
 
 models = {
