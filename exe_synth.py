@@ -269,7 +269,7 @@ config_dict_csdi = {
 nsample = 30
 
 n_steps = 50
-n_features = 5
+n_features = len(given_features)
 num_seasons = 32
 train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, is_test=False)
 
