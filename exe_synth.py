@@ -135,13 +135,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 for i in mse_diff_saits_total[feature].keys():
                     mse_diff_saits_total[feature][i] /= trials
 
-                mse_saits_total[feature] /= trials
-                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
-                \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['median']}")# \
+                # mse_saits_total[feature] /= trials
+                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['median']}")
+                # \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['median']}")# \
 
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
-                'SAITS': mse_saits_total,
+                # 'SAITS': mse_saits_total,
                 'DiffSAITS': mse_diff_saits_total
             }
 
