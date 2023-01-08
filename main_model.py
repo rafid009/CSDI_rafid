@@ -139,7 +139,6 @@ class CSDI_base(nn.Module):
         current_alpha = self.alpha_torch[t]  # (B,1,1)
         noise = torch.randn_like(observed_data)
         noisy_data = (current_alpha ** 0.5) * observed_data + (1.0 - current_alpha) ** 0.5 * noise
-
         total_input = self.set_input_to_diffmodel(noisy_data, observed_data, cond_mask)
         target_mask = observed_mask - cond_mask
         num_eval = target_mask.sum()
@@ -160,12 +159,10 @@ class CSDI_base(nn.Module):
             residual_1 = (noise - predicted_1) * target_mask
             residual_2 = (noise - predicted_2) * target_mask
             residual_3 = (noise - predicted_3) * target_mask
-
             loss = ((residual_1 ** 2).sum() + (residual_2 ** 2).sum() + (residual_3 ** 2).sum()) / (3 * (num_eval if num_eval > 0 else 1))
         else:
             predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
             residual = (noise - predicted) * target_mask
-            
             loss = (residual ** 2).sum() / (num_eval if num_eval > 0 else 1)
         return loss
 

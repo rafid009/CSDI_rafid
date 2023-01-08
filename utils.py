@@ -410,7 +410,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         'csdi_samples': samples[0].cpu().numpy(),
                         'saits': saits_output[0, :, :],
                         'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
-                        # 'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
+                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
                         # 'diff_saits_median_simple': samples_diff_saits_median_simple.values[0, :, :].cpu().numpy(),
                         # 'diff_saits_samples_simple': samples_diff_saits_simple[0].cpu().numpy()
                         }
