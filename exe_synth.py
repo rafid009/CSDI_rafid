@@ -273,7 +273,7 @@ n_features = 5
 num_seasons = 32
 train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, is_test=False)
 
-model = CSDI_Synth(config_dict_csdi, device).to(device)
+model = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
@@ -329,7 +329,7 @@ config_dict_diffsaits = {
     }
 }
 
-model_diff_saits = CSDI_Synth(config_dict_diffsaits, device).to(device)
+model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
 train(
     model_diff_saits,

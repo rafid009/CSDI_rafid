@@ -375,7 +375,7 @@ class CSDI_Agaid(CSDI_base):
         )
 
 class CSDI_Synth(CSDI_base):
-    def __init__(self, config, device, target_dim=5, is_simple=False):
+    def __init__(self, config, device, target_dim=6, is_simple=False):
         super(CSDI_Synth, self).__init__(target_dim, config, device, is_simple=is_simple)
 
     def process_data(self, batch):
