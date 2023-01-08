@@ -287,6 +287,7 @@ train(
     filename="model_csdi.pth"
 )
 
+model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
 
 # saits_model_file = f"{model_folder}/saits_model_synth.pkl"
 # saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
@@ -340,6 +341,8 @@ train(
     filename="model_diffsaits.pth"
 )
 
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
+
 models = {
     'CSDI': model,
     # 'SAITS': saits,
@@ -347,7 +350,7 @@ models = {
 }
 mse_folder = "results_mse_synth"
 
-lengths = [30]#[10, 25, 40, 45]
+lengths = [20, 30]#[10, 25, 40, 45]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
