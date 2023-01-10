@@ -29,7 +29,7 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
                 data[i, :, feats.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2)
             elif feature == 'harmonic':
-                data[i, :, feats.index(feature)] = (synth_features['harmonic'] * data[i, :, feats.index('sin')] + synth_features['harmonic'] * data[i, :, feats.index('cos2')]) / (1/(data[i, :, feats.index('sin') + 1e-5]) + 1/(data[i, :, feats.index('cos2')] + 1e-5))
+                data[i, :, feats.index(feature)] = (synth_features['harmonic'] * data[i, :, feats.index('sin')] + synth_features['harmonic'] * data[i, :, feats.index('cos2')]) / (1/(data[i, :, feats.index('sin')] + 1e-3) + 1/(data[i, :, feats.index('cos2')] + 1e-3))
             elif feature == 'weight':
                 data[i, :, feats.index(feature)] = (synth_features['weight'][0] * data[i, :, feats.index('sin')] + synth_features['weight'][1] * data[i, :, feats.index('cos2')]) / (1/synth_features['weight'][0] + 1/synth_features['weight'][1])
             elif feature == 'lin_comb':
