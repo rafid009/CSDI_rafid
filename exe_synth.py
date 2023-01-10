@@ -278,16 +278,16 @@ model_folder = "./saved_model_synth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 
-# train(
-#     model,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename="model_csdi.pth"
-# )
+train(
+    model,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename="model_csdi.pth"
+)
 
-model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
+# model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
 
 # saits_model_file = f"{model_folder}/saits_model_synth.pkl"
 # saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
