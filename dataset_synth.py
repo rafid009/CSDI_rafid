@@ -40,7 +40,7 @@ def parse_data(sample, rate, is_test=False, length=100, include_features=None):
             print(f"inlude features: {include_features}")
             obs_data_intact[start_idx:end_idx, include_features] = np.nan
         mask = ~np.isnan(obs_data_intact)
-        obs_intact = obs_data_intact.copy()
+        obs_intact = sample.copy()
         obs_data = np.nan_to_num(obs_intact, copy=True)
         # obs_intact = np.nan_to_num(obs_intact, copy=True)
     return obs_data, obs_mask, mask, sample, obs_intact

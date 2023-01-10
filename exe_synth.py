@@ -64,7 +64,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 if trials == 1:
                     results[season] = {
                         'target mask': eval_points[0, :, :].cpu().numpy(),
-                        'target': gt_intact[0, :, :].cpu().numpy(),
+                        'target': c_target[0, :, :].cpu().numpy(),
                         'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
                         'csdi_samples': samples[0].cpu().numpy(),
                         # 'saits': saits_output[0, :, :],
