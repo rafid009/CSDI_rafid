@@ -278,16 +278,16 @@ model_folder = "./saved_model_synth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 
-train(
-    model,
-    config_dict_csdi["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename="model_csdi.pth"
-)
+# train(
+#     model,
+#     config_dict_csdi["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename="model_csdi.pth"
+# )
 
-# model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
+model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
 
 # saits_model_file = f"{model_folder}/saits_model_synth.pkl"
 # saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
@@ -332,16 +332,16 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-train(
-    model_diff_saits,
-    config_dict_diffsaits["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename="model_diffsaits.pth"
-)
+# train(
+#     model_diff_saits,
+#     config_dict_diffsaits["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename="model_diffsaits.pth"
+# )
 
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
 
 models = {
     'CSDI': model,
@@ -355,7 +355,7 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     evaluate_imputation(models, mse_folder, length=l, trials=1)
-    evaluate_imputation(models, mse_folder, length=l, trials=10)
+    # evaluate_imputation(models, mse_folder, length=l, trials=10)
     # evaluate_imputation_data(models, length=l)
 
 feature_combinations = {
@@ -368,5 +368,5 @@ for key in feature_combinations.keys():
     for l in lengths:
         print(f"For length: {l}")
         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
-        evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=10)
+        # evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=10)
         # evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
