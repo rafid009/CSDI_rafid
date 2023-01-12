@@ -332,16 +332,16 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename="model_diffsaits.pth"
-# )
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename="model_diffsaits_X.pth"
+)
 
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
 
 models = {
     'CSDI': model,
