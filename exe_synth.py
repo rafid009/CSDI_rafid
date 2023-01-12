@@ -52,9 +52,9 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 eval_points = eval_points.permute(0, 2, 1)
                 observed_points = observed_points.permute(0, 2, 1)
                 samples_median = samples.median(dim=1)
-                # gt_intact = gt_intact.squeeze(axis=0)
-                # saits_X = gt_intact #test_batch['obs_data_intact']
-                # saits_output = models['SAITS'].impute(saits_X)
+                gt_intact = gt_intact.squeeze(axis=0)
+                saits_X = gt_intact #test_batch['obs_data_intact']
+                saits_output = models['SAITS'].impute(saits_X)
 
                 output_diff_saits = models['DiffSAITS'].evaluate(test_batch, nsample)
                 samples_diff_saits, _, _, _, _, _, _ = output_diff_saits
@@ -67,7 +67,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         'target': c_target[0, :, :].cpu().numpy(),
                         'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
                         'csdi_samples': samples[0].cpu().numpy(),
-                        # 'saits': saits_output[0, :, :],
+                        'saits': saits_output[0, :, :],
                         'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
                         'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
                         # 'diff_saits_median_simple': samples_diff_saits_median_simple.values[0, :, :].cpu().numpy(),
@@ -118,12 +118,12 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                                 else:
                                     mse_diff_saits_total[feature][str(k)] += mse_diff_saits
 
-                        # mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        # mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        # if feature not in mse_saits_total.keys():
-                        #     mse_saits_total[feature] = mse_saits
-                        # else:
-                        #     mse_saits_total[feature] += mse_saits
+                        mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        if feature not in mse_saits_total.keys():
+                            mse_saits_total[feature] = mse_saits
+                        else:
+                            mse_saits_total[feature] += mse_saits
         print(f"For season = {season}:")
         if trials > 1:
             print(f"For season = {season}:")
@@ -141,7 +141,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
-                # 'SAITS': mse_saits_total,
+                'SAITS': mse_saits_total,
                 'DiffSAITS': mse_diff_saits_total
             }
 
@@ -289,11 +289,11 @@ if not os.path.isdir(model_folder):
 
 model.load_state_dict(torch.load(f"{model_folder}/model_csdi.pth"))
 
-# saits_model_file = f"{model_folder}/saits_model_synth.pkl"
-# saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
-# X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
-# saits.fit(X)
-# pickle.dump(saits, open(saits_model_file, 'wb'))
+saits_model_file = f"{model_folder}/saits_model_synth.pkl"
+saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
+saits.fit(X)
+pickle.dump(saits, open(saits_model_file, 'wb'))
 
 config_dict_diffsaits = {
     'train': {
@@ -345,7 +345,7 @@ model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth
 
 models = {
     'CSDI': model,
-    # 'SAITS': saits,
+    'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
 mse_folder = "results_mse_synth_1"
@@ -355,7 +355,7 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     evaluate_imputation(models, mse_folder, length=l, trials=1)
-    # evaluate_imputation(models, mse_folder, length=l, trials=10)
+    evaluate_imputation(models, mse_folder, length=l, trials=10)
     # evaluate_imputation_data(models, length=l)
 
 feature_combinations = {
@@ -368,5 +368,5 @@ for key in feature_combinations.keys():
     for l in lengths:
         print(f"For length: {l}")
         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
-        # evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=10)
+        evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=10)
         # evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
