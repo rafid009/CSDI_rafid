@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_explode_2.pth'
+filename = 'model_diff_saits_explode_X.pth'
 # train(
 #     model_diff_saits_simple,
 #     config_dict["train"],
@@ -126,16 +126,16 @@ filename = 'model_diff_saits_explode_2.pth'
 #     filename=filename_simple
 # )
 
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=filename
-# )
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=filename
+)
 # nsample = 100
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
 # evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 
@@ -167,14 +167,14 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples_explode_2"
+mse_folder = "results_samples_explode_X"
 
 lengths = [100]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
     evaluate_imputation(models, mse_folder, length=l, trials=1)
-    # evaluate_imputation(models, mse_folder, length=l, trials=20)
+    evaluate_imputation(models, mse_folder, length=l, trials=20)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
