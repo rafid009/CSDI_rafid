@@ -177,10 +177,10 @@ class ResidualEncoderLayer(nn.Module):
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
         y = self.mid_projection(y)
-        gate, filter = torch.chunk(y, 2, dim=1)
-        y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
-        print(f"y gat * filter: {y}")
-        # y = y.reshape(B, channel_out, K, L)
+        # gate, filter = torch.chunk(y, 2, dim=1)
+        # y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+        # print(f"y gate * filter: {y}")
+        y = y.reshape(B, channel_out, K, L)
         y = self.pre_enc_layer(y)
         print(f"y pre enc: {y}")
         y = y.reshape(B, K, L)
@@ -330,8 +330,8 @@ class diff_SAITS(nn.Module):
         skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         # print(f"skip tilde 1: {skips_tilde_1.shape}")
-        # X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
-        # X_tilde_1[:, 1, :, :] = masks[:, 1, :, :] * X_tilde_1[:, 1, :, :]
+        X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
+        X_tilde_1[:, 1, :, :] = masks[:, 1, :, :] * X_tilde_1[:, 1, :, :]
         print(f"X_tilde 1: {X_tilde_1}")
         print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
