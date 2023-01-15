@@ -180,7 +180,7 @@ class ResidualEncoderLayer(nn.Module):
         # gate, filter = torch.chunk(y, 2, dim=1)
         # y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
         # print(f"y gate * filter: {y}")
-        y = y.reshape(B, channel_out, K, L)
+        # y = y.reshape(B, channel_out, K, L)
         y = self.pre_enc_layer(y)
         print(f"y pre enc: {y}")
         y = y.reshape(B, K, L)
