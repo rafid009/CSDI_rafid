@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_explode_X_non_trans.pth'
+filename = 'model_diff_saits_explode_X_eps.pth'
 # train(
 #     model_diff_saits_simple,
 #     config_dict["train"],
@@ -168,7 +168,7 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples_explode_X_non_trans"
+mse_folder = "results_samples_explode_X_eps"
 
 lengths = [100]
 print("For All")
