@@ -80,7 +80,7 @@ if not os.path.isdir(model_folder_exp):
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 1000,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_explode_X_beta.pth'
+filename = 'model_diff_saits_explode_X_non_trans.pth'
 # train(
 #     model_diff_saits_simple,
 #     config_dict["train"],
@@ -133,7 +133,7 @@ train(
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
-    filename=f"{filename}_v2"
+    filename=f"{filename}"
 )
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
