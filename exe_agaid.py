@@ -125,7 +125,7 @@ filename = 'model_diff_saits_explode_X_non_trans.pth'
 #     foldername=model_folder,
 #     filename=filename_simple
 # )
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 train(
     model_diff_saits,
