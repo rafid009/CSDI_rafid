@@ -80,7 +80,7 @@ if not os.path.isdir(model_folder_exp):
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 1000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -125,6 +125,7 @@ filename = 'model_diff_saits_explode_X_beta.pth'
 #     foldername=model_folder,
 #     filename=filename_simple
 # )
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 train(
     model_diff_saits,
@@ -132,7 +133,7 @@ train(
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
-    filename=filename
+    filename=f"{filename}_v2"
 )
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
