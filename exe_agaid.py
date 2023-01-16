@@ -80,7 +80,7 @@ if not os.path.isdir(model_folder_exp):
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2500,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -89,8 +89,8 @@ config_dict_diffsaits = {
         'channels': 64,
         'nheads': 8,
         'diffusion_embedding_dim': 128,
-        'beta_start': 0.001,
-        'beta_end': 0.7,
+        'beta_start': 0.0001,
+        'beta_end': 0.6,
         'num_steps': 100,
         'schedule': "quad"
     },
@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_explode_non_X.pth'
+filename = 'model_diff_saits_explode_X_beta.pth'
 # train(
 #     model_diff_saits_simple,
 #     config_dict["train"],
@@ -174,7 +174,7 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     evaluate_imputation(models, mse_folder, length=l, trials=1)
-    evaluate_imputation(models, mse_folder, length=l, trials=20)
+    # evaluate_imputation(models, mse_folder, length=l, trials=20)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
