@@ -200,7 +200,7 @@ class ResidualEncoderLayer(nn.Module):
     def forward(self, x, diffusion_emb):
         B, channel, K, L = x.shape
         # x_proj = torch.transpose(x, 2, 3)
-        x_temp = x_proj.reshape(B, channel, K * L)
+        x_temp = x.reshape(B, channel, K * L)
         x_proj = self.init_projection(x_temp)
         _, channel_out, _ = x_proj.shape
         # x_proj = x_proj.reshape(B, channel_out, K * L)
