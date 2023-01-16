@@ -211,7 +211,7 @@ class ResidualEncoderLayer(nn.Module):
         y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
         # y = y.reshape(B, channel_out, K, L)
         y = self.pre_enc_layer(y)
-        y = y.reshape(B, L, K)
+        y = y.reshape(B, K, L)
         # y = torch.transpose(y, 1, 2)
         y, attn_weights = self.enc_layer(y)
         _, K3, L3 = y.shape
