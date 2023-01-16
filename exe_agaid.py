@@ -168,7 +168,7 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples_explode_X_beta"
+mse_folder = "results_samples_explode_X_non_trans"
 
 lengths = [100]
 print("For All")
