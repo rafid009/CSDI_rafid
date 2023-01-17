@@ -226,11 +226,11 @@ class ResidualEncoderLayer(nn.Module):
         y = torch.transpose(y, 2, 3)
         slice_X, slice_eps = torch.chunk(y, 2, dim=1)
         
-        y1 = slice_X#.reshape(B, , K)
+        y1 = slice_X.reshape(B, K, L)
         # y1 = torch.transpose(y1, 1, 2)
         y1, attn_weights_X = self.enc_layer_X(y1)
 
-        y2 = slice_eps#.reshape(B, L, K)
+        y2 = slice_eps.reshape(B, K, L)
         # y2 = torch.transpose(y2, 1, 2)
         y2, attn_weights_eps = self.enc_layer_eps(y2)
 
