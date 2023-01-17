@@ -236,7 +236,7 @@ class ResidualEncoderLayer(nn.Module):
 
         y = y1 + y2#torch.stack((y1, y2), dim=1)
 
-        _, _, K3, L3 = y.shape
+        _, K3, L3 = y.shape
         y = y.reshape(B, 1, K3 * L3)
 
         y = self.output_projection(y)
