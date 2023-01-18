@@ -168,7 +168,7 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples_explode_X_eps_v2"
+mse_folder = "results_samples_explode_X_eps_v2_ctarget"
 
 lengths = [100]
 print("For All")
