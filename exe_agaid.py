@@ -80,7 +80,7 @@ if not os.path.isdir(model_folder_exp):
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 1500,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -105,7 +105,7 @@ config_dict_diffsaits = {
         'n_feature': len(features),
         'd_model': 256,
         'd_inner': 128,
-        'n_head': 4,
+        'n_head': 3,
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.1,
