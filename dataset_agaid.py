@@ -119,7 +119,7 @@ class Agaid_Dataset(Dataset):
         self.obs_data_intact = np.array(self.obs_data_intact)
         self.gt_intact = np.array(self.gt_intact)
         self.observed_masks = torch.tensor(self.observed_masks, dtype=torch.float32)
-        self.observed_values = ((self.observed_values - self.mean) / self.std) * self.gt_masks
+        self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
         self.obs_data_intact = ((self.obs_data_intact - self.mean.numpy()) / self.std.numpy()) * self.observed_masks.numpy()
         self.gt_intact = ((self.gt_intact - self.mean.numpy()) / self.std.numpy()) * self.gt_masks.numpy()
         
