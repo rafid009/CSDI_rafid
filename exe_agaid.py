@@ -174,26 +174,26 @@ lengths = [100]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
-    evaluate_imputation(models, mse_folder, length=l, trials=1)
-    # evaluate_imputation(models, mse_folder, length=l, trials=20)
+    # evaluate_imputation(models, mse_folder, length=l, trials=1)
+    evaluate_imputation(models, mse_folder, length=l, trials=20)
     # evaluate_imputation_data(models, length=l)
 
-# feature_combinations = {
-#     "temp": ["MEAN_AT", "MIN_AT", "AVG_AT", "MAX_AT"],
-#     "hum": ["AVG_REL_HUMIDITY", "MIN_REL_HUMIDITY", "MAX_REL_HUMIDITY"],
-#     "dew": ["AVG_DEWPT", "MIN_DEWPT", "MAX_DEWPT"],
-#     "pinch": ["P_INCHES"],
-#     "wind": ["WS_MPH", "MAX_WS_MPH"],
-#     "sr": ["SR_WM2"],
-#     "leaf": ["LW_UNITY"],
-#     "et": ["ETO", "ETR"],
-#     "st": ["ST8", "MIN_ST8", "MAX_ST8"]
-# }
-# print(f"The exclusions")
-# for key in feature_combinations.keys():
-#     for l in lengths:
-#         print(f"For length: {l}")
-#         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
-#         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=20)
+feature_combinations = {
+    "temp": ["MEAN_AT", "MIN_AT", "AVG_AT", "MAX_AT"],
+    "hum": ["AVG_REL_HUMIDITY", "MIN_REL_HUMIDITY", "MAX_REL_HUMIDITY"],
+    "dew": ["AVG_DEWPT", "MIN_DEWPT", "MAX_DEWPT"],
+    "pinch": ["P_INCHES"],
+    "wind": ["WS_MPH", "MAX_WS_MPH"],
+    "sr": ["SR_WM2"],
+    "leaf": ["LW_UNITY"],
+    "et": ["ETO", "ETR"],
+    "st": ["ST8", "MIN_ST8", "MAX_ST8"]
+}
+print(f"The exclusions")
+for key in feature_combinations.keys():
+    for l in lengths:
+        print(f"For length: {l}")
+        evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
+        evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=20)
         # evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
 # forward_evaluation(models, filename, features)
