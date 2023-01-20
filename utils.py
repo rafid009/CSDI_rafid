@@ -408,7 +408,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     results[season] = {
                         'target mask': eval_points[0, :, :].cpu().numpy(),
                         'target': c_target[0, :, :].cpu().numpy(),
-                        'csdi_mean': samples_mean.values[0, :, :].cpu().numpy(),
+                        'csdi_mean': samples_mean[0, :, :].cpu().numpy(),
                         'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
                         'csdi_samples': samples[0].cpu().numpy(),
                         'saits': saits_output[0, :, :],
@@ -433,7 +433,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         else:
                             mse_csdi_total[feature]["median"] += mse_csdi
 
-                        mse_csdi = ((samples_mean.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_csdi = ((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if feature not in mse_csdi_total.keys():
                             mse_csdi_total[feature] = {"mean": mse_csdi}
@@ -459,7 +459,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         else:
                             mse_diff_saits_total[feature]["median"] += mse_diff_saits
 
-                        mse_diff_saits = ((samples_diff_saits_mean.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if feature not in mse_diff_saits_total.keys():
                             mse_diff_saits_total[feature] = {"mean": mse_diff_saits}
