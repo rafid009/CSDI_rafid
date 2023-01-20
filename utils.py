@@ -435,7 +435,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
                         mse_csdi = ((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        if feature not in mse_csdi_total.keys():
+                        if "mean" not in mse_csdi_total[feature].keys():
                             mse_csdi_total[feature] = {"mean": mse_csdi}
                         else:
                             mse_csdi_total[feature]["mean"] += mse_csdi
