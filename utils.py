@@ -387,6 +387,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 eval_points = eval_points.permute(0, 2, 1)
                 observed_points = observed_points.permute(0, 2, 1)
                 samples_median = samples.median(dim=1)
+                samples_mean = samples.mean(dim=1)
                 gt_intact = gt_intact.squeeze(axis=0)
                 saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
@@ -395,6 +396,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 samples_diff_saits, _, _, _, _, _, _ = output_diff_saits
                 samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
                 samples_diff_saits_median = samples_diff_saits.median(dim=1)
+                samples_diff_saits_mean = samples_diff_saits.mean(dim=1)
 
                 # if 'DiffSAITSsimple' in models.keys():
                 #     output_diff_saits_simple = models['DiffSAITSsimple'].evaluate(test_batch, nsample)
@@ -406,9 +408,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     results[season] = {
                         'target mask': eval_points[0, :, :].cpu().numpy(),
                         'target': c_target[0, :, :].cpu().numpy(),
+                        'csdi_mean': samples_mean.values[0, :, :].cpu().numpy(),
                         'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
                         'csdi_samples': samples[0].cpu().numpy(),
                         'saits': saits_output[0, :, :],
+                        'diff_saits_mean': samples_diff_saits_mean.values[0, :, :].cpu().numpy(),
                         'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
                         'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
                         # 'diff_saits_median_simple': samples_diff_saits_median_simple.values[0, :, :].cpu().numpy(),
@@ -429,6 +433,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         else:
                             mse_csdi_total[feature]["median"] += mse_csdi
 
+                        mse_csdi = ((samples_mean.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        if feature not in mse_csdi_total.keys():
+                            mse_csdi_total[feature] = {"mean": mse_csdi}
+                        else:
+                            mse_csdi_total[feature]["mean"] += mse_csdi
+
                         for k in range(samples.shape[1]):
                             mse_csdi = ((samples[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                             mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
@@ -447,6 +458,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             mse_diff_saits_total[feature] = {"median": mse_diff_saits}
                         else:
                             mse_diff_saits_total[feature]["median"] += mse_diff_saits
+
+                        mse_diff_saits = ((samples_diff_saits_mean.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        if feature not in mse_diff_saits_total.keys():
+                            mse_diff_saits_total[feature] = {"mean": mse_diff_saits}
+                        else:
+                            mse_diff_saits_total[feature]["mean"] += mse_diff_saits
 
                         for k in range(samples.shape[1]):
                             mse_diff_saits = ((samples_diff_saits[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
