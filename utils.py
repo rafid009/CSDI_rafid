@@ -433,14 +433,14 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             mse_csdi_total[feature] = {}
                         
                         if "median" not in mse_csdi_total[feature].keys():
-                            mse_csdi_total[feature] = {"median": mse_csdi}
+                            mse_csdi_total[feature]["median"] = mse_csdi
                         else:
                             mse_csdi_total[feature]["median"] += mse_csdi
 
                         mse_csdi = ((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if "mean" not in mse_csdi_total[feature].keys():
-                            mse_csdi_total[feature] = {"mean": mse_csdi}
+                            mse_csdi_total[feature]["mean"] = mse_csdi
                         else:
                             mse_csdi_total[feature]["mean"] += mse_csdi
 
@@ -461,14 +461,14 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         if feature not in mse_diff_saits_total.keys():
                             mse_diff_saits_total[feature] = {}
                         if "median" not in mse_diff_saits_total[feature].keys():
-                            mse_diff_saits_total[feature] = {"median": mse_diff_saits}
+                            mse_diff_saits_total[feature]["median"] = mse_diff_saits
                         else:
                             mse_diff_saits_total[feature]["median"] += mse_diff_saits
 
                         mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if "mean" not in mse_diff_saits_total.keys():
-                            mse_diff_saits_total[feature] = {"mean": mse_diff_saits}
+                            mse_diff_saits_total[feature]["mean"] = mse_diff_saits
                         else:
                             mse_diff_saits_total[feature]["mean"] += mse_diff_saits
 
@@ -521,9 +521,12 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 # for i in mse_diff_saits_simple_total[feature].keys():
                 #     mse_diff_saits_simple_total[feature][i] /= trials
                 mse_saits_total[feature] /= trials
-                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
+                try:
+                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
                 \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")# \
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
+                except:
+                    continue
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
                 'SAITS': mse_saits_total,
