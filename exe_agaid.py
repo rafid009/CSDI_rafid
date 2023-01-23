@@ -168,14 +168,14 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_samples_explode_X_eps_v2_ctarget"
+mse_folder = "results_samples_explode_X_eps_v2_mae"
 
 lengths = [100]
-# print("For All")
-# for l in lengths:
-#     print(f"For length: {l}")
-#     evaluate_imputation(models, mse_folder, length=l, trials=1)
-#     evaluate_imputation(models, mse_folder, length=l, trials=20)
+print("For All")
+for l in lengths:
+    print(f"For length: {l}")
+    # evaluate_imputation(models, mse_folder, length=l, trials=1)
+    evaluate_imputation(models, mse_folder, length=l, trials=20)
     # evaluate_imputation_data(models, length=l)
 
 feature_combinations = {
@@ -193,7 +193,7 @@ print(f"The exclusions")
 for key in feature_combinations.keys():
     for l in lengths:
         print(f"For length: {l}")
-        evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
+        # evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=20)
         # evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
 # forward_evaluation(models, filename, features)
