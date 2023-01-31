@@ -378,7 +378,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_diff_saits_total = {}
         # mse_diff_saits_simple_total = {}
         for i in range(trials):
-            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
+            test_loader = get_testloader(seed=(20 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
             for j, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time, obs_intact, gt_intact = output
