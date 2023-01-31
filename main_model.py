@@ -109,7 +109,7 @@ class CSDI_base(nn.Module):
             torch.arange(self.target_dim).to(self.device)
         )  # (K,emb)
         feature_embed = feature_embed.unsqueeze(0).unsqueeze(0).expand(B, L, -1, -1)
-        print(f"time: {time_embed.shape} and feat: {feature_embed.shape}")
+        # print(f"time: {time_embed.shape} and feat: {feature_embed.shape}")
         side_info = torch.cat([time_embed, feature_embed], dim=-1)  # (B,L,K,*)
         side_info = side_info.permute(0, 3, 2, 1)  # (B,*,K,L)
 
@@ -139,7 +139,7 @@ class CSDI_base(nn.Module):
             t = torch.randint(0, self.num_steps, [B]).to(self.device)
         current_alpha = self.alpha_torch[t]  # (B,1,1)
         noise = torch.randn_like(observed_data)
-        noisy_data = (current_alpha ** 0.5) * observed_data + (1.0 - current_alpha) ** 0.5 * noise
+        noisy_data = (current_alpha ** 0.5) * observed_data + ((1.0 - current_alpha) ** 0.5) * noise
         total_input = self.set_input_to_diffmodel(noisy_data, observed_data, cond_mask)
         target_mask = observed_mask - cond_mask
         num_eval = target_mask.sum()
@@ -171,13 +171,9 @@ class CSDI_base(nn.Module):
         if self.is_unconditional == True:
             total_input = noisy_data.unsqueeze(1)  # (B,1,K,L)
         else:
-            if self.is_simple:
-                total_input = cond_mask * observed_data + (1 - cond_mask) * noisy_data
-                # total_input = total_input.unsqueeze(1)
-            else:
-                cond_obs = (cond_mask * observed_data).unsqueeze(1)
-                noisy_target = ((1 - cond_mask) * noisy_data).unsqueeze(1)
-                total_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
+            cond_obs = (cond_mask * observed_data).unsqueeze(1)
+            noisy_target = ((1 - cond_mask) * noisy_data).unsqueeze(1)
+            total_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
             
         return total_input
 
@@ -186,7 +182,7 @@ class CSDI_base(nn.Module):
         imputed_samples = torch.zeros(B, n_samples, K, L).to(self.device)
 
         for i in range(n_samples):
-            print(f"sample {i}")
+            # print(f"sample {i}")
             # generate noisy observation for unconditional model
             if self.is_unconditional == True:
                 noisy_obs = observed_data
@@ -199,7 +195,7 @@ class CSDI_base(nn.Module):
             current_sample = torch.randn_like(observed_data)
             ti = 0
             for t in range(self.num_steps - 1, -1, -1):
-                print(f"diff step: {ti}")
+                # print(f"diff step: {ti}")
                 if self.is_unconditional == True:
                     diff_input = cond_mask * noisy_cond_history[t] + (1.0 - cond_mask) * current_sample
                     diff_input = diff_input.unsqueeze(1)  # (B,1,K,L)
@@ -208,15 +204,15 @@ class CSDI_base(nn.Module):
                         diff_input = cond_mask * observed_data + (1 - cond_mask) * current_sample
                         # diff_input = diff_input.unsqueeze(1)
                     else:
-                        print(f"not simple")
+                        # print(f"not simple")
                         cond_obs = (cond_mask * observed_data).unsqueeze(1)
                         noisy_target = ((1 - cond_mask) * current_sample).unsqueeze(1)
                         diff_input = torch.cat([cond_obs, noisy_target], dim=1)  # (B,2,K,L)
                 if self.is_saits:
-                    print(f"saits")
+                    # print(f"saits")
                     temp_mask = cond_mask.unsqueeze(dim=1)
                     if not self.is_simple:
-                        print(f"again not simple mask")
+                        # print(f"again not simple mask")
                         total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
                     else:
                         total_mask = cond_mask
@@ -228,14 +224,14 @@ class CSDI_base(nn.Module):
                     
                 else:
                     predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
-                print(f"{'SAITS' if self.is_saits else 'CSDI'} predicted: {predicted}")
-                print(f"{'SAITS' if self.is_saits else 'CSDI'} alpha hat [t]: {self.alpha_hat[t]}")
+                # print(f"{'SAITS' if self.is_saits else 'CSDI'} predicted: {predicted}")
+                # print(f"{'SAITS' if self.is_saits else 'CSDI'} alpha hat [t]: {self.alpha_hat[t]}")
                 coeff1 = 1 / self.alpha_hat[t] ** 0.5
-                print(f"{'SAITS' if self.is_saits else 'CSDI'} alpha [t]: {self.alpha[t]}")
+                # print(f"{'SAITS' if self.is_saits else 'CSDI'} alpha [t]: {self.alpha[t]}")
                 coeff2 = (1 - self.alpha_hat[t]) / (1 - self.alpha[t]) ** 0.5
-                print(f"{'SAITS' if self.is_saits else 'CSDI'} coeff1: {coeff1} and coeff2: {coeff2}")
+                # print(f"{'SAITS' if self.is_saits else 'CSDI'} coeff1: {coeff1} and coeff2: {coeff2}")
                 current_sample = coeff1 * (current_sample - coeff2 * predicted)
-                print(f"{'SAITS' if self.is_saits else 'CSDI'} current: {current_sample}")
+                # print(f"{'SAITS' if self.is_saits else 'CSDI'} current: {current_sample}")
                 if t > 0:
                     noise = torch.randn_like(current_sample)
                     sigma = (
@@ -266,8 +262,11 @@ class CSDI_base(nn.Module):
             )
         else:
             cond_mask = self.get_randmask(observed_mask)
-        print(f"cond: {cond_mask.shape}")
-        side_info = self.get_side_info(observed_tp, cond_mask)
+        # print(f"cond: {cond_mask.shape}")
+        if self.is_saits:
+            side_info = None
+        else:
+            side_info = self.get_side_info(observed_tp, cond_mask)
         loss_func = self.calc_loss if is_train == 1 else self.calc_loss_valid
         return loss_func(observed_data, cond_mask, observed_mask, side_info, is_train)
 
@@ -286,7 +285,10 @@ class CSDI_base(nn.Module):
         with torch.no_grad():
             cond_mask = gt_mask
             target_mask = observed_mask - cond_mask
-            side_info = self.get_side_info(observed_tp, cond_mask)
+            if self.is_saits:
+                side_info = None
+            else:
+                side_info = self.get_side_info(observed_tp, cond_mask)
             samples = self.impute(observed_data, cond_mask, side_info, n_samples)
 
             for i in range(len(cut_length)):  # to avoid double evaluation

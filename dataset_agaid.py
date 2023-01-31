@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-def parse_data(sample, rate, is_test=False, length=100, include_features=None, forward_trial=-1, lte_idx=None):
+def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=None, forward_trial=-1, lte_idx=None):
     """Get mask of random points (missing at random) across channels based on k,
     where k == number of data points. Mask of sample's shape where 0's to be imputed, and 1's to preserved
     as per ts imputers"""
@@ -40,7 +40,7 @@ def parse_data(sample, rate, is_test=False, length=100, include_features=None, f
         a = np.arange(sample.shape[0] - length)
         # print(f"a: {a}\nsample: {sample.shape}")
         start_idx = np.random.choice(a)
-        print(f"random choice: {start_idx}")
+        # print(f"random choice: {start_idx}")
         end_idx = start_idx + length
         obs_data_intact = sample.copy()
         if include_features is None or len(include_features) == 0:

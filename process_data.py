@@ -59,15 +59,12 @@ feature_dependency = {
   }
 
 def preprocess_missing_values(df, features, is_dormant=True, is_year=False, imputed=False, not_original=False):
-
-
   modified_df = df.copy()
-
   if not imputed:
-    df['AVG_AT'].replace(-100, np.nan, inplace=True)
-    df['MIN_AT'].replace(-100, np.nan, inplace=True)
-    df['MAX_AT'].replace(-100, np.nan, inplace=True)
-    df['MEAN_AT'].replace(-100, np.nan, inplace=True)
+    modified_df['AVG_AT'].replace(-100, np.nan, inplace=True)
+    modified_df['MIN_AT'].replace(-100, np.nan, inplace=True)
+    modified_df['MAX_AT'].replace(-100, np.nan, inplace=True)
+    modified_df['MEAN_AT'].replace(-100, np.nan, inplace=True)
     modified_df['MIN_REL_HUMIDITY'].replace(0, np.nan, inplace=True)
     modified_df['MAX_REL_HUMIDITY'].replace(0, np.nan, inplace=True)
     modified_df['AVG_REL_HUMIDITY'].replace(0, np.nan, inplace=True)
@@ -257,13 +254,15 @@ def create_xy(df, timeseries_idx, max_length, features):
     return np.array(x), np.array(y), actual_seq_lenghts
 
 def get_mean_std(df, features):
-    mean = []
-    std = []
-    for feature in features:
-        season_npy = df[feature].to_numpy()
-        idx = np.where(~np.isnan(season_npy))
-        mean.append(np.mean(season_npy[idx]))
-        std.append(np.std(season_npy[idx]))
-    mean = np.array(mean)
-    std = np.array(std)
+    mean = np.nanmean(df[features], axis=0)
+    std = np.nanmean(df[features], axis=0)
+    # mean = []
+    # std = []
+    # for feature in features:
+    #     season_npy = df[feature].to_numpy()
+    #     idx = np.where(~np.isnan(season_npy))
+    #     mean.append(np.mean(season_npy[idx]))
+    #     std.append(np.std(season_npy[idx]))
+    # mean = np.array(mean)
+    # std = np.array(std)
     return mean, std
