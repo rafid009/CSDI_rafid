@@ -90,7 +90,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2021-2022': 33,
     }
     model_folder = "./cv_saved_model"
-    for i in range(seasons):
+    for i in range(seasons.keys()):
         season_idx = seasons_list.index(i)
         model_csdi = CSDI_Agaid(config_csdi, device).to(device) 
         if not os.path.isdir(model_folder):
@@ -333,42 +333,42 @@ class NumpyArrayEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100, season_idx=None, random_trial=False):
-    seasons = {
-    '1988-1989': 0,
-    '1989-1990': 1,
-    '1990-1991': 2,
-    '1991-1992': 3,
-    '1992-1993': 4,
-    '1993-1994': 5,
-    '1994-1995': 6,
-    '1995-1996': 7,
-    '1996-1997': 8,
-    '1997-1998': 9,
-    '1998-1999': 10,
-    '1999-2000': 11,
-    '2000-2001': 12,
-    '2001-2002': 13,
-    '2002-2003': 14,
-    '2003-2004': 15,
-    '2004-2005': 16,
-    '2005-2006': 17,
-    '2006-2007': 18,
-    '2007-2008': 19,
-    '2008-2009': 20,
-    '2009-2010': 21,
-    '2010-2011': 22,
-    '2011-2012': 23,
-    '2012-2013': 24,
-    '2013-2014': 25,
-    '2014-2015': 26,
-    '2015-2016': 27,
-    '2016-2017': 28,
-    '2017-2018': 29,
-    '2018-2019': 30,
-    '2019-2020': 31,
-    '2020-2021': 32,
-    '2021-2022': 33,
-    }
+    # seasons = {
+    # '1988-1989': 0,
+    # '1989-1990': 1,
+    # '1990-1991': 2,
+    # '1991-1992': 3,
+    # '1992-1993': 4,
+    # '1993-1994': 5,
+    # '1994-1995': 6,
+    # '1995-1996': 7,
+    # '1996-1997': 8,
+    # '1997-1998': 9,
+    # '1998-1999': 10,
+    # '1999-2000': 11,
+    # '2000-2001': 12,
+    # '2001-2002': 13,
+    # '2002-2003': 14,
+    # '2003-2004': 15,
+    # '2004-2005': 16,
+    # '2005-2006': 17,
+    # '2006-2007': 18,
+    # '2007-2008': 19,
+    # '2008-2009': 20,
+    # '2009-2010': 21,
+    # '2010-2011': 22,
+    # '2011-2012': 23,
+    # '2012-2013': 24,
+    # '2013-2014': 25,
+    # '2014-2015': 26,
+    # '2015-2016': 27,
+    # '2016-2017': 28,
+    # '2017-2018': 29,
+    # '2018-2019': 30,
+    # '2019-2020': 31,
+    # '2020-2021': 32,
+    # '2021-2022': 33,
+    # }
 
     seasons_list = [
         '1988-1989', 
@@ -445,7 +445,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         print(f"For season: {season}")
         if season not in results.keys():
             results[season] = {}
-        season_idx = seasons[season]
+        # season_idx = seasons[season]
         mse_csdi_total = {}
         # mse_saits_total = {}
         mse_diff_saits_total = {}
