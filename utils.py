@@ -95,8 +95,12 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         model_csdi = CSDI_Agaid(config_csdi, device).to(device) 
         if not os.path.isdir(model_folder):
             os.makedirs(model_folder)
+        
         filename = f'model_csdi_season_{i}.pth'
-        cv_train(model_csdi, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_csdi)
+        if not os.path.exists(f"{model_folder}/{filename}"):
+            cv_train(model_csdi, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_csdi)
+        else:
+            model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
         # saits_model_file = f"{model_csdi}/model_saits_season_{i}.pth"
         # saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
@@ -104,11 +108,14 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # pickle.dump(saits, open(saits_model_file, 'wb'))
 
         model_diff_saits = CSDI_Agaid(config_diffsaits, device).to(device)
-        if not os.path.isdir(model_folder):
-            os.makedirs(model_folder)
+        # if not os.path.isdir(model_folder):
+        #     os.makedirs(model_folder)
         filename = f'model_diff_saits_season_{i}.pth'
-        cv_train(model_diff_saits, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_diffsaits)
-
+        if not os.path.exists(f"{model_folder}/{filename}"):
+            cv_train(model_diff_saits, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_diffsaits)
+        else:
+            model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+            
         models = {
             'CSDI': model_csdi,
             # 'SAITS': saits,
@@ -539,8 +546,8 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         # mse_diff_saits = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         # mse_diff_saits = torch.abs((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                         # mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        # if feature not in mse_diff_saits_total.keys():
-                        #     mse_diff_saits_total[feature] = {}
+                        if feature not in mse_diff_saits_total.keys():
+                            mse_diff_saits_total[feature] = {}
                         # if "median" not in mse_diff_saits_total[feature].keys():
                         #     mse_diff_saits_total[feature]["median"] = mse_diff_saits
                         # else:
