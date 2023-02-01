@@ -90,7 +90,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2021-2022': 33,
     }
     model_folder = "./cv_saved_model"
-    for i in range(seasons.keys()):
+    for i in seasons.keys():
         season_idx = seasons_list.index(i)
         model_csdi = CSDI_Agaid(config_csdi, device).to(device) 
         if not os.path.isdir(model_folder):
