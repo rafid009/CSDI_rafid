@@ -181,28 +181,28 @@ def train(
                     refresh=False,
                 )
             lr_scheduler.step()
-        if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
-            model.eval()
-            avg_loss_valid = 0
-            with torch.no_grad():
-                with tqdm(valid_loader, mininterval=5.0, maxinterval=50.0) as it:
-                    for batch_no, valid_batch in enumerate(it, start=1):
-                        loss = model(valid_batch, is_train=0)
-                        avg_loss_valid += loss.item()
-                        it.set_postfix(
-                            ordered_dict={
-                                "valid_avg_epoch_loss": avg_loss_valid / batch_no,
-                                "epoch": epoch_no,
-                            },
-                            refresh=False,
-                        )
+        # if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
+        #     model.eval()
+        #     avg_loss_valid = 0
+        #     with torch.no_grad():
+        #         with tqdm(valid_loader, mininterval=5.0, maxinterval=50.0) as it:
+        #             for batch_no, valid_batch in enumerate(it, start=1):
+        #                 loss = model(valid_batch, is_train=0)
+        #                 avg_loss_valid += loss.item()
+        #                 it.set_postfix(
+        #                     ordered_dict={
+        #                         "valid_avg_epoch_loss": avg_loss_valid / batch_no,
+        #                         "epoch": epoch_no,
+        #                     },
+        #                     refresh=False,
+        #                 )
 
-                print(
-                    "\n avg loss is now ",
-                    avg_loss_valid / batch_no,
-                    "at",
-                    epoch_no,
-                )
+        #         print(
+        #             "\n avg loss is now ",
+        #             avg_loss_valid / batch_no,
+        #             "at",
+        #             epoch_no,
+        #         )
 
     if foldername != "":
         torch.save(model.state_dict(), output_path)

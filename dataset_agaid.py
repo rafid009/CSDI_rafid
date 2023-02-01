@@ -162,7 +162,8 @@ def get_dataloader(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, m
     mean, std = get_mean_std(train_season_df, features)
     X, Y = split_XY(season_df, max_length, season_array, features)
     if season_idx is not None:
-        test_dataset = Agaid_Dataset(X[season_idx], mean, std, rate=missing_ratio, is_test=is_test, randon_trial=random_trial)
+        X_test = np.expand_dims(X[season_idx], 0)
+        test_dataset = Agaid_Dataset(X_test, mean, std, rate=missing_ratio, is_test=is_test, randon_trial=random_trial)
         
         if season_idx == 0:
             train_dataset = Agaid_Dataset(X[season_idx:], mean, std, rate=missing_ratio, randon_trial=random_trial)
