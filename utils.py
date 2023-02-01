@@ -82,10 +82,10 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2013-2014': 25,
         # '2014-2015': 26,
         # '2015-2016': 27,
-        # '2016-2017': 28,
-        # '2017-2018': 29,
-        '2018-2019': 30,
-        '2019-2020': 31,
+        '2016-2017': 28,
+        '2017-2018': 29,
+        # '2018-2019': 30,
+        # '2019-2020': 31,
         # '2020-2021': 32,
         # '2021-2022': 33,
     }
@@ -115,7 +115,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
             cv_train(model_diff_saits, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_diffsaits)
         else:
             model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
-            
+
         models = {
             'CSDI': model_csdi,
             # 'SAITS': saits,
