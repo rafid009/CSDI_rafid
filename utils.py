@@ -17,38 +17,111 @@ matplotlib.rc('ytick', labelsize=20)
 
 
 def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
-    seasons = 34
+    seasons_list = [
+        '1988-1989', 
+        '1989-1990', 
+        '1990-1991', 
+        '1991-1992', 
+        '1992-1993', 
+        '1993-1994', 
+        '1994-1995', 
+        '1995-1996', 
+        '1996-1997', 
+        '1997-1998',
+        '1998-1999',
+        '1999-2000',
+        '2000-2001',
+        '2001-2002',
+        '2002-2003',
+        '2003-2004',
+        '2004-2005',
+        '2005-2006',
+        '2006-2007',
+        '2007-2008',
+        '2008-2009',
+        '2009-2010',
+        '2010-2011',
+        '2011-2012',
+        '2012-2013',
+        '2013-2014',
+        '2014-2015',
+        '2015-2016',
+        '2016-2017',
+        '2017-2018',
+        '2018-2019',
+        '2019-2020',
+        '2020-2021',
+        '2021-2022'
+    ]
+    seasons = {
+        # '1988-1989': 0,
+        # '1989-1990': 1,
+        # '1990-1991': 2,
+        # '1991-1992': 3,
+        # '1992-1993': 4,
+        # '1993-1994': 5,
+        # '1994-1995': 6,
+        # '1995-1996': 7,
+        # '1996-1997': 8,
+        # '1997-1998': 9,
+        # '1998-1999': 10,
+        # '1999-2000': 11,
+        # '2000-2001': 12,
+        # '2001-2002': 13,
+        # '2002-2003': 14,
+        # '2003-2004': 15,
+        # '2004-2005': 16,
+        # '2005-2006': 17,
+        # '2006-2007': 18,
+        # '2007-2008': 19,
+        # '2008-2009': 20,
+        # '2009-2010': 21,
+        # '2010-2011': 22,
+        # '2011-2012': 23,
+        # '2012-2013': 24,
+        # '2013-2014': 25,
+        # '2014-2015': 26,
+        # '2015-2016': 27,
+        # '2016-2017': 28,
+        # '2017-2018': 29,
+        '2018-2019': 30,
+        '2019-2020': 31,
+        '2020-2021': 32,
+        '2021-2022': 33,
+    }
     model_folder = "./cv_saved_model"
     for i in range(seasons):
+        season_idx = seasons_list.index(i)
         model_csdi = CSDI_Agaid(config_csdi, device).to(device) 
         if not os.path.isdir(model_folder):
             os.makedirs(model_folder)
         filename = f'model_csdi_season_{i}.pth'
-        cv_train(model_csdi, f"{model_folder}/{filename}")
+        cv_train(model_csdi, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_csdi)
 
-        saits_model_file = f"{model_csdi}/model_saits_season_{i}.pth"
-        saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
-        saits.fit()
-        pickle.dump(saits, open(saits_model_file, 'wb'))
+        # saits_model_file = f"{model_csdi}/model_saits_season_{i}.pth"
+        # saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+        # saits.fit()
+        # pickle.dump(saits, open(saits_model_file, 'wb'))
 
         model_diff_saits = CSDI_Agaid(config_diffsaits, device).to(device)
         if not os.path.isdir(model_folder):
             os.makedirs(model_folder)
         filename = f'model_diff_saits_season_{i}.pth'
-        cv_train(model_diff_saits, f"{model_folder}/{filename}")
+        cv_train(model_diff_saits, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_diffsaits)
 
         models = {
             'CSDI': model_csdi,
-            'SAITS': saits,
+            # 'SAITS': saits,
             'DiffSAITS': model_diff_saits
         }
         mse_folder = "results_cv"
-        lengths = [100]
+        lengths = [10, 20, 50, 100, 150]
         print("For All")
         for l in lengths:
             print(f"For length: {l}")
-            evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=i)
-            evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=i)
+            evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=season_idx)
+            evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=season_idx)
+        evaluate_imputation(models, mse_folder, trials=20, season_idx=season_idx, random_trial=True)
 
 
 def cv_train(model, model_file, input_file, config, season_idx, seed=10):
@@ -259,7 +332,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100, season_idx=None):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100, season_idx=None, random_trial=False):
     seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -378,7 +451,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_diff_saits_total = {}
         # mse_diff_saits_simple_total = {}
         for i in range(trials):
-            test_loader = get_testloader(seed=(20 + i), season_idx=season_idx, exclude_features=exclude_features, length=length)
+            test_loader = get_testloader(seed=(20 + i), season_idx=season_idx, exclude_features=exclude_features, length=length, random_trial=random_trial)
             for j, test_batch in enumerate(test_loader, start=1):
                 output = models['CSDI'].evaluate(test_batch, nsample)
                 samples, c_target, eval_points, observed_points, observed_time, obs_intact, gt_intact = output
@@ -387,15 +460,15 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 eval_points = eval_points.permute(0, 2, 1)
                 observed_points = observed_points.permute(0, 2, 1)
                 samples_median = samples.median(dim=1)
-                samples_mean = samples.mean(dim=1)
-                gt_intact = gt_intact.squeeze(axis=0)
-                saits_X = gt_intact #test_batch['obs_data_intact']
-                saits_output = models['SAITS'].impute(saits_X)
+                # samples_mean = samples.mean(dim=1)
+                # gt_intact = gt_intact.squeeze(axis=0)
+                # saits_X = gt_intact #test_batch['obs_data_intact']
+                # saits_output = models['SAITS'].impute(saits_X)
 
                 output_diff_saits = models['DiffSAITS'].evaluate(test_batch, nsample)
                 samples_diff_saits, _, _, _, _, _, _ = output_diff_saits
                 samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
-                samples_diff_saits_median = samples_diff_saits.median(dim=1)
+                # samples_diff_saits_median = samples_diff_saits.median(dim=1)
                 samples_diff_saits_mean = samples_diff_saits.mean(dim=1)
 
                 # if 'DiffSAITSsimple' in models.keys():
@@ -411,7 +484,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         # 'csdi_mean': samples_mean[0, :, :].cpu().numpy(),
                         'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
                         'csdi_samples': samples[0].cpu().numpy(),
-                        'saits': saits_output[0, :, :],
+                        # 'saits': saits_output[0, :, :],
                         'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
                         # 'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
                         'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
@@ -462,10 +535,10 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             
 
                         # mse_diff_saits = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits = torch.abs((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        if feature not in mse_diff_saits_total.keys():
-                            mse_diff_saits_total[feature] = {}
+                        # mse_diff_saits = torch.abs((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
+                        # mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        # if feature not in mse_diff_saits_total.keys():
+                        #     mse_diff_saits_total[feature] = {}
                         # if "median" not in mse_diff_saits_total[feature].keys():
                         #     mse_diff_saits_total[feature]["median"] = mse_diff_saits
                         # else:
@@ -512,12 +585,12 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
 
                         # mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        if feature not in mse_saits_total.keys():
-                            mse_saits_total[feature] = mse_saits
-                        else:
-                            mse_saits_total[feature] += mse_saits
+                        # mse_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
+                        # mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        # if feature not in mse_saits_total.keys():
+                        #     mse_saits_total[feature] = mse_saits
+                        # else:
+                        #     mse_saits_total[feature] += mse_saits
         if trials > 1:
             print(f"For season = {season}:")
             for feature in features:
@@ -531,14 +604,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 #     mse_diff_saits_simple_total[feature][i] /= trials
                 mse_saits_total[feature] /= trials
                 try:
-                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']} \
-                \n\tSAITS mse: {mse_saits_total[feature]}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")# \
+                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")# \
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
                 except:
                     continue
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
-                'SAITS': mse_saits_total,
+                # 'SAITS': mse_saits_total,
                 'DiffSAITS': mse_diff_saits_total#,
                 # 'DiffSAITSsimple': mse_diff_saits_simple_total
             }
@@ -547,11 +619,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
     if trials == 1:
-        fp = open(f"{mse_folder}/sample-results-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}.json", "w")
+        fp = open(f"{mse_folder}/sample-results-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{random_trial}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
-        out_file = open(f"{mse_folder}/model_{len(models.keys())}_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}.json", "w")
+        out_file = open(f"{mse_folder}/model_{len(models.keys())}_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{random_trial}.json", "w")
         json.dump(season_avg_mse, out_file, indent = 4)
         out_file.close()
 
