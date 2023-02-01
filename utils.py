@@ -137,8 +137,8 @@ def cv_train(model, model_file, input_file, config, season_idx, seed=10):
         config["train"],
         train_loader,
         valid_loader=valid_loader,
-        foldername=model_file,
-        filename=input_file
+        foldername="",
+        filename=model_file
     )
 
 
@@ -206,6 +206,8 @@ def train(
 
     if foldername != "":
         torch.save(model.state_dict(), output_path)
+    if filename != "":
+        torch.save(model.state_dict(), filename)
 
 
 def quantile_loss(target, forecast, q: float, eval_points) -> float:
