@@ -16,7 +16,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 seed = 10
 config_dict_csdi = {
     'train': {
-        'epochs': 1500,
+        'epochs': 2000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
