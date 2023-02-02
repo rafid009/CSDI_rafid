@@ -80,14 +80,14 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2011-2012': 23,
         # '2012-2013': 24,
         # '2013-2014': 25,
-        '2014-2015': 26,
-        '2015-2016': 27,
+        # '2014-2015': 26,
+        # '2015-2016': 27,
         # '2016-2017': 28,
         # '2017-2018': 29,
         # '2018-2019': 30,
-        # '2019-2020': 31,
-        # '2020-2021': 32,
-        # '2021-2022': 33,
+        '2019-2020': 31,
+        '2020-2021': 32,
+        '2021-2022': 33,
     }
     model_folder = "./cv_saved_model"
     for i in seasons.keys():
@@ -628,11 +628,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
     if trials == 1:
-        fp = open(f"{mse_folder}/sample-results-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{random_trial}.json", "w")
+        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{season_names[0] if len(season_names) == 1 else season_names}_{random_trial}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
-        out_file = open(f"{mse_folder}/model_{len(models.keys())}_mse_seasons_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{random_trial}.json", "w")
+        out_file = open(f"{mse_folder}/model_mse_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{season_names[0] if len(season_names) == 1 else season_names}_{random_trial}.json", "w")
         json.dump(season_avg_mse, out_file, indent = 4)
         out_file.close()
 
