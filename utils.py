@@ -622,12 +622,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 # for i in mse_diff_saits_simple_total[feature].keys():
                 #     mse_diff_saits_simple_total[feature][i] /= trials
                 # mse_saits_total[feature] /= trials
-                try:
-                    print(f"\n\tFor feature = {feature}\n\tCSDI mae: {mse_csdi_total[feature]['mae']}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
-                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
+                print(f"\n\tFor feature = {feature}\n\tCSDI mae: {mse_csdi_total[feature]['mae']}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
+                print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
-                except:
-                    continue
+                # except:
+                #     continue
             season_avg_mse[season] = {
                 'CSDI': mse_csdi_total,
                 # 'SAITS': mse_saits_total,
