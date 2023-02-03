@@ -73,9 +73,9 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2004-2005': 16,
         # '2005-2006': 17,
         # '2006-2007': 18,
-        '2007-2008': 19,
-        '2008-2009': 20,
-        '2009-2010': 21,
+        # '2007-2008': 19,
+        # '2008-2009': 20,
+        # '2009-2010': 21,
         # '2010-2011': 22,
         # '2011-2012': 23,
         # '2012-2013': 24,
@@ -83,11 +83,11 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2014-2015': 26,
         # '2015-2016': 27,
         # '2016-2017': 28,
-        # '2017-2018': 29,
-        # '2018-2019': 30,
-        # '2019-2020': 31,
-        # '2020-2021': 32,
-        # '2021-2022': 33,
+        '2017-2018': 29,
+        '2018-2019': 30,
+        '2019-2020': 31,
+        '2020-2021': 32,
+        '2021-2022': 33,
     }
     model_folder = "./cv_saved_model"
     for i in seasons.keys():
@@ -508,19 +508,21 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         feature_idx = given_features.index(feature)
                         if eval_points[0, :, feature_idx].sum().item() == 0:
                             continue
-                        # mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        # mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
-
-                        mse_csdi = torch.abs((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
+                        mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
+
+                        mae_csdi = torch.abs((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
+                        mae_csdi = mae_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         
                         if feature not in mse_csdi_total.keys():
-                            mse_csdi_total[feature] = {}
+                            mse_csdi_total[feature] = {'mse': 0, 'mae': 0}
                         
-                        if "median" not in mse_csdi_total[feature].keys():
-                            mse_csdi_total[feature]["median"] = mse_csdi
-                        else:
-                            mse_csdi_total[feature]["median"] += mse_csdi
+                        # if "median" not in mse_csdi_total[feature].keys():
+                        #     mse_csdi_total[feature]['mse'] = mse_csdi
+                        #     mse_csdi_total[feature]['mae'] = mae_csdi
+                        # else:
+                        mse_csdi_total[feature]["mse"] += mse_csdi
+                        mse_csdi_total[feature]['mae'] += mae_csdi
 
                         # mse_csdi = ((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         # mse_csdi = torch.abs((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
@@ -547,19 +549,19 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         # mse_diff_saits = torch.abs((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                         # mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if feature not in mse_diff_saits_total.keys():
-                            mse_diff_saits_total[feature] = {}
+                            mse_diff_saits_total[feature] = {'mse': 0, 'mae': 0}
                         # if "median" not in mse_diff_saits_total[feature].keys():
                         #     mse_diff_saits_total[feature]["median"] = mse_diff_saits
                         # else:
                         #     mse_diff_saits_total[feature]["median"] += mse_diff_saits
 
-                        # mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits = torch.abs((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
+                        mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mae_diff_saits = torch.abs((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                         mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        if "mean" not in mse_diff_saits_total.keys():
-                            mse_diff_saits_total[feature]["mean"] = mse_diff_saits
-                        else:
-                            mse_diff_saits_total[feature]["mean"] += mse_diff_saits
+                        mae_diff_saits = mae_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        
+                        mse_diff_saits_total[feature]["mse"] += mse_diff_saits
+                        mse_diff_saits_total[feature]["mae"] += mae_diff_saits
 
                         # for k in range(samples.shape[1]):
                         #     # mse_diff_saits = ((samples_diff_saits[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
@@ -613,7 +615,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 #     mse_diff_saits_simple_total[feature][i] /= trials
                 # mse_saits_total[feature] /= trials
                 try:
-                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['median']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]}")# \
+                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
                 except:
                     continue
@@ -632,7 +634,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
-        out_file = open(f"{mse_folder}/model_mse_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{season_names[0] if len(season_names) == 1 else season_names}_{random_trial}.json", "w")
+        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{season_names[0] if len(season_names) == 1 else season_names}_{random_trial}.json", "w")
         json.dump(season_avg_mse, out_file, indent = 4)
         out_file.close()
 
