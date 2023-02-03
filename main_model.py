@@ -237,9 +237,9 @@ class CSDI_base(nn.Module):
                     sigma = (
                         (1.0 - self.alpha[t - 1]) / (1.0 - self.alpha[t]) * self.beta[t]
                     ) ** 0.5
-                    print(f"{'SAITS' if self.is_saits else 'CSDI'} beta [t]: {self.beta[t]} and sigma: {sigma}\nnoise: {noise}")
+                    # print(f"{'SAITS' if self.is_saits else 'CSDI'} beta [t]: {self.beta[t]} and sigma: {sigma}\nnoise: {noise}")
                     current_sample += sigma * noise
-                print(f"in time step {ti} {'SAITS' if self.is_saits else 'CSDI'}: {current_sample}")
+                # print(f"in time step {ti} {'SAITS' if self.is_saits else 'CSDI'}: {current_sample}")
                 ti += 1
             current_sample = (1 - cond_mask) * current_sample + cond_mask * observed_data
             imputed_samples[:, i] = current_sample.detach()

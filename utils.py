@@ -62,11 +62,11 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '1993-1994': 5,
         # '1994-1995': 6,
         # '1995-1996': 7,
-        '1996-1997': 8,
-        '1997-1998': 9,
-        '1998-1999': 10,
-        '1999-2000': 11,
-        '2000-2001': 12,
+        # '1996-1997': 8,
+        # '1997-1998': 9,
+        # '1998-1999': 10,
+        # '1999-2000': 11,
+        # '2000-2001': 12,
         # '2001-2002': 13,
         # '2002-2003': 14,
         # '2003-2004': 15,
@@ -87,7 +87,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # '2018-2019': 30,
         # '2019-2020': 31,
         # '2020-2021': 32,
-        # '2021-2022': 33,
+        '2021-2022': 33
     }
     model_folder = "./cv_saved_model"
     for i in seasons.keys():
@@ -97,6 +97,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
             os.makedirs(model_folder)
         
         filename = f'model_csdi_season_{i}.pth'
+        print(f"model_name: {filename}")
         if not os.path.exists(f"{model_folder}/{filename}"):
             cv_train(model_csdi, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_csdi)
         else:
@@ -111,6 +112,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         # if not os.path.isdir(model_folder):
         #     os.makedirs(model_folder)
         filename = f'model_diff_saits_season_{i}.pth'
+        print(f"model_name: {filename}")
         if not os.path.exists(f"{model_folder}/{filename}"):
             cv_train(model_diff_saits, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_diffsaits)
         else:
@@ -125,9 +127,13 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         lengths = [10, 20, 50, 100, 150]
         print("For All")
         for l in lengths:
-            print(f"For length: {l}")
+            # print(f"For length: {l}")
+            trials = 20
+            if l == 150:
+                trials = 10
             evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=season_idx)
-            evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=season_idx)
+            evaluate_imputation(models, mse_folder, length=l, trials=trials, season_idx=season_idx)
+        evaluate_imputation(models, mse_folder, trials=1, season_idx=season_idx, random_trial=True)
         evaluate_imputation(models, mse_folder, trials=20, season_idx=season_idx, random_trial=True)
 
 
@@ -341,7 +347,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=30, length=100, season_idx=None, random_trial=False):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False):
     # seasons = {
     # '1988-1989': 0,
     # '1989-1990': 1,
@@ -504,7 +510,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     for feature in given_features:
                         if exclude_features is not None and feature in exclude_features:
                             continue
-                        print(f"For feature: {feature}")
+                        print(f"For feature: {feature}, for length: {length}, trial: {random_trial}")
                         feature_idx = given_features.index(feature)
                         if eval_points[0, :, feature_idx].sum().item() == 0:
                             continue
@@ -607,6 +613,8 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
             for feature in features:
                 if exclude_features is not None and feature in exclude_features:
                     continue
+                if feature not in mse_csdi_total.keys() or feature not in mse_diff_saits_total.keys():
+                    continue
                 for i in mse_csdi_total[feature].keys():
                     mse_csdi_total[feature][i] /= trials
                 for i in mse_diff_saits_total[feature].keys():
@@ -615,6 +623,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 #     mse_diff_saits_simple_total[feature][i] /= trials
                 # mse_saits_total[feature] /= trials
                 try:
+                    print(f"\n\tFor feature = {feature}\n\tCSDI mae: {mse_csdi_total[feature]['mae']}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
                     print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
                 except:
