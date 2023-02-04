@@ -80,7 +80,7 @@ config_dict_csdi = {
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2000,
+        'epochs': 2500,
         'batch_size': 16 ,
         'lr': 2.0e-4
     },      

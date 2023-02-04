@@ -111,7 +111,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
         model_diff_saits = CSDI_Agaid(config_diffsaits, device).to(device)
         # if not os.path.isdir(model_folder):
         #     os.makedirs(model_folder)
-        filename = f'model_diff_saits_season_{i}.pth'
+        filename = f'model_diff_saits_season_{i}_2500.pth'
         print(f"model_name: {filename}")
         if not os.path.exists(f"{model_folder}/{filename}"):
             cv_train(model_diff_saits, f"{model_folder}/{filename}", input_file=input_file, season_idx=season_idx, config=config_diffsaits)
