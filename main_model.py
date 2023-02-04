@@ -211,11 +211,11 @@ class CSDI_base(nn.Module):
                 if self.is_saits:
                     # print(f"saits")
                     temp_mask = cond_mask.unsqueeze(dim=1)
-                    if not self.is_simple:
+                    # if not self.is_simple:
                         # print(f"again not simple mask")
-                        total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
-                    else:
-                        total_mask = cond_mask
+                    total_mask = torch.cat([temp_mask, (1 - temp_mask)], dim=1)
+                    # else:
+                    #     total_mask = cond_mask
                     inputs = {
                         'X': diff_input,
                         'missing_mask': total_mask
