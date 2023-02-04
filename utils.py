@@ -124,7 +124,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
             'DiffSAITS': model_diff_saits
         }
         mse_folder = "results_cv"
-        lengths = [10, 20, 50, 100, 150]
+        lengths = [50,100]#[10, 20, 50, 100, 150]
         print("For All")
         for l in lengths:
             # print(f"For length: {l}")
@@ -133,8 +133,8 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
                 trials = 10
             evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=season_idx)
             evaluate_imputation(models, mse_folder, length=l, trials=trials, season_idx=season_idx)
-        evaluate_imputation(models, mse_folder, trials=1, season_idx=season_idx, random_trial=True)
-        evaluate_imputation(models, mse_folder, trials=20, season_idx=season_idx, random_trial=True)
+        # evaluate_imputation(models, mse_folder, trials=1, season_idx=season_idx, random_trial=True)
+        # evaluate_imputation(models, mse_folder, trials=20, season_idx=season_idx, random_trial=True)
 
 
 def cv_train(model, model_file, input_file, config, season_idx, seed=10):
