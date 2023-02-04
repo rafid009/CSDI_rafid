@@ -49,17 +49,17 @@ config_dict_csdi = {
     }
 }
 
-# data_file = 'ColdHardiness_Grape_Merlot_2.csv'
+data_file = 'ColdHardiness_Grape_Merlot_2.csv'
 
-# train_loader, valid_loader = get_dataloader(
-#     seed=seed,
-#     filename=data_file,
-#     batch_size=config_dict_csdi["train"]["batch_size"],
-#     missing_ratio=0.2,
-# )
+train_loader, valid_loader = get_dataloader(
+    seed=seed,
+    filename=data_file,
+    batch_size=config_dict_csdi["train"]["batch_size"],
+    missing_ratio=0.2,
+)
 # 
 # model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
-# model_folder = "./saved_model"
+model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
 # filename = 'model_csdi.pth'
@@ -80,7 +80,7 @@ config_dict_csdi = {
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2500,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 2.0e-4
     },      
@@ -91,7 +91,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.6,
-        'num_steps': 100,
+        'num_steps': 60,
         'schedule': "quad"
     },
     'model': {
@@ -114,27 +114,21 @@ config_dict_diffsaits = {
 }
 
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
-# model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
+model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-# filename = 'model_diff_saits.pth'
-# train(
-#     model_diff_saits_simple,
-#     config_dict["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=filename_simple
-# )
+filename = 'model_diff_saits_final.pth'
+config_info = 'model_diff_saits_final_config.pth'
+
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}"
-# )
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}"
+)
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
@@ -162,20 +156,20 @@ config_dict_diffsaits = {
 
 # saits = pickle.load(open(saits_model_file, 'rb'))
 
-# models = {
-#     'CSDI': model_csdi,
-#     # 'SAITS': saits,
-#     'DiffSAITS': model_diff_saits#,
-#     # 'DiffSAITSsimple': model_diff_saits_simple
-# }
-# mse_folder = "results_temp_corrected"
+models = {
+    # 'CSDI': model_csdi,
+    # 'SAITS': saits,
+    'DiffSAITS': model_diff_saits#,
+    # 'DiffSAITSsimple': model_diff_saits_simple
+}
+mse_folder = "results_final"
 
-# lengths = [20, 50, 100, 200]
-# print("For All")
-# for l in lengths:
-#     print(f"For length: {l}")
-#     evaluate_imputation(models, mse_folder, length=l, trials=1)
-#     evaluate_imputation(models, mse_folder, length=l, trials=20)
+lengths = [100]#[20, 50, 100, 200]
+print("For All")
+for l in lengths:
+    print(f"For length: {l}")
+    evaluate_imputation(models, mse_folder, length=l, trials=1)
+    evaluate_imputation(models, mse_folder, length=l, trials=20)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
@@ -220,6 +214,6 @@ config_dict_diffsaits = {
         # evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
 # forward_evaluation(models, filename, features)
 
-input_file = "ColdHardiness_Grape_Merlot_2.csv"
+# input_file = "ColdHardiness_Grape_Merlot_2.csv"
 
-cross_validate(input_file, config_dict_csdi, config_dict_diffsaits, seed=10)
+# cross_validate(input_file, config_dict_csdi, config_dict_diffsaits, seed=10)
