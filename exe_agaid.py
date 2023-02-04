@@ -80,7 +80,7 @@ model_folder = "./saved_model"
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 2500,
         'batch_size': 16 ,
         'lr': 2.0e-4
     },      
@@ -168,8 +168,8 @@ lengths = [100]#[20, 50, 100, 200]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
-    evaluate_imputation(models, mse_folder, length=l, trials=1)
-    evaluate_imputation(models, mse_folder, length=l, trials=20)
+    evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
+    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {

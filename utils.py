@@ -624,10 +624,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
             for feature in features:
                 if exclude_features is not None and feature in exclude_features:
                     continue
-                if feature not in mse_csdi_total.keys() or feature not in mse_diff_saits_total.keys():
-                    continue
-                for i in mse_csdi_total[feature].keys():
-                    mse_csdi_total[feature][i] /= trials
+                # if feature not in mse_csdi_total.keys() or feature not in mse_diff_saits_total.keys():
+                #     continue
+                if 'CSDI' in models.keys():
+                    for i in mse_csdi_total[feature].keys():
+                        mse_csdi_total[feature][i] /= trials
                 for i in mse_diff_saits_total[feature].keys():
                     mse_diff_saits_total[feature][i] /= trials
                 # mse_saits_total[feature] /= trials
