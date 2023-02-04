@@ -488,6 +488,9 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     output_diff_saits = models['DiffSAITS'].evaluate(test_batch, nsample)
                     if 'CSDI' not in models.keys():
                         samples_diff_saits, c_target, eval_points, observed_points, observed_time, obs_intact, gt_intact = output_diff_saits
+                        c_target = c_target.permute(0, 2, 1)  # (B,L,K)
+                        eval_points = eval_points.permute(0, 2, 1)
+                        observed_points = observed_points.permute(0, 2, 1)
                     else:
                         samples_diff_saits, _, _, _, _, _, _ = output_diff_saits
                     samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
