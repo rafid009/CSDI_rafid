@@ -124,7 +124,7 @@ def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
             'DiffSAITS': model_diff_saits
         }
         mse_folder = "results_cv_2500"
-        lengths = [50,100]#[10, 20, 50, 100, 150]
+        lengths = [100]#[10, 20, 50, 100, 150]
         print("For All")
         for l in lengths:
             # print(f"For length: {l}")
