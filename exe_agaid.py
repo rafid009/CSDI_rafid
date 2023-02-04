@@ -57,7 +57,7 @@ config_dict_csdi = {
 #     batch_size=config_dict_csdi["train"]["batch_size"],
 #     missing_ratio=0.2,
 # )
-
+# 
 # model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
 # model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
@@ -80,9 +80,9 @@ config_dict_csdi = {
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 2000,
         'batch_size': 16 ,
-        'lr': 1.0e-3
+        'lr': 2.0e-4
     },      
     'diffusion': {
         'layers': 4, 
@@ -90,7 +90,7 @@ config_dict_diffsaits = {
         'nheads': 8,
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
-        'beta_end': 0.5,
+        'beta_end': 0.6,
         'num_steps': 100,
         'schedule': "quad"
     },
@@ -105,7 +105,7 @@ config_dict_diffsaits = {
         'n_feature': len(features),
         'd_model': 256,
         'd_inner': 128,
-        'n_head': 3,
+        'n_head': 4,
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.1,
@@ -164,7 +164,7 @@ config_dict_diffsaits = {
 
 # models = {
 #     'CSDI': model_csdi,
-#     'SAITS': saits,
+#     # 'SAITS': saits,
 #     'DiffSAITS': model_diff_saits#,
 #     # 'DiffSAITSsimple': model_diff_saits_simple
 # }
