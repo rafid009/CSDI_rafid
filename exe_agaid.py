@@ -134,7 +134,6 @@ train(
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
 # evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 
-
 # filename = "ColdHardiness_Grape_Merlot_2.csv"
 # df = pd.read_csv(filename)
 # modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
