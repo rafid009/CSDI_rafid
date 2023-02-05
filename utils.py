@@ -177,7 +177,12 @@ def train(
     best_valid_loss = 1e10
     for epoch_no in range(config["epochs"]):
         avg_loss = 0
-        
+        if epoch_no == 1000:
+            torch.save(model.state_dict(), output_path)
+            model.load_state_dict(torch.load(f"{output_path}"))
+        if epoch_no > 1000 and epoch_no % 500 == 0:
+            torch.save(model.state_dict(), output_path)
+            model.load_state_dict(torch.load(f"{output_path}"))
         with tqdm(train_loader, mininterval=5.0, maxinterval=50.0) as it:
             for batch_no, train_batch in enumerate(it, start=1):
                 optimizer.zero_grad()
@@ -219,8 +224,8 @@ def train(
 
     if foldername != "":
         torch.save(model.state_dict(), output_path)
-    if filename != "":
-        torch.save(model.state_dict(), filename)
+    # if filename != "":
+    #     torch.save(model.state_dict(), filename)
 
 
 def quantile_loss(target, forecast, q: float, eval_points) -> float:
