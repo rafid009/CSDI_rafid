@@ -82,7 +82,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 2500,
         'batch_size': 16 ,
-        'lr': 1.0e-4
+        'lr': 2.0e-4
     },      
     'diffusion': {
         'layers': 4, 
@@ -98,7 +98,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "mix",
+        'target_strategy': "random",
         'type': 'SAITS',
         'n_layers': 3, 
         'd_time': 252,
@@ -112,7 +112,7 @@ config_dict_diffsaits = {
         'diagonal_attention_mask': True
     }
 }
-
+print(config_dict_diffsaits)
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
