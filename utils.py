@@ -210,12 +210,12 @@ def train(
                             refresh=False,
                         )
 
-                print(
-                    "\n avg loss is now ",
-                    avg_loss_valid / batch_no,
-                    "at",
-                    epoch_no,
-                )
+                # print(
+                #     "\n avg loss is now ",
+                #     avg_loss_valid / batch_no,
+                #     "at",
+                #     epoch_no,
+                # )
 
     if foldername != "":
         torch.save(model.state_dict(), output_path)
