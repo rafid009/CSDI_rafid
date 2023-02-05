@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-def parse_data(sample, rate=0.2, is_test=False, length=100, include_features=None, forward_trial=-1, lte_idx=None, random_trial=False):
+def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=None, forward_trial=-1, lte_idx=None, random_trial=False):
     """Get mask of random points (missing at random) across channels based on k,
     where k == number of data points. Mask of sample's shape where 0's to be imputed, and 1's to preserved
     as per ts imputers"""
@@ -100,7 +100,7 @@ def get_mask_bm(sample, rate):
 
 
 class Agaid_Dataset(Dataset):
-    def __init__(self, X, mean, std, eval_length=252, rate=0.2, is_test=False, length=100, exclude_features=None, forward_trial=-1, lte_idx=None, randon_trial=False) -> None:
+    def __init__(self, X, mean, std, eval_length=252, rate=0.3, is_test=False, length=100, exclude_features=None, forward_trial=-1, lte_idx=None, randon_trial=False) -> None:
         super().__init__()
         self.eval_length = eval_length
         self.observed_values = []
@@ -111,6 +111,8 @@ class Agaid_Dataset(Dataset):
         
         self.mean = torch.tensor(mean, dtype=torch.float32)
         self.std = torch.tensor(std, dtype=torch.float32)
+
+        print(f"X: {X.shape} in {'Test' if is_test else 'Train'}")
         
         include_features = []
         if exclude_features is not None:
@@ -132,7 +134,8 @@ class Agaid_Dataset(Dataset):
         self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
         self.obs_data_intact = ((self.obs_data_intact - self.mean.numpy()) / self.std.numpy()) * self.observed_masks.numpy()
         self.gt_intact = ((self.gt_intact - self.mean.numpy()) / self.std.numpy()) * self.gt_masks.numpy()
-        
+        print(f"obs_val: {self.observed_values.shape}")
+
     def __getitem__(self, index):
         s = {
             "observed_data": self.observed_values[index],
