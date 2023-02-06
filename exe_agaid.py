@@ -56,7 +56,7 @@ train_loader, valid_loader = get_dataloader(
     filename=data_file,
     batch_size=config_dict_csdi["train"]["batch_size"],
     missing_ratio=0.2,
-    season_idx=33
+    #ßseason_idx=33
 )
 # 
 # model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
@@ -81,9 +81,9 @@ model_folder = "./saved_model"
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2500,
+        'epochs': 3000,
         'batch_size': 16 ,
-        'lr': 2.0e-4
+        'lr': 1.0e-3
     },      
     'diffusion': {
         'layers': 4, 
