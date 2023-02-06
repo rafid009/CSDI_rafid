@@ -59,11 +59,11 @@ train_loader, valid_loader = get_dataloader(
     season_idx=33
 )
 # 
-# model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
+model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
 model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
-# filename = 'model_csdi.pth'
+filename = 'model_csdi.pth'
 # train(
 #     model_csdi,
 #     config_dict_csdi["train"],
@@ -73,7 +73,7 @@ model_folder = "./saved_model"
 #     filename=filename
 # )
 # nsample = 50
-# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # evaluate(model_csdi, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 # model_folder_exp = "./saved_model_explode"
 # if not os.path.isdir(model_folder_exp):
@@ -117,7 +117,7 @@ print(config_dict_diffsaits)
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_final_lrs.pth'
+filename = 'model_diff_saits_final_lrs_2.pth'
 config_info = 'model_diff_saits_final_config.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
@@ -157,12 +157,12 @@ train(
 # saits = pickle.load(open(saits_model_file, 'rb'))
 
 models = {
-    # 'CSDI': model_csdi,
+    'CSDI': model_csdi,
     # 'SAITS': saits,
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_final_lrs"
+mse_folder = "results_final_lrs_2"
 
 lengths = [100]#[20, 50, 100, 200]
 print("For All")
