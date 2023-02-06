@@ -56,7 +56,7 @@ train_loader, valid_loader = get_dataloader(
     filename=data_file,
     batch_size=config_dict_csdi["train"]["batch_size"],
     missing_ratio=0.2,
-    ßseason_idx=33
+    season_idx=33
 )
 # 
 # model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
