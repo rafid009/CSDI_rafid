@@ -56,7 +56,7 @@ train_loader, valid_loader = get_dataloader(
     filename=data_file,
     batch_size=config_dict_csdi["train"]["batch_size"],
     missing_ratio=0.2,
-    #ßseason_idx=33
+    ßseason_idx=33
 )
 # 
 # model_csdi = CSDI_Agaid(config_dict_csdi, device).to(device)
@@ -168,8 +168,8 @@ lengths = [100]#[20, 50, 100, 200]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
-    evaluate_imputation(models, mse_folder, length=l, trials=1)#, season_idx=33)
-    evaluate_imputation(models, mse_folder, length=l, trials=20)#, season_idx=33)
+    evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
+    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
