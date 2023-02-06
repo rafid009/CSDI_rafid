@@ -167,7 +167,7 @@ class ResidualEncoderLayer(nn.Module):
                          diagonal_attention_mask)
         self.mid_projection = Conv1d_with_init(channels, 2*channels, 1)
         # self.output_projection = Conv1d_with_init(1, 4, 1)
-        self.output_projection = Conv1d_with_init(1, 4, 1)
+        self.output_projection = Conv1d_with_init(2, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
         self.init_projection = Conv1d_with_init(2, channels, 1)
         # Transposed
@@ -234,10 +234,10 @@ class ResidualEncoderLayer(nn.Module):
         # y2 = torch.transpose(y2, 1, 2)
         y2, attn_weights_eps = self.enc_layer_eps(y2)
 
-        y = y1 + y2#torch.stack((y1, y2), dim=1)
+        y = torch.stack((y1, y2), dim=1)
 
-        _, K3, L3 = y.shape
-        y = y.reshape(B, 1, K3 * L3)
+        _, stack_size, K3, L3 = y.shape
+        y = y.reshape(B, stack_size, K3 * L3)
 
         y = self.output_projection(y)
         residual, skip = torch.chunk(y, 2, dim=1)
