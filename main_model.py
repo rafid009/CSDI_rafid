@@ -221,7 +221,7 @@ class CSDI_base(nn.Module):
                         'missing_mask': total_mask
                     }
                     pred1, pred2, pred3 = self.diffmodel(inputs, torch.tensor([t]).to(self.device))
-                    predicted = (pred1+pred2+pred3)/3
+                    predicted = pred3#(pred1+pred2+pred3)/3
                     
                 else:
                     predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))
