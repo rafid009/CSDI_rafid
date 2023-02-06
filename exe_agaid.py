@@ -91,7 +91,7 @@ config_dict_diffsaits = {
         'nheads': 8,
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
-        'beta_end': 0.05,
+        'beta_end': 0.5,
         'num_steps': 60,
         'schedule': "quad"
     },
@@ -99,7 +99,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 4, 
         'd_time': 252,
