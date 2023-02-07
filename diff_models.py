@@ -234,7 +234,7 @@ class ResidualEncoderLayer(nn.Module):
         # y2 = torch.transpose(y2, 1, 2)
         y2, attn_weights_eps = self.enc_layer_eps(y2)
 
-        y = F.softsign(y1 + y2) #torch.stack((y1, y2), dim=1)
+        y = y1 + y2 #torch.stack((y1, y2), dim=1)
 
         _, K3, L3 = y.shape
         y = y.reshape(B, 1, K3 * L3)
