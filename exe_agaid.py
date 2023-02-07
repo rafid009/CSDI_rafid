@@ -92,7 +92,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.6,
-        'num_steps': 50,
+        'num_steps': 60,
         'schedule': "quad"
     },
     'model': {
@@ -117,7 +117,7 @@ print(config_dict_diffsaits)
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_final_add.pth'
+filename = 'model_diff_saits_final_softsign.pth'
 config_info = 'model_diff_saits_final_stack.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
@@ -162,7 +162,7 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_final_add"
+mse_folder = "results_final_softsign"
 
 lengths = [100]#[20, 50, 100, 200]
 print("For All")
