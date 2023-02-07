@@ -165,7 +165,7 @@ class ResidualEncoderLayer(nn.Module):
                          diagonal_attention_mask)
         self.enc_layer_eps = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.mid_projection = Conv1d_with_init(channels, 2*channels, 1)
+        self.mid_projection = Conv1d_with_init(channels, channels, 1)
         # self.output_projection = Conv1d_with_init(1, 4, 1)
         self.output_projection = Conv1d_with_init(1, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
@@ -176,35 +176,6 @@ class ResidualEncoderLayer(nn.Module):
         self.pre_enc_layer = Conv1d_with_init(channels, 2, 1)
         # self.pre_enc_layer_eps = 
         self.out_skip_proj = Conv1d_with_init(2, 1, 1)
-
-    ## Transposed
-    # def forward(self, x, diffusion_emb):
-    #     B, channel, K, L = x.shape
-    #     x_proj = torch.transpose(x, 2, 3)
-    #     x_temp = x_proj.reshape(B, channel, K * L)
-    #     x_proj = self.init_projection(x_temp)
-    #     _, channel_out, _ = x_proj.shape
-    #     # x_proj = x_proj.reshape(B, channel_out, K * L)
-    #     diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-    #     y = x_proj + diff_proj
-    #     y = self.mid_projection(y)
-    #     gate, filter = torch.chunk(y, 2, dim=1)
-    #     y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
-    #     # y = y.reshape(B, channel_out, K, L)
-    #     y = self.pre_enc_layer(y)
-    #     y = y.reshape(B, L, K)
-    #     y = torch.transpose(y, 1, 2)
-    #     y, attn_weights = self.enc_layer(y)
-    #     _, K3, L3 = y.shape
-    #     y = y.reshape(B, 1, K3 * L3)
-    #     y = self.output_projection(y)
-    #     residual, skip = torch.chunk(y, 2, dim=1)
-    #     x = x.reshape(B, channel, K3, L3)
-    #     residual = residual.reshape(B, channel, K3, L3)
-    #     skip = F.relu(self.out_skip_proj(skip))
-    #     skip = skip.reshape(B, K3, L3)
-        
-    #     return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
     
     def forward(self, x, diffusion_emb):
@@ -217,12 +188,12 @@ class ResidualEncoderLayer(nn.Module):
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
         y = self.mid_projection(y)
-        gate, filter = torch.chunk(y, 2, dim=1)
-        y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
-        # y = y.reshape(B, channel_out, K, L)
-        y = self.pre_enc_layer(y)
-        _, channel_out, _ = y.shape
-        y = y.reshape(B, channel_out, L, K)
+        # gate, filter = torch.chunk(y, 2, dim=1)
+        # y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+        # y = y.reshape(B, channel_out, L, K)
+        # y = self.pre_enc_layer(y)
+        # _, channel_out, _ = y.shape
+        y = y.reshape(B, channel, L, K)
         y = torch.transpose(y, 2, 3)
         slice_X, slice_eps = torch.chunk(y, 2, dim=1)
         
