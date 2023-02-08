@@ -168,11 +168,11 @@ def train(
     if foldername != "":
         output_path = foldername + f"/{filename if len(filename) != 0 else 'model_csdi.pth'}"
 
-    # p1 = int(0.75 * config["epochs"])
-    # p2 = int(0.9 * config["epochs"])
-    # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-    #     optimizer, milestones=[p1, p2], gamma=0.1
-    # )
+    p1 = int(0.75 * config["epochs"])
+    p2 = int(0.9 * config["epochs"])
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[p1, p2], gamma=0.1
+    )
 
     best_valid_loss = 1e10
     model.train()
@@ -199,7 +199,7 @@ def train(
                     },
                     refresh=False,
                 )
-            # lr_scheduler.step()
+            lr_scheduler.step()
         if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
             model.eval()
             avg_loss_valid = 0
@@ -223,7 +223,7 @@ def train(
                 #     epoch_no,
                 # )
 
-    if foldername != "":
+    if filename != "":
         torch.save(model.state_dict(), output_path)
     # if filename != "":
     #     torch.save(model.state_dict(), filename)
