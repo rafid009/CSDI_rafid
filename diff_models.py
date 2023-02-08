@@ -165,7 +165,7 @@ class ResidualEncoderLayer(nn.Module):
                          diagonal_attention_mask)
         self.enc_layer_eps = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.mid_projection = Conv1d_with_init(channels, 2, 1)
+        self.mid_projection = Conv1d_with_init(channels, 2*channels, 1)
         # self.output_projection = Conv1d_with_init(1, 4, 1)
         self.output_projection = Conv1d_with_init(1, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
@@ -188,12 +188,12 @@ class ResidualEncoderLayer(nn.Module):
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
         y = self.mid_projection(y)
-        # gate, filter = torch.chunk(y, 2, dim=1)
-        # y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+        gate, filter = torch.chunk(y, 2, dim=1)
+        y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
         # y = y.reshape(B, channel_out, L, K)
-        # y = self.pre_enc_layer(y)
-        # _, channel_out, _ = y.shape
-        y = y.reshape(B, channel, L, K)
+        y = self.pre_enc_layer(y)
+        _, channel_out, _ = y.shape
+        y = y.reshape(B, channel_out, L, K)
         y = torch.transpose(y, 2, 3)
         slice_X, slice_eps = torch.chunk(y, 2, dim=1)
         
