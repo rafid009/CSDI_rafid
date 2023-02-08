@@ -336,7 +336,7 @@ class diff_SAITS(nn.Module):
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         # print(f"skip tilde 1: {skips_tilde_1.shape}")
         X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
-        X_tilde_1[:, 1, :, :] = masks[:, 1, :, :] * X_tilde_1[:, 1, :, :]
+        # X_tilde_1[:, 1, :, :] = masks[:, 1, :, :] * X_tilde_1[:, 1, :, :]
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
