@@ -170,6 +170,8 @@ def train(
 
     p1 = int(0.75 * config["epochs"])
     p2 = int(0.9 * config["epochs"])
+    exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
+
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=[p1, p2], gamma=0.1
     )
@@ -199,7 +201,9 @@ def train(
                     },
                     refresh=False,
                 )
+            exp_scheduler.step()
             lr_scheduler.step()
+            
         if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
             model.eval()
             avg_loss_valid = 0
