@@ -225,8 +225,11 @@ class CSDI_base(nn.Module):
                     preds = torch.stack([pred1, pred2, pred3], dim=0)
                     # predicted = (pred1+pred2+pred3)/3
                     preds = preds.permute(0,1,3,2)
-                    predicted = preds.mean(dim=1)[0]
+                    print(f"preds: {preds.shape}")
+                    predicted = preds.mean(dim=1)
+                    print(f"predicted mean: {predicted.shape}")
                     predicted = predicted.permute(0,2,1)
+                    print(f"predicted permute mean: {predicted.shape}")
                     
                 else:
                     predicted = self.diffmodel(diff_input, side_info, torch.tensor([t]).to(self.device))

@@ -177,7 +177,7 @@ class ResidualEncoderLayer(nn.Module):
         # self.pre_enc_layer_eps = 
         self.out_skip_proj = Conv1d_with_init(2, 1, 1)
 
-    
+    # Old
     def forward(self, x, diffusion_emb):
         B, channel, K, L = x.shape
         x_proj = torch.transpose(x, 2, 3)
@@ -218,6 +218,48 @@ class ResidualEncoderLayer(nn.Module):
         skip = skip.reshape(B, K3, L3)
         attn_weights = (attn_weights_X + attn_weights_eps) / 2
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
+
+
+    # def forward(self, x, diffusion_emb):
+    #     B, channel, K, L = x.shape
+    #     x_proj = torch.transpose(x, 2, 3)
+    #     x_temp = x_proj.reshape(B, channel, K * L)
+    #     x_proj = self.init_projection(x_temp)
+    #     # _, channel_out, _ = x_proj.shape
+    #     # x_proj = x_proj.reshape(B, channel_out, K * L)
+    #     diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
+    #     y = x_proj + diff_proj
+    #     y = self.mid_projection(y)
+    #     gate, filter = torch.chunk(y, 2, dim=1)
+    #     y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+    #     # y = y.reshape(B, channel_out, L, K)
+    #     y = self.pre_enc_layer(y)
+    #     _, channel_out, _ = y.shape
+    #     y = y.reshape(B, channel_out, L, K)
+    #     y = torch.transpose(y, 2, 3)
+    #     slice_X, slice_eps = torch.chunk(y, 2, dim=1)
+        
+    #     y1 = slice_X.reshape(B, K, L)
+    #     # y1 = torch.transpose(y1, 1, 2)
+    #     y1, attn_weights_X = self.enc_layer_X(y1)
+
+    #     y2 = slice_eps.reshape(B, K, L)
+    #     # y2 = torch.transpose(y2, 1, 2)
+    #     y2, attn_weights_eps = self.enc_layer_eps(y2)
+
+    #     y = y1 + y2 #torch.stack((y1, y2), dim=1)
+
+    #     _, K3, L3 = y.shape
+    #     y = y.reshape(B, 1, K3 * L3)
+
+    #     y = self.output_projection(y)
+    #     residual, skip = torch.chunk(y, 2, dim=1)
+    #     x = x.reshape(B, channel, K3, L3)
+    #     residual = residual.reshape(B, channel, K3, L3)
+    #     skip = F.relu(self.out_skip_proj(skip))
+    #     skip = skip.reshape(B, K3, L3)
+    #     attn_weights = (attn_weights_X + attn_weights_eps) / 2
+    #     return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
 # class ResidualEncoderLayer_v2(nn.Module):
 #     def __init__(self, channels, d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout,
