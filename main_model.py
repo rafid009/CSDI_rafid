@@ -222,7 +222,7 @@ class CSDI_base(nn.Module):
                         'missing_mask': total_mask
                     }
                     pred1, pred2, pred3 = self.diffmodel(inputs, torch.tensor([t]).to(self.device))
-                    preds = torch.tensor([pred1, pred2, pred3])
+                    preds = torch.stack([pred1, pred2, pred3], dim=0)
                     # predicted = (pred1+pred2+pred3)/3
                     preds = preds.permute(0,1,3,2)
                     predicted = preds.mean(dim=1)
