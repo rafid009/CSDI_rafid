@@ -233,7 +233,7 @@ class ResidualEncoderLayer(nn.Module):
         # x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
-        y = self.pre_mid_projection(y)
+        y = F.gelu(self.pre_mid_projection(y))
         y = self.mid_projection(y)
 
 
@@ -260,7 +260,7 @@ class ResidualEncoderLayer(nn.Module):
 
         y = y.reshape(B, 2, K*L)
         y = self.mid_proj_0(y)
-        y = y + y1 + y2 #torch.stack((y1, y2), dim=1)
+        y = y + torch.sigmoid(y1) * torch.tanh(y2) #torch.stack((y1, y2), dim=1)
 
         _, channel_out, _ = y.shape
         y = y.reshape(B, channel_out, K*L)
