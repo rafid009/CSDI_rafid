@@ -27,7 +27,7 @@ config_dict_csdi = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 50,
+        'num_steps': 100,
         'schedule': "quad"
     },
     'model': {
@@ -120,16 +120,16 @@ model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to
 filename = 'model_diff_saits_final_changes.pth'
 config_info = 'model_diff_saits_final_stack.pth'
 
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
-train(
-    model_diff_saits,
-    config_dict_diffsaits["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=f"{filename}"
-)
+# train(
+#     model_diff_saits,
+#     config_dict_diffsaits["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=f"{filename}"
+# )
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
