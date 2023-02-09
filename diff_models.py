@@ -177,7 +177,7 @@ class ResidualEncoderLayer(nn.Module):
         self.pre_enc_layer = Conv1d_with_init(channels, 2, 1)
         # self.pre_enc_layer_eps = 
         self.out_skip_proj = Conv1d_with_init(2, 1, 1)
-        self.mid_proj_0 = Conv1d_with_init(1, channels, 1)
+        self.mid_proj_0 = Conv1d_with_init(2, channels, 1)
         self.mid_proj_1 = Conv1d_with_init(1, channels, 1)
         self.mid_proj_2 = Conv1d_with_init(1, channels, 1)
 
@@ -242,7 +242,7 @@ class ResidualEncoderLayer(nn.Module):
         # y = y.reshape(B, channel_out, L, K)
         # y = self.pre_enc_layer(y)
         # _, channel_out, _ = y.shape
-        y = y.reshape(B, 4, L, K)
+        y = y.reshape(B, 2, L, K)
         y = torch.transpose(y, 2, 3)
         slice_X, slice_eps = torch.chunk(y, 2, dim=1)
         
@@ -258,7 +258,7 @@ class ResidualEncoderLayer(nn.Module):
         y2 = y2.reshape(B, 1, K*L)
         y2 = self.mid_proj_2(y2)
 
-        y = y.reshape(B, 4, K*L)
+        y = y.reshape(B, 2, K*L)
         y = self.mid_proj_0(y)
         y = y + y1 + y2 #torch.stack((y1, y2), dim=1)
 
