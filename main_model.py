@@ -227,6 +227,7 @@ class CSDI_base(nn.Module):
                     preds = preds.permute(0,2,1)
                     print(f"preds: {preds.shape}")
                     predicted = preds.mean(dim=0)
+                    predicted = predicted.unsqueeze(dim=0)
                     print(f"predicted mean: {predicted.shape}")
                     predicted = predicted.permute(0,2,1)
                     print(f"predicted permute mean: {predicted.shape}")
