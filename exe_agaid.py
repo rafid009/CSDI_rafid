@@ -101,12 +101,12 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "random",
         'type': 'SAITS',
-        'n_layers': 3, 
+        'n_layers': 4,
         'd_time': 252,
         'n_feature': len(features),
         'd_model': 256,
         'd_inner': 128,
-        'n_head': 4,
+        'n_head': 3,
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.1,
@@ -117,7 +117,7 @@ print(config_dict_diffsaits)
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_final_changes.pth'
+filename = 'model_diff_saits_final_stable.pth'
 config_info = 'model_diff_saits_final_stack.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
@@ -162,7 +162,7 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_final_changes"
+mse_folder = "results_final_stable"
 
 lengths = [100]#[20, 50, 100, 200]
 print("For All")
