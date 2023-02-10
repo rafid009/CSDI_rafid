@@ -233,8 +233,8 @@ class ResidualEncoderLayer(nn.Module):
         # x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
-        # y = F.gelu(self.pre_mid_projection(y))
-        y = F.gelu(self.mid_projection(y))
+        y = F.gelu(self.pre_mid_projection(y))
+        y = self.mid_projection(y)
 
 
         # gate, filter = torch.chunk(y, 2, dim=1)
