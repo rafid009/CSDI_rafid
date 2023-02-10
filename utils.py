@@ -205,7 +205,8 @@ def train(
                     refresh=False,
                 )
             # exp_scheduler.step()
-            lr_scheduler.step()
+            metric = avg_loss / batch_no
+            lr_scheduler.step(metrics=metric)
             
         if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
             model.eval()
