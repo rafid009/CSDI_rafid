@@ -177,6 +177,8 @@ def train(
     #     optimizer, milestones=[p1, p2], gamma=0.1
     # )
 
+    lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=20)
+
     best_valid_loss = 1e10
     model.train()
     for epoch_no in range(config["epochs"]):
@@ -203,7 +205,7 @@ def train(
                     refresh=False,
                 )
             # exp_scheduler.step()
-            # lr_scheduler.step()
+            lr_scheduler.step()
             
         if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
             model.eval()
