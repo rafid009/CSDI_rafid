@@ -588,7 +588,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
-                        mse_diff_saits_median = ((samples_diff_saits_median[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mse_diff_saits_median = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_diff_saits_median = mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                         mae_diff_saits = torch.abs((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
