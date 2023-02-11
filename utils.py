@@ -199,6 +199,7 @@ def train(
                 loss.backward()
                 avg_loss += loss.item()
                 optimizer.step()
+                lr_scheduler.step()
                 it.set_postfix(
                     ordered_dict={
                         "avg_epoch_loss": avg_loss / batch_no,
@@ -208,7 +209,7 @@ def train(
                 )
             # exp_scheduler.step()
             # metric = avg_loss / batch_no
-            lr_scheduler.step()
+            # lr_scheduler.step()
             
         if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
             model.eval()
