@@ -244,6 +244,7 @@ class ResidualEncoderLayer(nn.Module):
         # _, channel_out, _ = y.shape
         y = y.reshape(B, 2, L, K)
         y = torch.transpose(y, 2, 3)
+        y = x + y
         slice_X, slice_eps = torch.chunk(y, 2, dim=1)
         
         y1 = slice_X.reshape(B, K, L)
