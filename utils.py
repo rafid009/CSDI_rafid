@@ -173,10 +173,12 @@ def train(
     p2 = int(0.9 * config["epochs"])
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
 
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=[p1, p2], gamma=0.5
-    )
-
+    # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+    #     optimizer, milestones=[p1, p2], gamma=0.5
+    # )
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=1000, T_mult=1, eta_min=1.0e-4
+        )
     # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=20)
 
     best_valid_loss = 1e10
