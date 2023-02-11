@@ -174,7 +174,7 @@ def train(
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
 
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=[p1, p2], gamma=0.1
+        optimizer, milestones=[p2], gamma=0.1
     )
 
     # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=20)
