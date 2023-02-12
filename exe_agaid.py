@@ -164,7 +164,7 @@ models = {
 }
 mse_folder = "results_final_stable_new"
 
-lengths = [50, 100]#[20, 50, 100, 200]
+lengths = [100]#[20, 50, 100, 200]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
