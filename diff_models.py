@@ -165,8 +165,8 @@ class ResidualEncoderLayer(nn.Module):
                          diagonal_attention_mask)
         self.enc_layer_eps = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.pre_mid_projection = Conv1d_with_init(channels, channels, 1)
-        self.mid_projection = Conv1d_with_init(channels, 2, 1)
+        self.pre_mid_projection = Conv1d_with_init(channels, int(channels/2), 1)
+        self.mid_projection = Conv1d_with_init(int(channels/2), 2, 1)
         # self.output_projection = Conv1d_with_init(1, 4, 1)
         self.output_projection = Conv1d_with_init(channels, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
@@ -234,7 +234,7 @@ class ResidualEncoderLayer(nn.Module):
         # x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
-        y = F.gelu(self.pre_mid_projection(y))
+        y = self.pre_mid_projection(y)
         y = self.mid_projection(y)
 
 
