@@ -261,7 +261,7 @@ class ResidualEncoderLayer(nn.Module):
 
         y = y.reshape(B, 2, K*L)
         y = self.mid_proj_0(y)
-        y = torch.sigmoid(y1) * torch.tanh(y2) #torch.stack((y1, y2), dim=1)
+        y = y + y1 * torch.tanh(y2) #torch.stack((y1, y2), dim=1)
 
         _, channel_out, _ = y.shape
         y = y.reshape(B, channel_out, K*L)
