@@ -165,7 +165,7 @@ class ResidualEncoderLayer(nn.Module):
                          diagonal_attention_mask)
         self.enc_layer_eps = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.pre_mid_projection = Conv1d_with_init(channels, channels, 1)
+        # self.pre_mid_projection = Conv1d_with_init(channels, channels, 1)
         self.mid_projection = Conv1d_with_init(channels, 2*channels, 1)
         self.output_projection = Conv1d_with_init(1, 4, 1)
         # self.output_projection = Conv1d_with_init(channels, 4, 1)
@@ -187,8 +187,8 @@ class ResidualEncoderLayer(nn.Module):
         x_proj = torch.transpose(x, 2, 3)
         x_temp = x_proj.reshape(B, channel, K * L)
         x_proj = self.init_projection(x_temp)
-        # _, channel_out, _ = x_proj.shape
-        # x_proj = x_proj.reshape(B, channel_out, K * L)
+        _, channel_out, _ = x_proj.shape
+        x_proj = x_proj.reshape(B, channel_out, K * L)
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
         y = self.mid_projection(y)
