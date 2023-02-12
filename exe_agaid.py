@@ -81,7 +81,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3500,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -99,7 +99,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 4,
         'd_time': 252,
