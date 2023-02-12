@@ -167,8 +167,8 @@ class ResidualEncoderLayer(nn.Module):
                          diagonal_attention_mask)
         self.pre_mid_projection = Conv1d_with_init(channels, channels, 1)
         self.mid_projection = Conv1d_with_init(channels, 2, 1)
-        self.output_projection = Conv1d_with_init(1, 4, 1)
-        # self.output_projection = Conv1d_with_init(channels, 4, 1)
+        # self.output_projection = Conv1d_with_init(1, 4, 1)
+        self.output_projection = Conv1d_with_init(channels, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
         self.init_projection = Conv1d_with_init(2, channels, 1)
         # Transposed
