@@ -281,7 +281,7 @@ class ResidualEncoderLayer(nn.Module):
         residual = residual.reshape(B, channel, K, L)
         skip = F.relu(self.out_skip_proj(skip))
         skip = skip.reshape(B, K, L)
-        attn_weights = (attn_weights_X + attn_weights_eps) / 2
+        attn_weights = attn_weights_eps #(attn_weights_X + attn_weights_eps) / 2
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
     # new_2
