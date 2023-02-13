@@ -168,10 +168,11 @@ class ResidualEncoderLayer(nn.Module):
         self.pre_mid_projection = Conv1d_with_init(channels, int(channels/2), 1)
         self.mid_projection = Conv1d_with_init(int(channels/2), 2, 1)
         # self.output_projection = Conv1d_with_init(1, 4, 1)
-        # self.output_projection = Conv1d_with_init(channels, 4, 1)
+        self.output_projection_pre = Conv1d_with_init(channels, int(channels/2), 1)
+        self.output_projection = Conv1d_with_init(int(channels/2), 4, 1)
         # new_2
-        self.pre_out_proj = Conv1d_with_init(channels, int(channels/2), 1)
-        self.output_projection = Conv1d_with_init(int(channels/2), 2, 1)
+        # self.pre_out_proj = Conv1d_with_init(channels, int(channels/2), 1)
+        # self.output_projection = Conv1d_with_init(int(channels/2), 2, 1)
 
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
         self.init_projection = Conv1d_with_init(2, channels, 1)
@@ -181,7 +182,7 @@ class ResidualEncoderLayer(nn.Module):
         self.pre_enc_layer = Conv1d_with_init(channels, 2, 1)
         # self.pre_enc_layer_eps = 
         # new_1
-        # self.out_skip_proj = Conv1d_with_init(2, 1, 1)
+        self.out_skip_proj = Conv1d_with_init(2, 1, 1)
         # self.mid_proj_0 = Conv1d_with_init(2, channels, 1)
         self.mid_proj_1 = Conv1d_with_init(1, channels, 1)
         self.mid_proj_2 = Conv1d_with_init(1, channels, 1)
@@ -230,58 +231,6 @@ class ResidualEncoderLayer(nn.Module):
     #     return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
     # new_1
-    # def forward(self, x, diffusion_emb):
-    #     B, channel, K, L = x.shape
-    #     x_proj = torch.transpose(x, 2, 3)
-    #     x_temp = x_proj.reshape(B, channel, K * L)
-    #     x_proj = self.init_projection(x_temp)
-    #     # _, channel_out, _ = x_proj.shape
-    #     # x_proj = x_proj.reshape(B, channel_out, K * L)
-    #     diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-    #     y = x_proj + diff_proj
-    #     y = self.pre_mid_projection(y)
-    #     y = self.mid_projection(y)
-
-
-    #     # gate, filter = torch.chunk(y, 2, dim=1)
-    #     # y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
-    #     # y = y.reshape(B, channel_out, L, K)
-    #     # y = self.pre_enc_layer(y)
-    #     # _, channel_out, _ = y.shape
-    #     y = y.reshape(B, 2, L, K)
-    #     y = torch.transpose(y, 2, 3)
-    #     y = x + y
-    #     slice_X, slice_eps = torch.chunk(y, 2, dim=1)
-        
-    #     y1 = slice_X.reshape(B, K, L)
-    #     # y1 = torch.transpose(y1, 1, 2)
-    #     y1, attn_weights_X = self.enc_layer_X(y1)
-    #     y1 = y1.reshape(B, 1, K*L)
-    #     y1 = self.mid_proj_1(y1)
-
-    #     y2 = slice_eps.reshape(B, K, L)
-    #     # y2 = torch.transpose(y2, 1, 2)
-    #     y2, attn_weights_eps = self.enc_layer_eps(y2)
-    #     y2 = y2.reshape(B, 1, K*L)
-    #     y2 = self.mid_proj_2(y2)
-
-    #     y = y.reshape(B, 2, K*L)
-    #     # y = self.mid_proj_0(y)
-    #     y = torch.sigmoid(y1) * torch.tanh(y2) #torch.stack((y1, y2), dim=1)
-
-    #     _, channel_out, _ = y.shape
-    #     y = y.reshape(B, channel_out, K*L)
-    #     y = self.output_projection(y)
-
-    #     residual, skip = torch.chunk(y, 2, dim=1)
-    #     x = x.reshape(B, channel, K, L)
-    #     residual = residual.reshape(B, channel, K, L)
-    #     skip = F.relu(self.out_skip_proj(skip))
-    #     skip = skip.reshape(B, K, L)
-    #     attn_weights = (attn_weights_X + attn_weights_eps) / 2
-    #     return (x + residual) / math.sqrt(2.0), skip, attn_weights
-
-    # new_2
     def forward(self, x, diffusion_emb):
         B, channel, K, L = x.shape
         x_proj = torch.transpose(x, 2, 3)
@@ -317,24 +266,77 @@ class ResidualEncoderLayer(nn.Module):
         y2 = y2.reshape(B, 1, K*L)
         y2 = self.mid_proj_2(y2)
 
-        # y = y.reshape(B, 2, K*L)
+        y = y.reshape(B, 2, K*L)
         # y = self.mid_proj_0(y)
         y = torch.sigmoid(y1) * torch.tanh(y2) #torch.stack((y1, y2), dim=1)
 
         _, channel_out, _ = y.shape
         y = y.reshape(B, channel_out, K*L)
-        y = F.relu(self.pre_out_proj(y))
+        y = self.output_projection_pre(y)
         y = self.output_projection(y)
-        y = y.reshape(B, channel, K, L)
 
-        # residual, skip = torch.chunk(y, 2, dim=1)
-        # x = x.reshape(B, channel, K, L)
-        # residual = residual.reshape(B, channel, K, L)
-        # skip = F.relu(self.out_skip_proj(skip))
-        # skip = skip.reshape(B, K, L)
+        residual, skip = torch.chunk(y, 2, dim=1)
+        x = x.reshape(B, channel, K, L)
+        residual = residual.reshape(B, channel, K, L)
+        skip = F.relu(self.out_skip_proj(skip))
+        skip = skip.reshape(B, K, L)
         attn_weights = (attn_weights_X + attn_weights_eps) / 2
-        # return (x + residual) / math.sqrt(2.0), skip, attn_weights
-        return y, attn_weights
+        return (x + residual) / math.sqrt(2.0), skip, attn_weights
+
+    # new_2
+    # def forward(self, x, diffusion_emb):
+    #     B, channel, K, L = x.shape
+    #     x_proj = torch.transpose(x, 2, 3)
+    #     x_temp = x_proj.reshape(B, channel, K * L)
+    #     x_proj = self.init_projection(x_temp)
+    #     # _, channel_out, _ = x_proj.shape
+    #     # x_proj = x_proj.reshape(B, channel_out, K * L)
+    #     diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
+    #     y = x_proj + diff_proj
+    #     y = self.pre_mid_projection(y)
+    #     y = self.mid_projection(y)
+
+
+    #     # gate, filter = torch.chunk(y, 2, dim=1)
+    #     # y = torch.sigmoid(gate) * torch.tanh(filter)  # (B,channel,K*L)
+    #     # y = y.reshape(B, channel_out, L, K)
+    #     # y = self.pre_enc_layer(y)
+    #     # _, channel_out, _ = y.shape
+    #     y = y.reshape(B, 2, L, K)
+    #     y = torch.transpose(y, 2, 3)
+    #     y = x + y
+    #     slice_X, slice_eps = torch.chunk(y, 2, dim=1)
+        
+    #     y1 = slice_X.reshape(B, K, L)
+    #     # y1 = torch.transpose(y1, 1, 2)
+    #     y1, attn_weights_X = self.enc_layer_X(y1)
+    #     y1 = y1.reshape(B, 1, K*L)
+    #     y1 = self.mid_proj_1(y1)
+
+    #     y2 = slice_eps.reshape(B, K, L)
+    #     # y2 = torch.transpose(y2, 1, 2)
+    #     y2, attn_weights_eps = self.enc_layer_eps(y2)
+    #     y2 = y2.reshape(B, 1, K*L)
+    #     y2 = self.mid_proj_2(y2)
+
+    #     # y = y.reshape(B, 2, K*L)
+    #     # y = self.mid_proj_0(y)
+    #     y = torch.sigmoid(y1) * torch.tanh(y2) #torch.stack((y1, y2), dim=1)
+
+    #     _, channel_out, _ = y.shape
+    #     y = y.reshape(B, channel_out, K*L)
+    #     y = F.relu(self.pre_out_proj(y))
+    #     y = self.output_projection(y)
+    #     y = y.reshape(B, channel, K, L)
+
+    #     # residual, skip = torch.chunk(y, 2, dim=1)
+    #     # x = x.reshape(B, channel, K, L)
+    #     # residual = residual.reshape(B, channel, K, L)
+    #     # skip = F.relu(self.out_skip_proj(skip))
+    #     # skip = skip.reshape(B, K, L)
+    #     attn_weights = (attn_weights_X + attn_weights_eps) / 2
+    #     # return (x + residual) / math.sqrt(2.0), skip, attn_weights
+    #     return y, attn_weights
 
 # class ResidualEncoderLayer_v2(nn.Module):
 #     def __init__(self, channels, d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout,
@@ -444,21 +446,21 @@ class diff_SAITS(nn.Module):
         skips_tilde_1 = []
         for encoder_layer in self.layer_stack_for_first_block:
             # new_1
-            # enc_output, skip, _ = encoder_layer(enc_output, diff_emb)
+            enc_output, skip, _ = encoder_layer(enc_output, diff_emb)
             # new_2
-            enc_output, _ = encoder_layer(enc_output, diff_emb)
+            # enc_output, _ = encoder_layer(enc_output, diff_emb)
             # print(f"enc out after first encoder: {enc_output}")
             # print(f"after first block each iter: {skip}")
             # new_1
-            # skips_tilde_1.append(skip)
+            skips_tilde_1.append(skip)
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
         # new_1
-        # skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
-        # skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
+        skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
+        skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
         # new_2
-        skips_tilde_1 = self.reduce_skip_z(enc_output[:, 1, :, :])
+        # skips_tilde_1 = self.reduce_skip_z(enc_output[:, 1, :, :])
         # print(f"skip tilde 1: {skips_tilde_1.shape}")
         X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
         # X_tilde_1[:, 1, :, :] = X[:, 1, :, :] + X_tilde_1[:, 1, :, :]
@@ -476,20 +478,20 @@ class diff_SAITS(nn.Module):
         skips_tilde_2 = []
         for encoder_layer in self.layer_stack_for_second_block:
             # new_1
-            # enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
-            # skips_tilde_2.append(skip)
+            enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
+            skips_tilde_2.append(skip)
             # new_2
-            enc_output, attn_weights = encoder_layer(enc_output, diff_emb)
+            # enc_output, attn_weights = encoder_layer(enc_output, diff_emb)
             # print(f"enc out after first encoder: {enc_output}")
             # print(f"after first block each iter: {skip}")
 
         # new_1
-        # skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
-        # skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
+        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # new_2
-        skips_tilde_2 = enc_output[:, 1, :, :]
-        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        # skips_tilde_2 = enc_output[:, 1, :, :]
+        # skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # print(f"skip tilde 1: {skips_tilde_1}")
         # attention-weighted combine
