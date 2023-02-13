@@ -479,7 +479,7 @@ class diff_SAITS(nn.Module):
             # enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
             # skips_tilde_2.append(skip)
             # new_2
-            enc_output, _ = encoder_layer(enc_output, diff_emb)
+            enc_output, attn_weights = encoder_layer(enc_output, diff_emb)
             # print(f"enc out after first encoder: {enc_output}")
             # print(f"after first block each iter: {skip}")
 
