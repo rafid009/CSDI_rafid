@@ -452,7 +452,7 @@ class diff_SAITS(nn.Module):
             # new_1
             # skips_tilde_1.append(skip)
 
-        X_tilde_1 = self.reduce_dim_z(enc_output[:, 0, :, :])
+        X_tilde_1 = self.reduce_dim_z(enc_output)
         # new_1
         # skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
         # skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
