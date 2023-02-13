@@ -168,8 +168,9 @@ class ResidualEncoderLayer(nn.Module):
         self.pre_mid_projection = Conv1d_with_init(channels, int(channels/2), 1)
         self.mid_projection = Conv1d_with_init(int(channels/2), 2, 1)
         # self.output_projection = Conv1d_with_init(1, 4, 1)
-        self.output_projection_pre = Conv1d_with_init(channels, int(channels/2), 1)
-        self.output_projection = Conv1d_with_init(int(channels/2), 4, 1)
+        # self.output_projection_pre = Conv1d_with_init(channels, int(channels/2), 1)
+        # self.output_projection = Conv1d_with_init(int(channels/2), 4, 1)
+        self.output_projection = Conv1d_with_init(channels, 4, 1)
         # new_2
         # self.pre_out_proj = Conv1d_with_init(channels, int(channels/2), 1)
         # self.output_projection = Conv1d_with_init(int(channels/2), 2, 1)
@@ -272,7 +273,7 @@ class ResidualEncoderLayer(nn.Module):
 
         _, channel_out, _ = y.shape
         y = y.reshape(B, channel_out, K*L)
-        y = self.output_projection_pre(y)
+        # y = self.output_projection_pre(y)
         y = self.output_projection(y)
 
         residual, skip = torch.chunk(y, 2, dim=1)
@@ -463,7 +464,7 @@ class diff_SAITS(nn.Module):
         # skips_tilde_1 = self.reduce_skip_z(enc_output[:, 1, :, :])
         # print(f"skip tilde 1: {skips_tilde_1.shape}")
         X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
-        # X_tilde_1[:, 1, :, :] = X[:, 1, :, :] + X_tilde_1[:, 1, :, :]
+        X_tilde_1[:, 1, :, :] = X[:, 1, :, :] + X_tilde_1[:, 1, :, :]
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
