@@ -189,15 +189,15 @@ class ResidualEncoderLayer(nn.Module):
         self.mid_proj_2 = Conv1d_with_init(1, channels, 1)
 
         # new_high
-        self.enc_layer_X = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
-                         diagonal_attention_mask)
-        self.enc_layer_eps = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
-                         diagonal_attention_mask)
+        # self.enc_layer_X = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        #                  diagonal_attention_mask)
+        # self.enc_layer_eps = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        #                  diagonal_attention_mask)
 
-        self.init_projection = Conv1d_with_init(2, channels, 1)
-        self.mid_projection = Conv1d_with_init(channels, 2 * channels, 1)
-        self.output_projection = Conv1d_with_init(channels, 4, 1)
-        self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
+        # self.init_projection = Conv1d_with_init(2, channels, 1)
+        # self.mid_projection = Conv1d_with_init(channels, 2 * channels, 1)
+        # self.output_projection = Conv1d_with_init(channels, 4, 1)
+        # self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
 
 
 
@@ -293,24 +293,26 @@ class ResidualEncoderLayer(nn.Module):
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
     # new_high
-    def forward(self, x, diffusion_emb):
-        B, channel, K, L = x.shape
-        x_proj = torch.transpose(x, 2, 3)
-        x_temp = x_proj.reshape(B, channel, K * L)
-        x_proj = self.init_projection(x_temp)
+    # def forward(self, x, diffusion_emb):
+    #     B, channel, K, L = x.shape
+    #     x_proj = torch.transpose(x, 2, 3)
+    #     x_temp = x_proj.reshape(B, channel, K * L)
+    #     x_proj = self.init_projection(x_temp)
 
-        diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-        y = x_proj + diff_proj
-        y = self.mid_projection(y)
+    #     diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
+    #     y = x_proj + diff_proj
+    #     y = self.mid_projection(y)
 
-        # y = y.reshape(B, 2, L, K)
-        # y = torch.transpose(y, 2, 3)
-        # y = x + y
-        slice_X, slice_eps = torch.chunk(y, 2, dim=1)
-        y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)  # (B,channel,K*L)
-        # y = self.output_projection(y)
-        y = y.reshape(B, 2, L, K)
-        y = torch.transpose(y, 2, 3)
+    #     # y = y.reshape(B, 2, L, K)
+    #     # y = torch.transpose(y, 2, 3)
+    #     # y = x + y
+    #     slice_X, slice_eps = torch.chunk(y, 2, dim=1)
+    #     y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)  # (B,channel,K*L)
+    #     # y = self.output_projection(y)
+    #     y = y.reshape(B, 2, L, K)
+    #     y = torch.transpose(y, 2, 3)
+
+
 
 
 
