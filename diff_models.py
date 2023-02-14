@@ -290,8 +290,8 @@ class ResidualEncoderLayer(nn.Module):
         skip = F.relu(self.out_skip_proj(skip))
         skip = skip.reshape(B, K, L)
         attn_weights = attn_weights_eps #(attn_weights_X + attn_weights_eps) / 2
-        # return (x + residual) / math.sqrt(2.0), skip, attn_weights
-        return (x + residual), skip, attn_weights
+        return (x + residual) / math.sqrt(2.0), skip, attn_weights
+        # return (x + residual), skip, attn_weights
 
     # new_high
     # def forward(self, x, diffusion_emb):
