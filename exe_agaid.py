@@ -169,7 +169,7 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
-    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
+    evaluate_imputation(models, mse_folder, length=l, trials=30, season_idx=33)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
