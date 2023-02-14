@@ -177,7 +177,7 @@ def train(
     #     optimizer, milestones=[p1, p2], gamma=0.5
     # )
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, T_0=3000, T_mult=1, eta_min=1.0e-6
+        optimizer, T_0=1000, T_mult=1, eta_min=1.0e-7
         )
     # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=20)
 
