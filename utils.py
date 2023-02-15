@@ -173,12 +173,12 @@ def train(
     p2 = int(0.9 * config["epochs"])
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
 
-    # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-    #     optimizer, milestones=[p1, p2], gamma=0.5
-    # )
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, T_0=1000, T_mult=1, eta_min=1.0e-7
-        )
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[p1, p2], gamma=0.1
+    )
+    # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+    #     optimizer, T_0=1000, T_mult=1, eta_min=1.0e-7
+    #     )
     # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=20)
 
     best_valid_loss = 1e10
@@ -199,7 +199,7 @@ def train(
                 loss.backward()
                 avg_loss += loss.item()
                 optimizer.step()
-                lr_scheduler.step()
+                # lr_scheduler.step()
                 it.set_postfix(
                     ordered_dict={
                         "avg_epoch_loss": avg_loss / batch_no,
@@ -209,7 +209,7 @@ def train(
                 )
             # exp_scheduler.step()
             # metric = avg_loss / batch_no
-            # lr_scheduler.step()
+            lr_scheduler.step()
             
         if valid_loader is not None and (epoch_no + 1) % valid_epoch_interval == 0:
             model.eval()
