@@ -571,6 +571,7 @@ class diff_SAITS(nn.Module):
             self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
         )  # namely term eta
         print(f"comb weights: {combining_weights.shape}")
+        print(f"skip tilde: {skips_tilde_1.shape}")
         # combine X_tilde_1 and X_tilde_2
         skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
         # print(f"skip tilde 3: {skips_tilde_3}")
