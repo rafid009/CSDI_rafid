@@ -175,7 +175,7 @@ class ResidualEncoderLayer(nn.Module):
         # self.output_projection = Conv1d_with_init(int(channels/2), 4, 1)
 
         # new_1
-        self.output_projection = Conv1d_with_init(channels, 4, 1)
+        # self.output_projection = Conv1d_with_init(channels, 4, 1)
         
         # new_2
         # self.pre_out_proj = Conv1d_with_init(channels, int(channels/2), 1)
@@ -186,7 +186,7 @@ class ResidualEncoderLayer(nn.Module):
         # self.init_projection = Conv1d_with_init(2, channels, 1)
 
         # new_1
-        self.pre_enc_layer = Conv1d_with_init(channels, 2, 1)
+        # self.pre_enc_layer = Conv1d_with_init(channels, 2, 1)
         
         # new_1
         # self.out_skip_proj = Conv1d_with_init(2, 1, 1)
