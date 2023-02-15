@@ -343,7 +343,7 @@ class ResidualEncoderLayer(nn.Module):
         attn_shape = attn_weights_1.shape
         attn_weights = attn_weights_1.reshape((B, -1, attn_shape[1], attn_shape[2], attn_shape[3]))
         attn_weights = torch.mean(attn_weights, dim=1)
-        print(f"attn weight: {attn_weights_1.shape}")
+        print(f"attn weight: {attn_weights.shape}")
         # attn_weights = attn_weights_1# + attn_weights_2
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
@@ -570,6 +570,7 @@ class diff_SAITS(nn.Module):
         combining_weights = torch.sigmoid(
             self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
         )  # namely term eta
+        print(f"comb weights: {combining_weights.shape}")
         # combine X_tilde_1 and X_tilde_2
         skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
         # print(f"skip tilde 3: {skips_tilde_3}")
