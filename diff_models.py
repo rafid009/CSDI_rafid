@@ -339,6 +339,8 @@ class ResidualEncoderLayer(nn.Module):
         # y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)
         residual = residual.reshape(base_shape)
         skip = skip.reshape(base_shape)
+        print(f"attn weight: {attn_weights_1.shape}")
+        # attn_weights = attn_weights_1.reshape((B, -1, K, L))
         attn_weights = attn_weights_1# + attn_weights_2
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
