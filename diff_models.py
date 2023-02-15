@@ -196,8 +196,8 @@ class ResidualEncoderLayer(nn.Module):
         # new_high
         self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
-                         diagonal_attention_mask)
+        # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        #                  diagonal_attention_mask)
 
         self.init_projection = Conv1d_with_init(2, channels, 1)
         self.mid_projection = Conv1d_with_init(channels, 2 * channels, 1)
@@ -328,10 +328,10 @@ class ResidualEncoderLayer(nn.Module):
         slice_X, slice_eps = torch.chunk(y, 2, dim=1)
         y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)  # (B,channel,K*L)
         # y = self.output_projection(y)
-        _, channel_out, _ = y.shape
-        y = torch.reshape(y, (B * channel_out, K , L))
-        y, attn_weights_2 = self.enc_layer_2(y)
-        y = torch.reshape(y, (B, channel_out, K * L))
+        # _, channel_out, _ = y.shape
+        # y = torch.reshape(y, (B * channel_out, K , L))
+        # y, attn_weights_2 = self.enc_layer_2(y)
+        # y = torch.reshape(y, (B, channel_out, K * L))
 
         y = self.output_projection(y)
 
@@ -339,7 +339,7 @@ class ResidualEncoderLayer(nn.Module):
         # y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)
         residual = residual.reshape(base_shape)
         skip = skip.reshape(base_shape)
-        attn_weights = attn_weights_1 + attn_weights_2
+        attn_weights = attn_weights_1# + attn_weights_2
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
 
