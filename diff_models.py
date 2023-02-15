@@ -203,6 +203,7 @@ class ResidualEncoderLayer(nn.Module):
         self.mid_projection = Conv1d_with_init(channels, 2 * channels, 1)
         self.output_projection = Conv1d_with_init(channels, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
+        self.out_skip_proj = Conv1d_with_init(2, 1, 1)
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
@@ -338,7 +339,8 @@ class ResidualEncoderLayer(nn.Module):
         residual, skip = torch.chunk(y, 2, dim=1)
         # y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)
         residual = residual.reshape(base_shape)
-        skip = skip.reshape(base_shape)
+        skip = F.gelu(self.out_skip_proj(skip))
+        skip = skip.reshape(B, K, L)
         # print(f"attn weight: {attn_weights_1.shape}")
         attn_shape = attn_weights_1.shape
         attn_weights = attn_weights_1.reshape((B, -1, attn_shape[1], attn_shape[2], attn_shape[3]))
