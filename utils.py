@@ -169,7 +169,7 @@ def train(
         output_path = foldername + f"/{filename if len(filename) != 0 else 'model_csdi.pth'}"
 
     # p0 = int(0.6 * config["epochs"])
-    p1 = int(0.70 * config["epochs"])
+    p1 = int(0.75 * config["epochs"])
     p2 = int(0.9 * config["epochs"])
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
 
