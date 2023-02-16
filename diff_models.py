@@ -358,9 +358,9 @@ class ResidualEncoderLayer(nn.Module):
         attn_weights_2 = attn_weights_2.reshape((B, -1, attn_shape_2[1], attn_shape_2[2], attn_shape_2[3]))
         attn_weights_2 = torch.mean(attn_weights_2, dim=1)
         # print(f"attn weight: {attn_weights.shape}")
-        attn_weights = F.softmax(attn_weights_1 + attn_weights_2, dim=-1)
+        attn_weights = (attn_weights_1 + attn_weights_2) / 2
         # return (x + residual) / math.sqrt(2.0), skip, attn_weights
-        return (x + residual), skip, attn_weights
+        return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
 
     # new_2
