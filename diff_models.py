@@ -327,7 +327,7 @@ class ResidualEncoderLayer(nn.Module):
         y = torch.reshape(y, (B * channel_out, K , L))
         y, attn_weights_1 = self.enc_layer_1(y)
 
-        y = torch.transpose(y, 2, 3)
+        y = torch.transpose(y, 1, 2)
         y = torch.reshape(y, (B, channel_out, K * L))
         y = self.mid_projection(y)
 
@@ -350,6 +350,7 @@ class ResidualEncoderLayer(nn.Module):
         y = torch.reshape(y, (B * channel_out, K , L))
         y, attn_weights_2 = self.enc_layer_2(y)
 
+        y = torch.transpose(y, 1, 2)
         y = torch.reshape(y, (B, channel_out, K * L))
 
 
@@ -365,7 +366,7 @@ class ResidualEncoderLayer(nn.Module):
         
         skip = F.gelu(self.out_skip_proj(skip))
         skip = skip.reshape(B, L, K)
-        skip = torch.transpose(skip, 2, 3)
+        skip = torch.transpose(skip, 1, 2)
         # skip = skip.reshape(B, K, L)
         # print(f"attn weight: {attn_weights_1.shape}")
 
