@@ -315,12 +315,13 @@ class ResidualEncoderLayer(nn.Module):
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
 
-        _, channel_out, _ = y.shape
-        print(f"y: {y.shape}")
+        
+        # print(f"y: {y.shape}")
         # y = torch.transpose(y, 2, 3)
 
         y = self.pre_mid_proj(y)
 
+        _, channel_out, _ = y.shape
         y = y.reshape(B, channel_out, L, K)
         y = torch.transpose(y, 2, 3)
         y = torch.reshape(y, (B * channel_out, K , L))
@@ -328,7 +329,6 @@ class ResidualEncoderLayer(nn.Module):
 
         y = torch.transpose(y, 2, 3)
         y = torch.reshape(y, (B, channel_out, K * L))
-
         y = self.mid_projection(y)
 
         # y = y.reshape(B, 2, L, K)
@@ -349,6 +349,7 @@ class ResidualEncoderLayer(nn.Module):
         y = torch.transpose(y, 2, 3)
         y = torch.reshape(y, (B * channel_out, K , L))
         y, attn_weights_2 = self.enc_layer_2(y)
+
         y = torch.reshape(y, (B, channel_out, K * L))
 
 
@@ -359,7 +360,7 @@ class ResidualEncoderLayer(nn.Module):
         residual = residual.reshape(B, channel, L, K)
         residual = torch.transpose(residual, 2, 3)
 
-        residual = residual.reshape(base_shape)
+        # residual = residual.reshape(B, channel, K, L)
 
         
         skip = F.gelu(self.out_skip_proj(skip))
