@@ -381,7 +381,7 @@ class ResidualEncoderLayer(nn.Module):
         # attn_weights_2 = attn_weights_2.permute(0, 2, 3, 4, 1)
         # attn_weights_2 = torch.sigmoid(torch.mean(attn_weights_2, dim=-1))
         # print(f"attn weight: {attn_weights.shape}")
-        attn_weights = attn_shape_1#(attn_weights_1 + attn_weights_2) / 2
+        attn_weights = attn_weights_1#(attn_weights_1 + attn_weights_2) / 2
         # return (x + residual) / math.sqrt(2.0), skip, attn_weights
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
