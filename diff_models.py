@@ -14,6 +14,11 @@ def get_torch_trans(heads=8, layers=1, channels=64):
 
 def Conv1d_with_init(in_channels, out_channels, kernel_size):
     layer = nn.Conv1d(in_channels, out_channels, kernel_size)
+    nn.init.kaiming_normal_(layer.weight)
+    return layer
+
+def Conv1d_with_init_saits(in_channels, out_channels, kernel_size):
+    layer = nn.Conv1d(in_channels, out_channels, kernel_size)
     layer = nn.utils.weight_norm(layer)
     nn.init.kaiming_normal_(layer.weight)
     return layer
@@ -200,12 +205,12 @@ class ResidualEncoderLayer(nn.Module):
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
-        self.init_projection = Conv1d_with_init(2, channels, 1)
-        self.mid_projection = Conv1d_with_init(int(channels / 2), 2 * channels, 1)
-        self.output_projection = Conv1d_with_init(channels, 4, 1)
+        self.init_projection = Conv1d_with_init_saits(2, channels, 1)
+        self.mid_projection = Conv1d_with_init_saits(int(channels / 2), 2 * channels, 1)
+        self.output_projection = Conv1d_with_init_saits(channels, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
-        self.out_skip_proj = Conv1d_with_init(2, 1, 1)
-        self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
+        self.out_skip_proj = Conv1d_with_init_saits(2, 1, 1)
+        self.pre_mid_proj = Conv1d_with_init_saits(channels, int(channels / 2), 1)
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
@@ -675,13 +680,13 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.out_skip_proj = Conv1d_with_init(2, 1, 1)
         # self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
 
-        self.init_proj = Conv1d_with_init(d_model, channels, 1)
+        self.init_proj = Conv1d_with_init_saits(d_model, channels, 1)
         self.conv_layer = Conv(channels, 2 * channels, kernel_size=3)
-        self.cond_proj = Conv1d_with_init(d_model, channels, 1)
+        self.cond_proj = Conv1d_with_init_saits(d_model, channels, 1)
         self.conv_cond = Conv(channels, 2*channels, kernel_size=3)
 
-        self.res_proj = Conv1d_with_init(channels, d_model, 1)
-        self.skip_proj = Conv1d_with_init(channels, d_model, 1)
+        self.res_proj = Conv1d_with_init_saits(channels, d_model, 1)
+        self.skip_proj = Conv1d_with_init_saits(channels, d_model, 1)
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
