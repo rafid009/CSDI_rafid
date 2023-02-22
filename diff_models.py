@@ -14,6 +14,7 @@ def get_torch_trans(heads=8, layers=1, channels=64):
 
 def Conv1d_with_init(in_channels, out_channels, kernel_size):
     layer = nn.Conv1d(in_channels, out_channels, kernel_size)
+    layer = nn.utils.weight_norm(layer)
     nn.init.kaiming_normal_(layer.weight)
     return layer
 
@@ -374,7 +375,7 @@ class ResidualEncoderLayer(nn.Module):
         attn_shape_1 = attn_weights_1.shape
         attn_weights_1 = attn_weights_1.reshape((B, -1, attn_shape_1[1], attn_shape_1[2], attn_shape_1[3]))
         attn_weights_1 = attn_weights_1.permute(0, 2, 3, 4, 1)
-        attn_weights_1 = torch.sigmoid(torch.mean(attn_weights_1, dim=-1))
+        attn_weights_1 = torch.mean(attn_weights_1, dim=-1)
 
         # attn_shape_2 = attn_weights_2.shape
         # attn_weights_2 = attn_weights_2.reshape((B, -1, attn_shape_2[1], attn_shape_2[2], attn_shape_2[3]))
@@ -657,99 +658,77 @@ class ResidualEncoderLayer_2(nn.Module):
 
 
         # new_design
-        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        # self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        #                  diagonal_attention_mask)
+        # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        #                  diagonal_attention_mask)
+
+        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2*channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2*channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
-        self.init_projection = Conv1d_with_init(2, channels, 1)
-        self.mid_projection = Conv1d_with_init(int(channels / 2), 2 * channels, 1)
-        self.output_projection = Conv1d_with_init(channels, 4, 1)
+        # self.init_projection = Conv1d_with_init(2, channels, 1)
+        # self.mid_projection = Conv1d_with_init(int(channels / 2), 2 * channels, 1)
+        # self.output_projection = Conv1d_with_init(channels, 4, 1)
         self.diffusion_projection = nn.Linear(diffusion_embedding_dim, channels)
-        self.out_skip_proj = Conv1d_with_init(2, 1, 1)
-        self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
+        # self.out_skip_proj = Conv1d_with_init(2, 1, 1)
+        # self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
+
+        self.init_proj = Conv1d_with_init(d_model, channels, 1)
+        self.conv_layer = Conv(channels, 2 * channels, kernel_size=3)
+        self.cond_proj = Conv1d_with_init(d_model, channels, 1)
+        self.conv_cond = Conv(channels, 2*channels, kernel_size=3)
+
+        self.res_proj = Conv1d_with_init(channels, d_model, 1)
+        self.skip_proj = Conv1d_with_init(channels, d_model, 1)
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
 
     # new_design
     def forward(self, x, cond, diffusion_emb):
+        # x Noise
         B, K, L = x.shape
         base_shape = x.shape
-        x = torch.transpose(x, 1, 2)
+        x_proj = torch.transpose(x, 1, 2) # (B, L, K)
+        x_proj = self.init_proj(x_proj)
+
+        cond = torch.transpose(cond, 1, 2) # (B, L, K)
+        cond = self.cond_proj(cond)
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         print(f"diff_proj: {diff_proj.shape}")
-        x = x + diff_proj
-
-
-
-
-
-
-
-
-        x_proj = torch.transpose(x, 2, 3)
-        x_temp = x_proj.reshape(B, channel, K * L)
-        x_proj = self.init_projection(x_temp)
-
-        diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj
-
-        _, channel_out, _ = y.shape
-        y = y.reshape(B, channel_out, L, K)
-        y = torch.transpose(y, 2, 3)
-        y = self.pre_mid_proj(y)
-
-        y = torch.reshape(y, (B * channel_out, K , L))
+        print(f"pre-conv y: {y.shape}")
+        y = self.conv_layer(x)
+        print(f"post-conv y: {y.shape}")
+        # _, channels, _ = y.shape
+        y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_1 = self.enc_layer_1(y)
-        y = torch.reshape(y, (B, channel_out, K * L))
+        y = torch.transpose(y, 1, 2)
 
-        y = self.mid_projection(y)
+        print(f"pre conv cond: {cond.shape}")
+        c_y = self.conv_cond(cond)
+        print(f"post conv cond: {cond.shape}")
+        y = y + c_y
 
-        # y = y.reshape(B, 2, L, K)
-        # y = torch.transpose(y, 2, 3)
-        # y = x + y
-        slice_X, slice_eps = torch.chunk(y, 2, dim=1)
-        y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)  # (B,channel,K*L)
-        # y = self.output_projection(y)
-        # _, channel_out, _ = y.shape
-        # y = torch.reshape(y, (B * channel_out, K , L))
-        # y, attn_weights_2 = self.enc_layer_2(y)
-        # y = torch.reshape(y, (B, channel_out, K * L))
-
-        y = self.output_projection(y)
-
-        _, channel_out, _ = y.shape
-        y = torch.reshape(y, (B * channel_out, K , L))
+        y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
-        y = torch.reshape(y, (B, channel_out, K * L))
+        y = torch.transpose(y, 1, 2)
 
+        y1, y2 = torch.chunk(y, 2, dim=1)
+        out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
 
-        residual, skip = torch.chunk(y, 2, dim=1)
-        # y = torch.sigmoid(slice_X) * torch.tanh(slice_eps)
-        residual = residual.reshape(base_shape)
-        skip = F.gelu(self.out_skip_proj(skip))
-        skip = skip.reshape(B, K, L)
-        # print(f"attn weight: {attn_weights_1.shape}")
+        residual = self.res_proj(out) # (B, L, K)
+        residual = torch.transpose(residual, 1, 2) # (B, K, L)
 
+        skip = self.skip_proj(out) # (B, L, K)
+        skip = torch.transpose(out, 1, 2) # (B, K, L)
 
-        attn_shape_1 = attn_weights_1.shape
-        attn_weights_1 = attn_weights_1.reshape((B, -1, attn_shape_1[1], attn_shape_1[2], attn_shape_1[3]))
-        attn_weights_1 = attn_weights_1.permute(0, 2, 3, 4, 1)
-        attn_weights_1 = F.sigmoid(torch.mean(attn_weights_1, dim=-1))
+        attn_weights = (attn_weights_1 + attn_weights_2)
 
-        attn_shape_2 = attn_weights_2.shape
-        attn_weights_2 = attn_weights_2.reshape((B, -1, attn_shape_2[1], attn_shape_2[2], attn_shape_2[3]))
-        attn_weights_2 = attn_weights_2.permute(0, 2, 3, 4, 1)
-        attn_weights_2 = F.sigmoid(torch.mean(attn_weights_2, dim=-1))
-        # print(f"attn weight: {attn_weights.shape}")
-        attn_weights = (attn_weights_1 + attn_weights_2) / 2
-        # return (x + residual) / math.sqrt(2.0), skip, attn_weights
-        return (x + residual) / math.sqrt(2.0), skip, attn_weights
-
-
-
+        return (x + residual) * math.sqrt(0.5), skip, attn_weights
 
 
 
@@ -763,13 +742,13 @@ class diff_SAITS_2(nn.Module):
 
         
         self.layer_stack_for_first_block = nn.ModuleList([
-            ResidualEncoderLayer_2(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
+            ResidualEncoderLayer_2(channels=128, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
             for _ in range(n_layers)
         ])
         self.layer_stack_for_second_block = nn.ModuleList([
-            ResidualEncoderLayer_2(channels=32, d_time=d_time, actual_d_feature=actual_d_feature, 
+            ResidualEncoderLayer_2(channels=128, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
             for _ in range(n_layers)
@@ -806,13 +785,13 @@ class diff_SAITS_2(nn.Module):
 
         diff_emb = self.diffusion_embedding(diffusion_step)
 
-        pos_cond = self.dropout(self.position_enc_cond(cond))
-        pos_noise = self.position_enc_noise(noise)
+        pos_cond = self.position_enc_cond(cond)
+
 
         skips_tilde_1 = torch.zeros_like(X[:, 1, :, :])
-
+        enc_output = self.dropout(self.position_enc_noise(noise))
         for encoder_layer in self.layer_stack_for_first_block:
-            enc_output, skip, _ = encoder_layer()
+            enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
 
         
 
