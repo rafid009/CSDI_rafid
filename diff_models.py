@@ -344,14 +344,14 @@ class ResidualEncoderLayer(nn.Module):
 
         y = self.output_projection(y)
 
-        _, channel_out, _ = y.shape
-        y = y.reshape(B, channel_out, L, K)
-        y = torch.transpose(y, 2, 3)
-        y = torch.reshape(y, (B * channel_out, K , L))
-        y, attn_weights_2 = self.enc_layer_2(y)
+        # _, channel_out, _ = y.shape
+        # y = y.reshape(B, channel_out, L, K)
+        # y = torch.transpose(y, 2, 3)
+        # y = torch.reshape(y, (B * channel_out, K , L))
+        # y, attn_weights_2 = self.enc_layer_2(y)
 
-        y = torch.transpose(y, 1, 2)
-        y = torch.reshape(y, (B, channel_out, K * L))
+        # y = torch.transpose(y, 1, 2)
+        # y = torch.reshape(y, (B, channel_out, K * L))
 
 
         residual, skip = torch.chunk(y, 2, dim=1)
@@ -374,14 +374,14 @@ class ResidualEncoderLayer(nn.Module):
         attn_shape_1 = attn_weights_1.shape
         attn_weights_1 = attn_weights_1.reshape((B, -1, attn_shape_1[1], attn_shape_1[2], attn_shape_1[3]))
         attn_weights_1 = attn_weights_1.permute(0, 2, 3, 4, 1)
-        attn_weights_1 = F.sigmoid(torch.mean(attn_weights_1, dim=-1))
+        attn_weights_1 = torch.sigmoid(torch.mean(attn_weights_1, dim=-1))
 
-        attn_shape_2 = attn_weights_2.shape
-        attn_weights_2 = attn_weights_2.reshape((B, -1, attn_shape_2[1], attn_shape_2[2], attn_shape_2[3]))
-        attn_weights_2 = attn_weights_2.permute(0, 2, 3, 4, 1)
-        attn_weights_2 = F.sigmoid(torch.mean(attn_weights_2, dim=-1))
+        # attn_shape_2 = attn_weights_2.shape
+        # attn_weights_2 = attn_weights_2.reshape((B, -1, attn_shape_2[1], attn_shape_2[2], attn_shape_2[3]))
+        # attn_weights_2 = attn_weights_2.permute(0, 2, 3, 4, 1)
+        # attn_weights_2 = torch.sigmoid(torch.mean(attn_weights_2, dim=-1))
         # print(f"attn weight: {attn_weights.shape}")
-        attn_weights = (attn_weights_1 + attn_weights_2) / 2
+        attn_weights = attn_shape_1#(attn_weights_1 + attn_weights_2) / 2
         # return (x + residual) / math.sqrt(2.0), skip, attn_weights
         return (x + residual) / math.sqrt(2.0), skip, attn_weights
 
@@ -541,7 +541,7 @@ class diff_SAITS(nn.Module):
         input_X_for_first = torch.cat([X, masks], dim=3)
         input_X_for_first = self.embedding_1(input_X_for_first)
         enc_output_x = self.dropout(self.position_enc_x(input_X_for_first[:, 0, :, :]))  # namely, term e in the math equation
-        enc_output_mask = self.dropout(self.position_enc_mask(input_X_for_first[:, 1, :, :]))
+        enc_output_mask = self.position_enc_mask(input_X_for_first[:, 1, :, :])
         enc_output_x = enc_output_x.unsqueeze(1)
         enc_output_mask = enc_output_mask.unsqueeze(1)
         enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
