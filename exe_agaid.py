@@ -16,7 +16,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 seed = 10
 config_dict_csdi = {
     'train': {
-        'epochs': 3000,
+        'epochs': 2000,
         'batch_size': 16 ,
         'lr': 1.0e-4
     },      
@@ -81,7 +81,7 @@ train(
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 2000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -92,7 +92,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 100,
+        'num_steps': 60,
         'schedule': "quad"
     },
     'model': {
