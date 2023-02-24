@@ -804,6 +804,7 @@ class diff_SAITS_2(nn.Module):
         
         enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_1 = torch.zeros_like(enc_output)
+        print(f"tilde: {skips_tilde_1.shape}")
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
             print(f"skip: {skip.shape}")
