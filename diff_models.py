@@ -644,6 +644,12 @@ class Conv(nn.Module):
         out = self.conv(x)
         return out
     
+
+def Conv1d_with_init_saits_new(in_channels, out_channels, kernel_size):
+    layer = nn.Conv1d(in_channels, out_channels, kernel_size)
+    layer = nn.utils.weight_norm(layer)
+    nn.init.kaiming_normal_(layer.weight)
+    return layer
     
 class ZeroConv1d(nn.Module):
     def __init__(self, in_channel, out_channel):
@@ -680,13 +686,13 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.out_skip_proj = Conv1d_with_init(2, 1, 1)
         # self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
 
-        self.init_proj = Conv1d_with_init_saits(d_model, channels, 1)
+        self.init_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
         self.conv_layer = Conv(channels, 2 * channels, kernel_size=3)
-        self.cond_proj = Conv1d_with_init_saits(d_model, channels, 1)
+        self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
         self.conv_cond = Conv(channels, 2*channels, kernel_size=3)
 
-        self.res_proj = Conv1d_with_init_saits(channels, d_model, 1)
-        self.skip_proj = Conv1d_with_init_saits(channels, d_model, 1)
+        self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
+        self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
@@ -694,6 +700,8 @@ class ResidualEncoderLayer_2(nn.Module):
     # new_design
     def forward(self, x, cond, diffusion_emb):
         # x Noise
+        # L -> feature
+        # K -> time
         B, K, L = x.shape
         base_shape = x.shape
         x_proj = torch.transpose(x, 1, 2) # (B, L, K)
@@ -706,9 +714,11 @@ class ResidualEncoderLayer_2(nn.Module):
         print(f"diff_proj: {diff_proj.shape}")
         y = x_proj + diff_proj
         print(f"pre-conv y: {y.shape}")
+
         y = self.conv_layer(x)
         print(f"post-conv y: {y.shape}")
         # _, channels, _ = y.shape
+
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
@@ -782,7 +792,7 @@ class diff_SAITS_2(nn.Module):
         X = torch.transpose(X, 2, 3)
         masks = torch.transpose(masks, 2, 3)
 
-        input_X_for_first = torch.cat([X, masks], dim=1)
+        input_X_for_first = torch.cat([X, masks], dim=3)
         input_X_for_first = self.embedding_1(input_X_for_first)
 
         noise, cond = input_X_for_first[:, 1, :, :], input_X_for_first[:, 0, :, :]
@@ -797,60 +807,58 @@ class diff_SAITS_2(nn.Module):
         enc_output = self.dropout(self.position_enc_noise(noise))
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
+            skips_tilde_1 += skip
+
+        skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
+        skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
+        X_tilde_1 = self.reduce_dim_z(enc_output)
+        X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
+
 
         
-
-        enc_output_x = self.dropout(self.position_enc_x(input_X_for_first[:, 0, :, :]))  # namely, term e in the math equation
-        enc_output_mask = self.dropout(self.position_enc_mask(input_X_for_first[:, 1, :, :]))
-        enc_output_x = enc_output_x.unsqueeze(1)
-        enc_output_mask = enc_output_mask.unsqueeze(1)
-        enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
-            # print(f"tilde 1 enc_out before attn: {enc_output}")
-        skips_tilde_1 = []
-        for encoder_layer in self.layer_stack_for_first_block:
-            # new_1
-            enc_output, skip, _ = encoder_layer(enc_output, diff_emb)
-            # new_2
-            # enc_output, _ = encoder_layer(enc_output, diff_emb)
-            # print(f"enc out after first encoder: {enc_output}")
-            # print(f"after first block each iter: {skip}")
-            # new_1
-            skips_tilde_1.append(skip)
-
-        X_tilde_1 = self.reduce_dim_z(enc_output)
-        # new_1
-        skips_tilde_1 = torch.sum(torch.stack(skips_tilde_1), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
-        skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
-
-        # new_2
-        # skips_tilde_1 = self.reduce_skip_z(enc_output[:, 1, :, :])
-        # print(f"skip tilde 1: {skips_tilde_1.shape}")
-        X_tilde_1[:, 0, :, :] = masks[:, 0, :, :] * X[:, 0, :, :] + (1 - masks[:, 0, :, :]) * X_tilde_1[:, 0, :, :]
-        X_tilde_1[:, 1, :, :] = X[:, 1, :, :] + X_tilde_1[:, 1, :, :]
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
-        input_X_for_second = torch.cat([X_tilde_1, masks], dim=3)
+        # input_X_for_second = torch.stack([X_tilde_1, X[:,0,:,:]], dim=1)
+        input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
         input_X_for_second = self.embedding_2(input_X_for_second)
-        enc_output_x = self.position_enc_x(input_X_for_second[:, 0, :, :])
-        enc_output_mask = self.position_enc_mask(input_X_for_second[:, 1, :, :])
-        enc_output_x = enc_output_x.unsqueeze(1)
-        enc_output_mask = enc_output_mask.unsqueeze(1)
-        enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
-            # print(f"tilde 2 enc_out before attn: {enc_output}")
-        skips_tilde_2 = []
+
+        noise = input_X_for_second#[:, 1, :, :], input_X_for_second[:, 0, :, :]
+        # noise_mask, cond_mask = masks[:, 1, :, :], masks[:, 0, :, :]
+
+        diff_emb = self.diffusion_embedding(diffusion_step)
+
+        # pos_cond = self.position_enc_cond(cond)
+
+        skips_tilde_2 = torch.zeros_like(X[:, 1, :, :])
+        enc_output = self.position_enc_noise(noise)
         for encoder_layer in self.layer_stack_for_second_block:
-            # new_1
-            enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
-            skips_tilde_2.append(skip)
+            enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
+            skips_tilde_2 += skip
+
+        skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
+        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+
+
+        # enc_output_x = self.position_enc_x(input_X_for_second[:, 0, :, :])
+        # enc_output_mask = self.position_enc_mask(input_X_for_second[:, 1, :, :])
+        # enc_output_x = enc_output_x.unsqueeze(1)
+        # enc_output_mask = enc_output_mask.unsqueeze(1)
+        # enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
+        #     # print(f"tilde 2 enc_out before attn: {enc_output}")
+        # skips_tilde_2 = []
+        # for encoder_layer in self.layer_stack_for_second_block:
+        #     # new_1
+        #     enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
+        #     skips_tilde_2.append(skip)
             # new_2
             # enc_output, attn_weights = encoder_layer(enc_output, diff_emb)
             # print(f"enc out after first encoder: {enc_output}")
             # print(f"after first block each iter: {skip}")
 
         # new_1
-        skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
-        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        # skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
+        # skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # new_2
         # skips_tilde_2 = enc_output[:, 1, :, :]
