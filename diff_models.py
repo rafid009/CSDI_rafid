@@ -807,6 +807,7 @@ class diff_SAITS_2(nn.Module):
         enc_output = self.dropout(self.position_enc_noise(noise))
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
+            print(f"skip: {skip.shape}")
             skips_tilde_1 += skip
 
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
