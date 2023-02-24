@@ -803,7 +803,7 @@ class diff_SAITS_2(nn.Module):
         pos_cond = self.position_enc_cond(cond)
 
 
-        skips_tilde_1 = torch.zeros_like(X[:, 1, :, :])
+        skips_tilde_1 = torch.zeros_like(noise)
         enc_output = self.dropout(self.position_enc_noise(noise))
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
@@ -830,7 +830,7 @@ class diff_SAITS_2(nn.Module):
 
         # pos_cond = self.position_enc_cond(cond)
 
-        skips_tilde_2 = torch.zeros_like(X[:, 1, :, :])
+        skips_tilde_2 = torch.zeros_like(noise)
         enc_output = self.position_enc_noise(noise)
         for encoder_layer in self.layer_stack_for_second_block:
             enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
