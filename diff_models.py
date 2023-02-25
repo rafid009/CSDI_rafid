@@ -704,11 +704,13 @@ class ResidualEncoderLayer_2(nn.Module):
         # K -> time
         B, K, L = x.shape
         base_shape = x.shape
+        print(f"x input: {base_shape}")
         x_proj = torch.transpose(x, 1, 2) # (B, L, K)
         x_proj = self.init_proj(x_proj)
-
+        print(f"x_proj: {x_proj.shape}")
         cond = torch.transpose(cond, 1, 2) # (B, L, K)
         cond = self.cond_proj(cond)
+        print(f"cond: {cond.shape}")
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         print(f"diff_proj: {diff_proj.shape}")
@@ -722,26 +724,33 @@ class ResidualEncoderLayer_2(nn.Module):
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
+        print(f"y, attn: {y.shape} and {attn_weights_1.shape}")
 
         print(f"pre conv cond: {cond.shape}")
         c_y = self.conv_cond(cond)
         print(f"post conv cond: {cond.shape}")
         y = y + c_y
+        print(f"y+c_y: {y.shape}")
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
         y = torch.transpose(y, 1, 2)
+        print(f"y: {y.shape}")
 
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
+        print(f"out: {out.shape}")
 
         residual = self.res_proj(out) # (B, L, K)
         residual = torch.transpose(residual, 1, 2) # (B, K, L)
+        print(f"residual: {residual.shape}")
 
         skip = self.skip_proj(out) # (B, L, K)
         skip = torch.transpose(out, 1, 2) # (B, K, L)
+        print(f"skip: {skip.shape}")
 
         attn_weights = (attn_weights_1 + attn_weights_2)
+        print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights
 
