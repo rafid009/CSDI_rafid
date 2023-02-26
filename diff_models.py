@@ -674,9 +674,9 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  diagonal_attention_mask)
 
-        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2*channels, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
-        self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2*channels, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
         # self.init_projection = Conv1d_with_init(2, channels, 1)
