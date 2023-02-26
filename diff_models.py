@@ -637,7 +637,7 @@ class Conv(nn.Module):
         super(Conv, self).__init__()
         self.padding = dilation * (kernel_size - 1) // 2
         self.conv = nn.Conv1d(in_channels, out_channels, kernel_size, dilation=dilation, padding=self.padding)
-        self.conv = nn.utils.weight_norm(self.conv)
+        # self.conv = nn.utils.weight_norm(self.conv)
         nn.init.kaiming_normal_(self.conv.weight)
 
     def forward(self, x):
@@ -647,7 +647,7 @@ class Conv(nn.Module):
 
 def Conv1d_with_init_saits_new(in_channels, out_channels, kernel_size):
     layer = nn.Conv1d(in_channels, out_channels, kernel_size)
-    layer = nn.utils.weight_norm(layer)
+    # layer = nn.utils.weight_norm(layer)
     nn.init.kaiming_normal_(layer.weight)
     return layer
     
@@ -797,7 +797,10 @@ class diff_SAITS_2(nn.Module):
     def forward(self, inputs, diffusion_step):
         # print(f"Entered forward")
         X, masks = inputs['X'], inputs['missing_mask']
-  
+        
+        ## making the mask same
+        masks[:,1,:,:] = masks[:,0,:,:]
+
         X = torch.transpose(X, 2, 3)
         masks = torch.transpose(masks, 2, 3)
 
@@ -813,19 +816,18 @@ class diff_SAITS_2(nn.Module):
         
         enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_1 = torch.zeros_like(enc_output)
-        print(f"tilde: {skips_tilde_1.shape}")
+        # print(f"tilde: {skips_tilde_1.shape}")
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
-            print(f"skip: {skip.shape}")
+            # print(f"skip: {skip.shape}")
             skips_tilde_1 += skip
 
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
+
         X_tilde_1 = self.reduce_dim_z(enc_output)
         X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
 
-
-        
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
@@ -848,34 +850,9 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_2 += skip
 
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        skips_tilde_2 = self.reduce_dim_gamma(F.gelu(self.reduce_dim_beta(skips_tilde_2)))
 
 
-        # enc_output_x = self.position_enc_x(input_X_for_second[:, 0, :, :])
-        # enc_output_mask = self.position_enc_mask(input_X_for_second[:, 1, :, :])
-        # enc_output_x = enc_output_x.unsqueeze(1)
-        # enc_output_mask = enc_output_mask.unsqueeze(1)
-        # enc_output = torch.cat([enc_output_x, enc_output_mask], dim=1)
-        #     # print(f"tilde 2 enc_out before attn: {enc_output}")
-        # skips_tilde_2 = []
-        # for encoder_layer in self.layer_stack_for_second_block:
-        #     # new_1
-        #     enc_output, skip, attn_weights = encoder_layer(enc_output, diff_emb)
-        #     skips_tilde_2.append(skip)
-            # new_2
-            # enc_output, attn_weights = encoder_layer(enc_output, diff_emb)
-            # print(f"enc out after first encoder: {enc_output}")
-            # print(f"after first block each iter: {skip}")
-
-        # new_1
-        # skips_tilde_2 = torch.sum(torch.stack(skips_tilde_2), dim=0) / math.sqrt(len(self.layer_stack_for_first_block))
-        # skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
-
-        # new_2
-        # skips_tilde_2 = enc_output[:, 1, :, :]
-        # skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
-
-        # print(f"skip tilde 1: {skips_tilde_1}")
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
         if len(attn_weights.shape) == 4:
@@ -887,8 +864,8 @@ class diff_SAITS_2(nn.Module):
         combining_weights = torch.sigmoid(
             self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
         )  # namely term eta
-        print(f"comb weights: {combining_weights.shape}")
-        print(f"skip tilde: {skips_tilde_1.shape}")
+        # print(f"comb weights: {combining_weights.shape}")
+        # print(f"skip tilde: {skips_tilde_1.shape}")
         # combine X_tilde_1 and X_tilde_2
         skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
         # print(f"skip tilde 3: {skips_tilde_3}")
