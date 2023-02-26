@@ -693,6 +693,8 @@ class ResidualEncoderLayer_2(nn.Module):
 
         self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
+
+        self.norm = nn.LayerNorm([d_time, d_model])
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
@@ -748,6 +750,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = self.skip_proj(out) # (B, L, K)
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
         # print(f"skip: {skip.shape}")
+        skip = self.norm(skip)
 
         attn_weights = (attn_weights_1 + attn_weights_2)
         # print(f"attn: {attn_weights.shape}")
