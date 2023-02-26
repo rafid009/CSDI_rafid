@@ -853,7 +853,7 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_2 += skip
 
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-        skips_tilde_2 = self.reduce_dim_gamma(F.gelu(self.reduce_dim_beta(skips_tilde_2)))
+        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
 
         # attention-weighted combine
