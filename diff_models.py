@@ -694,7 +694,7 @@ class ResidualEncoderLayer_2(nn.Module):
         self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
 
-        self.norm = nn.LayerNorm([d_time, d_model])
+        # self.norm = nn.LayerNorm([d_time, d_model])
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
 
@@ -750,7 +750,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = self.skip_proj(out) # (B, L, K)
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
         # print(f"skip: {skip.shape}")
-        skip = self.norm(skip)
+        # skip = self.norm(skip)
 
         attn_weights = (attn_weights_1 + attn_weights_2)
         # print(f"attn: {attn_weights.shape}")
@@ -796,6 +796,11 @@ class diff_SAITS_2(nn.Module):
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
+        self.final_conv = nn.Sequential(
+                                Conv(d_feature, d_feature, kernel_size=1),
+                                nn.ReLU(),
+                                ZeroConv1d(d_feature, d_feature)
+                            )
 
     def forward(self, inputs, diffusion_step):
         # print(f"Entered forward")
@@ -871,10 +876,14 @@ class diff_SAITS_2(nn.Module):
         # print(f"skip tilde: {skips_tilde_1.shape}")
         # combine X_tilde_1 and X_tilde_2
         skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
+
+
         # print(f"skip tilde 3: {skips_tilde_3}")
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
+
+        skips_tilde_3 = self.final_conv(skips_tilde_3)
         # X_c = masks * X + (1 - masks) * X_tilde_3  # replace non-missing part with original data
         return skips_tilde_1, skips_tilde_2, skips_tilde_3
 
