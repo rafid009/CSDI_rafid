@@ -172,10 +172,13 @@ def train(
     # p0 = int(0.6 * config["epochs"])
     p1 = int(0.75 * config["epochs"])
     p2 = int(0.9 * config["epochs"])
+    # p3 = int(0.9 * config["epochs"])
+    # p4 = int(0.7 * config["epochs"])
+    p5 = int(0.95 * config["epochs"])
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
     if is_saits:
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=[p2], gamma=0.01
+            optimizer, milestones=[p1, p2, p5], gamma=0.1
         )
     else:
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(

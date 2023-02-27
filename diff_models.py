@@ -846,7 +846,7 @@ class diff_SAITS_2(nn.Module):
         noise = input_X_for_second#[:, 1, :, :], input_X_for_second[:, 0, :, :]
         # noise_mask, cond_mask = masks[:, 1, :, :], masks[:, 0, :, :]
 
-        diff_emb = self.diffusion_embedding(diffusion_step)
+        # diff_emb = self.diffusion_embedding(diffusion_step)
 
         # pos_cond = self.position_enc_cond(cond)
 
