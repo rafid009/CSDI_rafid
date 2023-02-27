@@ -162,7 +162,8 @@ def train(
     valid_loader=None,
     valid_epoch_interval=5,
     foldername="",
-    filename=""
+    filename="",
+    is_saits=False
 ):
     optimizer = Adam(model.parameters(), lr=config["lr"], weight_decay=1e-6)
     if foldername != "":
@@ -172,10 +173,14 @@ def train(
     p1 = int(0.75 * config["epochs"])
     p2 = int(0.9 * config["epochs"])
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
-
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+    if is_saits:
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            optimizer, milestones=[p1, p2], gamma=0.05
+        )
+    else:
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=[p1, p2], gamma=0.1
-    )
+        )
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
     #     optimizer, T_0=1000, T_mult=1, eta_min=1.0e-7
     #     )

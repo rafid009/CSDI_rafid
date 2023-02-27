@@ -92,7 +92,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 60,
+        'num_steps': 50,
         'schedule': "quad"
     },
     'model': {
@@ -128,7 +128,8 @@ train(
     train_loader,
     valid_loader=valid_loader,
     foldername=model_folder,
-    filename=f"{filename}"
+    filename=f"{filename}",
+    is_saits=True
 )
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
