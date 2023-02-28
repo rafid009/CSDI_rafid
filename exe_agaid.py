@@ -64,14 +64,14 @@ model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
 filename = 'model_csdi.pth'
-train(
-    model_csdi,
-    config_dict_csdi["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=filename
-)
+# train(
+#     model_csdi,
+#     config_dict_csdi["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=filename
+# )
 # nsample = 50
 model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # evaluate(model_csdi, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
@@ -106,7 +106,7 @@ config_dict_diffsaits = {
         'n_feature': len(features),
         'd_model': 256,
         'd_inner': 128,
-        'n_head': 8,
+        'n_head': 3,
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.1,
