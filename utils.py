@@ -491,7 +491,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         if season_idx is None:
             season_idx = seasons[season]
         mse_csdi_total = {}
-        # mse_saits_total = {}
+        mse_saits_total = {}
         mse_diff_saits_total = {}
         # mse_diff_saits_simple_total = {}
         for i in range(trials):
@@ -505,10 +505,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     eval_points = eval_points.permute(0, 2, 1)
                     observed_points = observed_points.permute(0, 2, 1)
                     samples_median = samples.median(dim=1)
-                # samples_mean = samples.mean(dim=1)
-                # gt_intact = gt_intact.squeeze(axis=0)
-                # saits_X = gt_intact #test_batch['obs_data_intact']
-                # saits_output = models['SAITS'].impute(saits_X)
+                
                 if 'DiffSAITS' in models.keys():
                     output_diff_saits = models['DiffSAITS'].evaluate(test_batch, nsample)
                     if 'CSDI' not in models.keys():
@@ -522,6 +519,9 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     samples_diff_saits_median = samples_diff_saits.median(dim=1)
                     samples_diff_saits_mean = samples_diff_saits.mean(dim=1)
 
+                gt_intact = gt_intact.squeeze(axis=0)
+                saits_X = gt_intact #test_batch['obs_data_intact']
+                saits_output = models['SAITS'].impute(saits_X)
                 
                 if trials == 1:
                     if 'CSDI' in models.keys():
@@ -531,7 +531,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             # 'csdi_mean': samples_mean[0, :, :].cpu().numpy(),
                             'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
                             'csdi_samples': samples[0].cpu().numpy(),
-                            # 'saits': saits_output[0, :, :],
+                            'saits': saits_output[0, :, :],
                             'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
                             'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
                             'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
@@ -542,7 +542,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                          results[season] = {
                             'target mask': eval_points[0, :, :].cpu().numpy(),
                             'target': c_target[0, :, :].cpu().numpy(),
-                            # 'saits': saits_output[0, :, :],
+                            'saits': saits_output[0, :, :],
                             'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
                             # 'diff_saits_median': samples_diff_saits_median.values[0, :, :].cpu().numpy(),
                             'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
@@ -644,13 +644,17 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         #             mse_diff_saits_simple_total[feature][str(k)] += mse_diff_saits_simple
 
 
-                        # mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        # mse_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        # mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        # if feature not in mse_saits_total.keys():
-                        #     mse_saits_total[feature] = mse_saits
-                        # else:
-                        #     mse_saits_total[feature] += mse_saits
+                        mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
+                        mae_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
+                        mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        mae_saits = mae_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+
+                        if feature not in mse_csdi_total.keys():
+                            mse_saits_total[feature] = {'mse': 0, 'mae': 0}
+
+                        mse_saits_total[feature]['mse'] += mse_saits
+                        mse_saits_total[feature]['mae'] += mae_saits
+
         if trials > 1:
             print(f"For season = {season}:")
             for feature in features:
@@ -663,10 +667,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_csdi_total[feature][i] /= trials
                 for i in mse_diff_saits_total[feature].keys():
                     mse_diff_saits_total[feature][i] /= trials
-                # mse_saits_total[feature] /= trials
+                for i in mse_saits_total[feature].keys():
+                    mse_saits_total[feature][i] /= trials
                 if 'CSDI' in models.keys():
                     print(f"\n\tFor feature = {feature}\n\tCSDI mae: {mse_csdi_total[feature]['mae']}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
-                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}\n\tDiffSAITS median: {mse_diff_saits_total[feature]['diff_mse_med']}")# \
+                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}\n\tDiffSAITS median: {mse_diff_saits_total[feature]['diff_mse_med']}\n\tSAITS mse: {mse_saits_total[feature]['mse']}")# \
                 else:
                     print(f"\n\tFor feature = {feature}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
                     print(f"\n\tFor feature = {feature}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
@@ -677,13 +682,13 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
             if 'CSDI' in models.keys():
                 season_avg_mse[season] = {
                     'CSDI': mse_csdi_total,
-                    # 'SAITS': mse_saits_total,
+                    'SAITS': mse_saits_total,
                     'DiffSAITS': mse_diff_saits_total#,
                     # 'DiffSAITSsimple': mse_diff_saits_simple_total
                 }
             else:
                 season_avg_mse[season] = {
-                    # 'SAITS': mse_saits_total,
+                    'SAITS': mse_saits_total,
                     'DiffSAITS': mse_diff_saits_total#,
                 }
 

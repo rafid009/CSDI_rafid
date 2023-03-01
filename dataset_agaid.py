@@ -23,7 +23,7 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
             mask = ~np.isnan(values)
             gt_intact = values
             obs_data = np.nan_to_num(evals, copy=True)
-            obs_data_intact = evals
+            obs_data_intact = values
     elif forward_trial != -1:
         indices = np.where(~np.isnan(sample[:, lte_idx]))[0].tolist()
         start = indices[forward_trial]
