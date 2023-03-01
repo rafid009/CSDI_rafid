@@ -714,8 +714,9 @@ class ResidualEncoderLayer_2(nn.Module):
         x_proj = self.init_proj(x_proj)
         # print(f"x_proj: {x_proj.shape}")
         cond = torch.transpose(cond, 1, 2) # (B, L, K)
+        _, attn_weights_f = self.enc_layer_f(cond)
         cond = self.cond_proj(cond)
-        cond, attn_weights_f = self.enc_layer_f(cond)
+        
         # print(f"cond: {cond.shape}")
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)

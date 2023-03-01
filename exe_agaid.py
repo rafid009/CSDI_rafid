@@ -92,7 +92,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 70,
+        'num_steps': 60,
         'schedule': "quad"
     },
     'model': {
@@ -104,7 +104,7 @@ config_dict_diffsaits = {
         'n_layers': 4,
         'd_time': 252,
         'n_feature': len(features),
-        'd_model': 256,
+        'd_model': 128,
         'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
