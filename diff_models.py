@@ -753,7 +753,9 @@ class ResidualEncoderLayer_2(nn.Module):
         # Feature attention added
         attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
         attn_weights_f = torch.mean(attn_weights_f, dim=-1)
+        out = torch.transpose(out, 1, 2)
         out = out * torch.sigmoid(attn_weights_f)
+        out = torch.transpose(out, 1, 2)
         # print(f"out: {out.shape}")
 
         residual = self.res_proj(out) # (B, L, K)
