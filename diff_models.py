@@ -807,7 +807,8 @@ class diff_SAITS_2(nn.Module):
         X, masks = inputs['X'], inputs['missing_mask']
         
         ## making the mask same
-        # masks[:,1,:,:] = masks[:,0,:,:]
+
+        masks[:,1,:,:] = masks[:,0,:,:]
 
         X = torch.transpose(X, 2, 3)
         masks = torch.transpose(masks, 2, 3)
@@ -834,7 +835,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 * masks[:, 1, :, :]#+ X[:, 1, :, :]        
+        X_tilde_1 = X_tilde_1 * (1 - masks[:, 1, :, :]) + X[:, 1, :, :]        
 
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
