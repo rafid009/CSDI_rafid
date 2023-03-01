@@ -679,8 +679,8 @@ class ResidualEncoderLayer_2(nn.Module):
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
-        self.enc_layer_f = EncoderLayer(channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
-                         diagonal_attention_mask)
+        # self.enc_layer_f = EncoderLayer(channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
+        #                  diagonal_attention_mask)
 
         # self.init_projection = Conv1d_with_init(2, channels, 1)
         # self.mid_projection = Conv1d_with_init(int(channels / 2), 2 * channels, 1)
@@ -714,7 +714,7 @@ class ResidualEncoderLayer_2(nn.Module):
         x_proj = self.init_proj(x_proj)
         # print(f"x_proj: {x_proj.shape}")
         cond = torch.transpose(cond, 1, 2) # (B, L, K)
-        _, attn_weights_f = self.enc_layer_f(cond)
+        # _, attn_weights_f = self.enc_layer_f(cond)
         cond = self.cond_proj(cond)
         
         # print(f"cond: {cond.shape}")
@@ -751,12 +751,12 @@ class ResidualEncoderLayer_2(nn.Module):
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
         
         # Feature attention added
-        attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        attn_weights_f = torch.mean(attn_weights_f, dim=-1)
-        out = torch.transpose(out, 1, 2)
+        # attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        # attn_weights_f = torch.mean(attn_weights_f, dim=-1)
+        # out = torch.transpose(out, 1, 2)
         # print(f"out before: {out.shape}\nattn: {attn_weights_f.shape}")
-        out = torch.matmul(out, torch.sigmoid(attn_weights_f))
-        out = torch.transpose(out, 1, 2)
+        # out = torch.matmul(out, torch.sigmoid(attn_weights_f))
+        # out = torch.transpose(out, 1, 2)
         # print(f"out: {out.shape}")
 
         residual = self.res_proj(out) # (B, L, K)
@@ -851,7 +851,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
+        X_tilde_1 = X_tilde_1 * (1-masks[:,1,:,:]) + X[:, 1, :, :]        
 
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
