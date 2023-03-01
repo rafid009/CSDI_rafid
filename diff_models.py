@@ -679,6 +679,9 @@ class ResidualEncoderLayer_2(nn.Module):
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
+        self.enc_layer_f = EncoderLayer(channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
+                         diagonal_attention_mask)
+
         # self.init_projection = Conv1d_with_init(2, channels, 1)
         # self.mid_projection = Conv1d_with_init(int(channels / 2), 2 * channels, 1)
         # self.output_projection = Conv1d_with_init(channels, 4, 1)
@@ -712,6 +715,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"x_proj: {x_proj.shape}")
         cond = torch.transpose(cond, 1, 2) # (B, L, K)
         cond = self.cond_proj(cond)
+        cond, attn_weights_f = self.enc_layer_f(cond)
         # print(f"cond: {cond.shape}")
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
@@ -739,8 +743,16 @@ class ResidualEncoderLayer_2(nn.Module):
         y = torch.transpose(y, 1, 2)
         # print(f"y: {y.shape}")
 
+        # The feature encoder
+        # y, attn_weights_f = self.enc_layer_f(y)
+
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
+        
+        # Feature attention added
+        attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        attn_weights_f = torch.mean(attn_weights_f, dim=-1)
+        out = out * torch.sigmoid(attn_weights_f)
         # print(f"out: {out.shape}")
 
         residual = self.res_proj(out) # (B, L, K)
