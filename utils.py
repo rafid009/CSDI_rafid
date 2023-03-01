@@ -649,7 +649,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         mae_saits = mae_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
-                        if feature not in mse_csdi_total.keys():
+                        if feature not in mse_saits_total.keys():
                             mse_saits_total[feature] = {'mse': 0, 'mae': 0}
 
                         mse_saits_total[feature]['mse'] += mse_saits

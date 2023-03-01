@@ -122,19 +122,18 @@ config_info = 'model_diff_saits_final_stack.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
-train(
-    model_diff_saits,
-    config_dict_diffsaits["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=f"{filename}",
-    is_saits=True
-)
+# train(
+#     model_diff_saits,
+#     config_dict_diffsaits["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=f"{filename}",
+#     is_saits=True
+# )
 # nsample = 100
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
-# model_diff_saits_simple.load_state_dict(torch.load(f"{model_folder}/{filename_simple}"))
-# evaluate(model_diff_saits, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+
 
 filename = "ColdHardiness_Grape_Merlot_2.csv"
 df = pd.read_csv(filename)
@@ -152,8 +151,8 @@ X = (X - mean) / std
 saits_model_file = f"{model_folder}/model_saits.pth"
 saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
-# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-# pickle.dump(saits, open(saits_model_file, 'wb'))
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
 
 # saits = pickle.load(open(saits_model_file, 'rb'))
 
