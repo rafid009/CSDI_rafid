@@ -804,6 +804,7 @@ class diff_SAITS_2(nn.Module):
 
         # for operation on time dim
         self.embedding_1 = nn.Linear(actual_d_feature, d_model)
+        self.embedding_cond = nn.Linear(actual_d_feature, d_model)
         self.reduce_dim_z = nn.Linear(d_model, d_feature)
         # for operation on measurement dim
         self.embedding_2 = nn.Linear(actual_d_feature, d_model)
@@ -829,10 +830,15 @@ class diff_SAITS_2(nn.Module):
         X = torch.transpose(X, 2, 3)
         masks = torch.transpose(masks, 2, 3)
 
-        input_X_for_first = torch.cat([X, masks], dim=3)
+        input_X_for_first = torch.cat([X[:,1,:,:], masks[:,1,:,:]], dim=2)
         input_X_for_first = self.embedding_1(input_X_for_first)
 
-        noise, cond = input_X_for_first[:, 1, :, :], input_X_for_first[:, 0, :, :]
+        # noise, cond = input_X_for_first[:, 1, :, :], input_X_for_first[:, 0, :, :]
+        
+        # cond separate
+        noise = input_X_for_first
+        cond = torch.cat([X[:,0,:,:], masks[:,0,:,:]], dim=2)
+        cond = self.embedding_cond(cond)
         # noise_mask, cond_mask = masks[:, 1, :, :], masks[:, 0, :, :]
 
         diff_emb = self.diffusion_embedding(diffusion_step)
@@ -851,7 +857,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 * (1-masks[:,1,:,:]) + X[:, 1, :, :]        
+        X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
 
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
