@@ -104,7 +104,7 @@ config_dict_diffsaits = {
         'n_layers': 4,
         'd_time': 252,
         'n_feature': len(features),
-        'd_model': 128,
+        'd_model': 256,
         'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
@@ -120,7 +120,7 @@ model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to
 filename = 'model_diff_saits_final_stable_new_high.pth'
 config_info = 'model_diff_saits_final_stack.pth'
 
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
 train(
     model_diff_saits,
