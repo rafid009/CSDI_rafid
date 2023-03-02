@@ -178,7 +178,7 @@ def train(
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
     if is_saits:
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=[p2], gamma=0.1
+            optimizer, milestones=[p1, p2], gamma=0.1
         )
         # pass
     else:
@@ -499,7 +499,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_diff_saits_total = {}
         # mse_diff_saits_simple_total = {}
         for i in range(trials):
-            test_loader = get_testloader(seed=(20 + i), season_idx=season_idx, exclude_features=exclude_features, length=length, random_trial=random_trial)
+            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length, random_trial=random_trial)
             for j, test_batch in enumerate(test_loader, start=1):
                 if 'CSDI' in models.keys():
                     output = models['CSDI'].evaluate(test_batch, nsample)
