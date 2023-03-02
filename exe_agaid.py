@@ -104,7 +104,7 @@ config_dict_diffsaits = {
         'n_layers': 4,
         'd_time': 252,
         'n_feature': len(features),
-        'd_model': 256,
+        'd_model': 128,
         'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
@@ -169,7 +169,7 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     # evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
-    evaluate_imputation(models, mse_folder, length=l, trials=30, season_idx=33)
+    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
