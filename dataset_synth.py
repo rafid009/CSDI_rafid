@@ -3,18 +3,33 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from synthetic_data import create_synthetic_data, feats
 
-def parse_data(sample, rate, is_test=False, length=100, include_features=None):
-    """
-        Get mask of random points (missing at random) across channels based on k,
-        where k == number of data points. Mask of sample's shape where 0's to be imputed, and 1's to preserved
-        as per ts imputers
-    """
+def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=None, forward_trial=-1, lte_idx=None, random_trial=False):
+    """Get mask of random points (missing at random) across channels based on k,
+    where k == number of data points. Mask of sample's shape where 0's to be imputed, and 1's to preserved
+    as per ts imputers"""
     if isinstance(sample, torch.Tensor):
         sample = sample.numpy()
 
     obs_mask = ~np.isnan(sample)
-    
-    if not is_test:
+    if random_trial:
+        evals = sample.copy()
+        values = evals.copy()
+        for i in range(evals.shape[1]):
+            indices = np.where(~np.isnan(sample[:, i]))[0].tolist()
+            indices = np.random.choice(indices, int(len(indices) * rate))
+            values[indices, i] = np.nan
+            mask = ~np.isnan(values)
+            gt_intact = values
+            obs_data = np.nan_to_num(evals, copy=True)
+            obs_data_intact = values
+    elif forward_trial != -1:
+        indices = np.where(~np.isnan(sample[:, lte_idx]))[0].tolist()
+        start = indices[forward_trial]
+        obs_data = np.nan_to_num(sample, copy=True)
+        gt_intact = sample.copy()
+        gt_intact[start:, :] = np.nan
+        mask = ~np.isnan(gt_intact)
+    elif not is_test:
         shp = sample.shape
         evals = sample.reshape(-1).copy()
         indices = np.where(~np.isnan(evals))[0].tolist()
@@ -23,10 +38,10 @@ def parse_data(sample, rate, is_test=False, length=100, include_features=None):
         values[indices] = np.nan
         mask = ~np.isnan(values)
         mask = mask.reshape(shp)
-        # obs_data_intact = values.reshape(shp).copy()
+        gt_intact = values.reshape(shp).copy()
         obs_data = np.nan_to_num(evals, copy=True)
         obs_data = obs_data.reshape(shp)
-        obs_intact = evals.reshape(shp)
+        # obs_data_intact = evals.reshape(shp)
     else:
         shp = sample.shape
         evals = sample.reshape(-1).copy()
@@ -39,15 +54,13 @@ def parse_data(sample, rate, is_test=False, length=100, include_features=None):
         if include_features is None or len(include_features) == 0:
             obs_data_intact[start_idx:end_idx, :] = np.nan
         else:
-            print(f"inlude features: {include_features}")
             obs_data_intact[start_idx:end_idx, include_features] = np.nan
         mask = ~np.isnan(obs_data_intact)
-        obs_intact = evals.copy()
-        obs_data = np.nan_to_num(obs_intact, copy=True)
+        gt_intact = obs_data_intact
+        obs_data = np.nan_to_num(evals, copy=True)
         obs_data = obs_data.reshape(shp)
-        obs_intact = obs_intact.reshape(shp)
         # obs_intact = np.nan_to_num(obs_intact, copy=True)
-    return obs_data, obs_mask, mask, sample, obs_intact
+    return obs_data, obs_mask, mask, sample, gt_intact
 
 class Synth_Dataset(Dataset):
     def __init__(self, n_steps, n_features, num_seasons, rate=0.2, is_test=False, length=100, exclude_features=None, seed=10) -> None:

@@ -5,12 +5,12 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
     np.random.seed(seed)
     
     synth_features = {
-        'sin': (0.00001, 2 * np.pi/3, np.pi/3),
-        'cos2': (0, 2*np.pi, np.pi/4),
-        'harmonic': np.pi/2,
-        'weight': (0.3, 0.6),
-        'lin_comb': (0.2, 0.03),
-        'non_lin_comb': (0)
+        'sin': (0.00001, 2 * np.pi/3, np.pi/3), # f1
+        'cos2': (0, 2*np.pi, np.pi/4), # f2
+        'harmonic': np.pi/2, # f3
+        'weight': (0.3, 0.6), # f4
+        'lin_comb': (0.2, 0.03), # f5
+        'non_lin_comb': (0) # f6
     }
     num_steps = n_steps # config['n_steps']
     num_features = len(feats) # config['n_features']
@@ -29,9 +29,13 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
                 data[i, :, feats.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2)
             elif feature == 'harmonic':
-                data[i, :, feats.index(feature)] = (synth_features['harmonic'] * data[i, :, feats.index('sin')] + synth_features['harmonic'] * data[i, :, feats.index('cos2')]) / (1/(data[i, :, feats.index('sin')] + 1e-3) + 1/(data[i, :, feats.index('cos2')] + 1e-3))
+                f1 = data[i, :, feats.index('sin')]
+                f2 = data[i, :, feats.index('cos2')]
+                data[i, :, feats.index(feature)] = (synth_features['harmonic'] * f1 + synth_features['harmonic'] * f2) / (1/(f1 + 1e-2) + 1/(f2 + 1e-2))
             elif feature == 'weight':
-                data[i, :, feats.index(feature)] = (synth_features['weight'][0] * data[i, :, feats.index('sin')] + synth_features['weight'][1] * data[i, :, feats.index('cos2')]) / (1/synth_features['weight'][0] + 1/synth_features['weight'][1])
+                f1 = data[i, :, feats.index('sin')]
+                f2 = data[i, :, feats.index('cos2')]
+                data[i, :, feats.index(feature)] = (synth_features['weight'][0] * f1 + synth_features['weight'][1] * f2) / (1/synth_features['weight'][0] + 1/synth_features['weight'][1])
             elif feature == 'lin_comb':
                 data[i, 0, feats.index(feature)] = np.random.uniform(0.001, 1)
                 f5 = data[i, 0:-1, feats.index(feature)]
