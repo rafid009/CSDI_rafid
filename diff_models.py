@@ -858,7 +858,8 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_1 += skip
 
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
-
+        print(f"skip tilde: {skips_tilde_1.shape}")
+        print(f"attn_weights_f: {attn_weights_f.shape}")
         # feature corr start
         attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
         attn_weights_f = torch.mean(attn_weights_f, dim=3)
