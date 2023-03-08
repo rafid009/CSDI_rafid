@@ -858,14 +858,14 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_1 += skip
 
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
-        print(f"skip tilde: {skips_tilde_1.shape}")
-        print(f"attn_weights_f: {attn_weights_f.shape}")
+        # print(f"skip tilde: {skips_tilde_1.shape}")
+        # print(f"attn_weights_f: {attn_weights_f.shape}")
         # feature corr start
         attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
         attn_weights_f = torch.mean(attn_weights_f, dim=3)
         attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
         attn_weights_f = torch.sigmoid(attn_weights_f)
-        skips_tilde_1 = skips_tilde_1 * attn_weights_f
+        skips_tilde_1 = torch.matmul(skips_tilde_1, attn_weights_f)
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
@@ -900,7 +900,7 @@ class diff_SAITS_2(nn.Module):
         attn_weights_f = torch.mean(attn_weights_f, dim=3)
         attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
         attn_weights_f = torch.sigmoid(attn_weights_f)
-        skips_tilde_2 = skips_tilde_2 * attn_weights_f
+        skips_tilde_2 = torch.matmul(skips_tilde_2, attn_weights_f)
         # feature corr end
 
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
