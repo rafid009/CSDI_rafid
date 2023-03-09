@@ -81,7 +81,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 1000,
         'batch_size': 16 ,
         'lr': 1.0e-4
     },      
@@ -120,7 +120,7 @@ model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to
 filename = 'model_diff_saits_final_stable_feat_corr.pth'
 config_info = 'model_diff_saits_final_stack.pth'
 
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
 train(
     model_diff_saits,
