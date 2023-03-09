@@ -937,17 +937,19 @@ class diff_SAITS_2(nn.Module):
         print(f"prevonv feature weight: {attn_weights_f.shape}")
         attn_weights_f = torch.sigmoid(torch.squeeze(self.feature_weight_conv(attn_weights_f)))
 
-        # attn_weights_f = torch.sigmoid(attn_weights_f)
-        # print(f"comb weights: {combining_weights.shape}")
-        # print(f"skip tilde: {skips_tilde_1.shape}")
+
         # combine X_tilde_1 and X_tilde_2
         # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
-        print(f"comb weight: {combining_weights.shape}\nskips1: {skips_tilde_1.shape}\
-              \nskips2: {skips_tilde_2.shape}\nf_weight: {attn_weights_f.shape}\
-              matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
+        # print(f"comb weight: {combining_weights.shape}\nskips1: {skips_tilde_1.shape}\
+        #       \nskips2: {skips_tilde_2.shape}\nf_weight: {attn_weights_f.shape}\
+        #       matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
+
+        # feature corr added way 1
         skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
 
-
+        # feature corr added way 2
+        skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
+        skips_tilde_3 = torch.matmul(skips_tilde_3, attn_weights_f)
         # print(f"skip tilde 3: {skips_tilde_3}")
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
