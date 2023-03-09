@@ -177,10 +177,10 @@ def train(
     p5 = int(0.95 * config["epochs"])
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
     if is_saits:
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=[p2], gamma=0.1
-        )
-        # pass
+        # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        #     optimizer, milestones=[p2], gamma=0.1
+        # )
+        pass
     else:
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=[p1, p2], gamma=0.1
@@ -219,7 +219,8 @@ def train(
             # exp_scheduler.step()
             # metric = avg_loss / batch_no
             if is_saits:
-                lr_scheduler.step()
+                # lr_scheduler.step()
+                pass
             else:
                 lr_scheduler.step()
             
