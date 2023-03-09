@@ -942,7 +942,7 @@ class diff_SAITS_2(nn.Module):
         # combine X_tilde_1 and X_tilde_2
         # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
 
-        skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + combining_weights * torch.matmul(skips_tilde_1 * attn_weights_f) 
+        skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
 
 
         # print(f"skip tilde 3: {skips_tilde_3}")
