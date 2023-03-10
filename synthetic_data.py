@@ -5,7 +5,7 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
     np.random.seed(seed)
     
     synth_features = {
-        'sin': (0.00001, 2 * np.pi/3, np.pi/3), # f1
+        'sin': (0.00001, 2 * np.pi/3, np.pi/2), # f1
         'cos2': (0, 2*np.pi, np.pi/4), # f2
         'harmonic': np.pi/2, # f3
         'weight': (0.3, 0.6), # f4
@@ -27,7 +27,7 @@ def create_synthetic_data(n_steps, num_seasons, seed=10):
             elif feature == 'cos2':
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
-                data[i, :, feats.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2)
+                data[i, :, feats.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2) * (np.random.rand(data.shape[1]) ** (1/8))
             elif feature == 'harmonic':
                 f1 = data[i, :, feats.index('sin')]
                 f2 = data[i, :, feats.index('cos2')]
