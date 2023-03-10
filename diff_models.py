@@ -942,12 +942,12 @@ class diff_SAITS_2(nn.Module):
         print(f"prevonv feature weight: {attn_weights_f.shape}")
         attn_weights_f = self.feature_weight_conv(attn_weights_f)
         print(f"before reshape: {attn_weights_f.shape}")
-        attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[1] * attn_weights_f.shape[2]))
+        attn_weights_f = torch.reshape(attn_weights_f, (attn_weights_f.shape[0], attn_weights_f.shape[1] * attn_weights_f.shape[2]))
         print(f"after squeeze: {attn_weights_f.shape}")
         attn_weights_f = self.attn_feature_proj(attn_weights_f)
         attn_weights_f = torch.sigmoid(attn_weights_f)
         print(f"torch sigmoid: {attn_weights_f.shape}")
-        attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
+        attn_weights_f = torch.reshape(attn_weights_f, (attn_weights_f.shape[0], self.d_feature, self.d_feature))
 
 
         # combine X_tilde_1 and X_tilde_2
