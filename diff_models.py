@@ -663,9 +663,11 @@ class ZeroConv1d(nn.Module):
         out = self.conv(x)
         return out
 
-def conv_with_init(in_channels, out_channel, kernel_size, H_in, H_out):
-    s = int(np.floor((H_in - kernel_size) / (H_out - 1)))
-    layer = nn.Conv2d(in_channels, out_channel, kernel_size, stride=s)
+def get_output_size(H_in, K, s):
+    return int((H_in - K)/s) + 1
+
+def conv_with_init(in_channels, out_channel, kernel_size):
+    layer = nn.Conv2d(in_channels, out_channel, kernel_size, stride=2)
     nn.init.kaiming_normal_(layer.weight)
     return layer
 
@@ -784,8 +786,7 @@ class ResidualEncoderLayer_2(nn.Module):
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
 
-def get_stride_size(H_in, K, H_out):
-    return int((H_in - K) / (H_out - 1))
+
 
 class diff_SAITS_2(nn.Module):
     def __init__(self, diff_steps, diff_emb_dim, n_layers, d_time, d_feature, d_model, d_inner, n_head, d_k, d_v,
@@ -794,6 +795,7 @@ class diff_SAITS_2(nn.Module):
         self.n_layers = n_layers
         actual_d_feature = d_feature * 2
         self.is_simple = is_simple
+        self.d_feature = d_feature
 
         
         self.layer_stack_for_first_block = nn.ModuleList([
@@ -825,7 +827,9 @@ class diff_SAITS_2(nn.Module):
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
-        self.feature_weight_conv = conv_with_init(n_head, 1, 3, 2*d_model, d_feature)
+        self.feature_weight_conv = conv_with_init(n_head, 1, 3)
+        hout = get_output_size(2 * d_model, 3, 2)
+        self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
         # self.final_conv = nn.Sequential(
         #                         Conv(d_feature, d_feature, kernel_size=1),
@@ -936,13 +940,17 @@ class diff_SAITS_2(nn.Module):
 
         # Feature Corr
         print(f"prevonv feature weight: {attn_weights_f.shape}")
-        attn_weights_f = torch.sigmoid(torch.squeeze(self.feature_weight_conv(attn_weights_f)))
+        attn_weights_f = torch.squeeze(self.feature_weight_conv(attn_weights_f))
+        attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f[2] * attn_weights_f[3]))
+        attn_weights_f = self.attn_feature_proj(attn_weights_f)
+        attn_weights_f = torch.sigmoid(attn_weights_f)
+        attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
 
 
         # combine X_tilde_1 and X_tilde_2
         # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
-        print(f"comb weight: {combining_weights.shape}\nskips1: {skips_tilde_1.shape}\
-              \nskips2: {skips_tilde_2.shape}\nf_weight: {attn_weights_f.shape}")
+        # print(f"comb weight: {combining_weights.shape}\nskips1: {skips_tilde_1.shape}\
+        #       \nskips2: {skips_tilde_2.shape}\nf_weight: {attn_weights_f.shape}")
             #   matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
 
         # feature corr added way 1
