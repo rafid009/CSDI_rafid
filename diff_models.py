@@ -664,7 +664,7 @@ class ZeroConv1d(nn.Module):
         return out
 
 def conv_with_init(in_channels, out_channel, kernel_size, H_in, H_out):
-    s = np.round((H_in - kernel_size) / (H_out - 1))
+    s = int(np.round((H_in - kernel_size) / (H_out - 1)))
     layer = nn.Conv2d(in_channels, out_channel, kernel_size, stride=s)
     nn.init.kaiming_normal_(layer.weight)
     return layer
