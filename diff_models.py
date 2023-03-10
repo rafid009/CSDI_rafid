@@ -746,6 +746,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"post conv cond: {cond.shape}")
         y = y + c_y
         # print(f"y+c_y: {y.shape}")
+        y, attn_weights_f = self.enc_layer_f(y)
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
@@ -758,7 +759,7 @@ class ResidualEncoderLayer_2(nn.Module):
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
         
-        out, attn_weights_f = self.enc_layer_f(out)
+        
         # print(f"attn_weights_f inside: {attn_weights_f.shape}")
         # Feature attention added
         # attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
