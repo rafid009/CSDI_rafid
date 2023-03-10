@@ -941,6 +941,7 @@ class diff_SAITS_2(nn.Module):
         # Feature Corr
         print(f"prevonv feature weight: {attn_weights_f.shape}")
         attn_weights_f = torch.squeeze(self.feature_weight_conv(attn_weights_f))
+        print(f"after squeeze: {attn_weights_f.shape}")
         attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[1] * attn_weights_f.shape[2]))
         attn_weights_f = self.attn_feature_proj(attn_weights_f)
         attn_weights_f = torch.sigmoid(attn_weights_f)
