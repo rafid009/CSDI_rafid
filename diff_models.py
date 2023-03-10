@@ -942,8 +942,8 @@ class diff_SAITS_2(nn.Module):
         # combine X_tilde_1 and X_tilde_2
         # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
         print(f"comb weight: {combining_weights.shape}\nskips1: {skips_tilde_1.shape}\
-              \nskips2: {skips_tilde_2.shape}\nf_weight: {attn_weights_f.shape}\
-              matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
+              \nskips2: {skips_tilde_2.shape}\nf_weight: {attn_weights_f.shape}")
+            #   matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
 
         # feature corr added way 1
         # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
