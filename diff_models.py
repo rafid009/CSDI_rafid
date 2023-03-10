@@ -688,7 +688,7 @@ class ResidualEncoderLayer_2(nn.Module):
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
-        self.enc_layer_f = EncoderLayer(channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_f = EncoderLayer(2 * channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
         # self.init_projection = Conv1d_with_init(2, channels, 1)
@@ -748,6 +748,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"post conv cond: {cond.shape}")
         y = y + c_y
         # print(f"y+c_y: {y.shape}")
+        y, attn_weights_f = self.enc_layer_f(y)
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
@@ -759,7 +760,7 @@ class ResidualEncoderLayer_2(nn.Module):
 
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
-        out, attn_weights_f = self.enc_layer_f(out)
+        # out, attn_weights_f = self.enc_layer_f(out)
         
         # print(f"attn_weights_f inside: {attn_weights_f.shape}")
         # Feature attention added
@@ -827,7 +828,7 @@ class diff_SAITS_2(nn.Module):
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
         self.feature_weight_conv = conv_with_init(n_head, 1, 3)
-        hout = get_output_size(d_model, 3, 2)
+        hout = get_output_size(2 * d_model, 3, 2)
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
         # self.final_conv = nn.Sequential(
