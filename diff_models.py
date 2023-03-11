@@ -827,7 +827,8 @@ class diff_SAITS_2(nn.Module):
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
-        self.feature_weight_conv = conv_with_init(n_head, 1, 3)
+        # self.feature_weight_conv = conv_with_init(n_head, 1, 3)
+        self.feature_weight_conv = conv_with_init(1, 1, 3)
         self.feature_weight_conv_2 = conv_with_init(1, 1, 3)
         hout = get_output_size(2 * d_model, 3, 2)
         hout = get_output_size(hout, 3, 2)
@@ -942,18 +943,18 @@ class diff_SAITS_2(nn.Module):
 
         # Feature Corr
         print(f"prevonv feature weight: {attn_weights_f.shape}")
-        # attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        # attn_weights_f = attn_weights_f.mean(dim=3)
-        # attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        # attn_weights_f = torch.unsqueeze(attn_weights_f, 1)
+        attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        attn_weights_f = attn_weights_f.mean(dim=3)
+        attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        attn_weights_f = torch.unsqueeze(attn_weights_f, 1)
         attn_weights_f = self.feature_weight_conv(attn_weights_f)
-        attn_weights_f = self.feature_weight_conv_2(attn_weights_f)
+        attn_weights_f = torch.sigmoid(self.feature_weight_conv_2(attn_weights_f))
         print(f"before reshape: {attn_weights_f.shape}")
         attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
         print(f"after squeeze: {attn_weights_f.shape}")
         attn_weights_f = self.attn_feature_proj(attn_weights_f)
-        attn_weights_f = torch.sigmoid(attn_weights_f)
-        print(f"torch sigmoid: {attn_weights_f.shape}")
+        # attn_weights_f = torch.sigmoid(attn_weights_f)
+        # print(f"torch sigmoid: {attn_weights_f.shape}")
         attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
 
 
