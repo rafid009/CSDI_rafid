@@ -827,7 +827,7 @@ class diff_SAITS_2(nn.Module):
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
-        self.feature_weight_conv = conv_with_init(n_head, 1, 3)
+        self.feature_weight_conv = conv_with_init(1, 1, 3)
         hout = get_output_size(2 * d_model, 3, 2)
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
@@ -940,6 +940,9 @@ class diff_SAITS_2(nn.Module):
 
         # Feature Corr
         print(f"prevonv feature weight: {attn_weights_f.shape}")
+        attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        attn_weights_f = attn_weights_f.mean(dim=3)
+        attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
         attn_weights_f = self.feature_weight_conv(attn_weights_f)
         print(f"before reshape: {attn_weights_f.shape}")
         attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
@@ -947,7 +950,7 @@ class diff_SAITS_2(nn.Module):
         attn_weights_f = self.attn_feature_proj(attn_weights_f)
         attn_weights_f = torch.sigmoid(attn_weights_f)
         print(f"torch sigmoid: {attn_weights_f.shape}")
-        attn_weights_f = torch.reshape(attn_weights_f, (attn_weights_f.shape[0], self.d_feature, self.d_feature))
+        attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
 
 
         # combine X_tilde_1 and X_tilde_2
@@ -957,11 +960,12 @@ class diff_SAITS_2(nn.Module):
             #   matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
 
         # feature corr added way 1
-        # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
+        skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
+            combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
 
         # feature corr added way 2
-        skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
-        skips_tilde_3 = torch.matmul(skips_tilde_3, attn_weights_f)
+        # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
+        # skips_tilde_3 = torch.matmul(skips_tilde_3, attn_weights_f)
         # print(f"skip tilde 3: {skips_tilde_3}")
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
