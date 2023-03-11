@@ -943,6 +943,7 @@ class diff_SAITS_2(nn.Module):
         attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
         attn_weights_f = attn_weights_f.mean(dim=3)
         attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        attn_weights_f = torch.unsqueeze(attn_weights_f, 1)
         attn_weights_f = self.feature_weight_conv(attn_weights_f)
         print(f"before reshape: {attn_weights_f.shape}")
         attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
