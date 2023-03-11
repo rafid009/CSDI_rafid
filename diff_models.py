@@ -827,12 +827,14 @@ class diff_SAITS_2(nn.Module):
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
+        self.weight_combine_f = nn.Linear(d_feature + d_time, d_time)
+
         # self.feature_weight_conv = conv_with_init(n_head, 1, 3)
-        self.feature_weight_conv = conv_with_init(1, 1, 3)
-        self.feature_weight_conv_2 = conv_with_init(1, 1, 3)
-        hout = get_output_size(2 * d_model, 3, 2)
-        hout = get_output_size(hout, 3, 2)
-        self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
+        # # self.feature_weight_conv = conv_with_init(1, 1, 3)
+        # self.feature_weight_conv_2 = conv_with_init(1, 1, 3)
+        # hout = get_output_size(2 * d_model, 3, 2)
+        # hout = get_output_size(hout, 3, 2)
+        # self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
         # self.final_conv = nn.Sequential(
         #                         Conv(d_feature, d_feature, kernel_size=1),
@@ -934,28 +936,29 @@ class diff_SAITS_2(nn.Module):
             self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
         )  # namely term eta
 
-        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # if len(attn_weights_f.shape) == 4:
-        #     # if having more than 1 head, then average attention weights from all heads
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        #     attn_weights_f = attn_weights_f.mean(dim=3)
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
 
-        # Feature Corr
-        print(f"prevonv feature weight: {attn_weights_f.shape}")
-        attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        attn_weights_f = attn_weights_f.mean(dim=3)
-        attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        attn_weights_f = torch.unsqueeze(attn_weights_f, 1)
-        attn_weights_f = self.feature_weight_conv(attn_weights_f)
-        attn_weights_f = torch.sigmoid(self.feature_weight_conv_2(attn_weights_f))
-        print(f"before reshape: {attn_weights_f.shape}")
-        attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
-        print(f"after squeeze: {attn_weights_f.shape}")
-        attn_weights_f = self.attn_feature_proj(attn_weights_f)
+        # Feature cross
+        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        if len(attn_weights_f.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+            attn_weights_f = attn_weights_f.mean(dim=3)
+
+        masks_f = torch.transpose(masks[:, 0, :, :], 1, 2)
+        combining_weights_f = torch.sigmoid(
+            self.weight_combine_f(torch.cat([masks_f, attn_weights_f], dim=2))
+        )
+        combining_weights_f = torch.transpose(combining_weights_f, 1, 2)
+
+        # attn_weights_f = self.feature_weight_conv(attn_weights_f)
+        # attn_weights_f = torch.sigmoid(self.feature_weight_conv_2(attn_weights_f))
+        # print(f"before reshape: {attn_weights_f.shape}")
+        # attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
+        # print(f"after squeeze: {attn_weights_f.shape}")
+        # attn_weights_f = self.attn_feature_proj(attn_weights_f)
         # attn_weights_f = torch.sigmoid(attn_weights_f)
         # print(f"torch sigmoid: {attn_weights_f.shape}")
-        attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
+        # attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
 
 
         # combine X_tilde_1 and X_tilde_2
@@ -965,8 +968,10 @@ class diff_SAITS_2(nn.Module):
             #   matmul: {torch.matmul(skips_tilde_2, (1 - attn_weights_f)).shape}")
 
         # feature corr added way 1
-        skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
-            combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
+        # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
+        #     combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
+        skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 * (1 - combining_weights_f) +\
+                    combining_weights * skips_tilde_2 * combining_weights_f
 
         # feature corr added way 2
         # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
