@@ -60,7 +60,7 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
         obs_data = np.nan_to_num(evals, copy=True)
         obs_data = obs_data.reshape(shp)
         # obs_intact = np.nan_to_num(obs_intact, copy=True)
-    # print(f"\n\nobs data 1: {obs_data}")
+    print(f"\n\nobs data 1: {obs_data}")
     return obs_data, obs_mask, mask, sample, gt_intact
 
 class Synth_Dataset(Dataset):
@@ -89,15 +89,17 @@ class Synth_Dataset(Dataset):
             self.gt_masks.append(mask)
             self.obs_data_intact.append(sample)
             self.gt_intact.append(obs_intact)
-        self.gt_masks = torch.tensor(self.gt_masks, dtype=torch.float32)
-        self.observed_values = torch.tensor(self.observed_values, dtype=torch.float32)
-        # print(f"obs value 2: {self.observed_values}")
+        self.gt_masks = torch.tensor(np.array(self.gt_masks), dtype=torch.float32)
+        self.observed_values = torch.tensor(np.array(self.observed_values), dtype=torch.float32)
+        print(f"obs value 2: {self.observed_values}")
         self.obs_data_intact = np.array(self.obs_data_intact)
         self.gt_intact = np.array(self.gt_intact)
-        self.observed_masks = torch.tensor(self.observed_masks, dtype=torch.float32)
+        self.observed_masks = torch.tensor(np.array(self.observed_masks), dtype=torch.float32)
         self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
+        print(f"obs value 3: {self.observed_values}")
         self.obs_data_intact = ((self.obs_data_intact - self.mean) / self.std) * self.observed_masks.numpy()
         self.gt_intact = ((self.gt_intact - self.mean) / self.std) * self.gt_masks.numpy()
+
         
     def __getitem__(self, index):
         s = {
