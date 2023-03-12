@@ -77,7 +77,7 @@ def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=
             # elif feature == 'inv':
             #     data[i, :, feats.index(feature)] = (synth_features['inv'][0] * data[i, :, feats.index('sin')] - synth_features['inv'][1] / data[i, :, feats.index('sin')])
     data_rows = data.reshape((-1, num_features))
-    mean = np.mean(data_rows, axis=0)
-    std = np.std(data_rows, axis=0)
+    mean = np.nanmean(data_rows, axis=0)
+    std = np.nanstd(data_rows, axis=0)
     data = data.reshape((num_seasons, num_steps, num_features))
     return data, mean, std
