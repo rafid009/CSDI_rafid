@@ -60,10 +60,11 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
         obs_data = np.nan_to_num(evals, copy=True)
         obs_data = obs_data.reshape(shp)
         # obs_intact = np.nan_to_num(obs_intact, copy=True)
+    print(f"\n\nobs data: {obs_data}")
     return obs_data, obs_mask, mask, sample, gt_intact
 
 class Synth_Dataset(Dataset):
-    def __init__(self, n_steps, n_features, num_seasons, rate=0.2, is_test=False, length=100, exclude_features=None, seed=10) -> None:
+    def __init__(self, n_steps, n_features, num_seasons, rate=0.1, is_test=False, length=100, exclude_features=None, seed=10) -> None:
         super().__init__()
         self.eval_length = n_steps
         self.observed_values = []
@@ -116,7 +117,7 @@ class Synth_Dataset(Dataset):
         return len(self.observed_values)
 
 
-def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, is_test=False):
+def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False):
     np.random.seed(seed=seed)
     train_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, seed=seed)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
