@@ -562,102 +562,43 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             continue
                         if 'CSDI' in models.keys():
                             mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                            mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                            mse_csdi = torch.sqrt(mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item())
 
                             mae_csdi = torch.abs((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                             mae_csdi = mae_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                             
                             if feature not in mse_csdi_total.keys():
-                                mse_csdi_total[feature] = {'mse': 0, 'mae': 0}
+                                mse_csdi_total[feature] = {'rmse': 0, 'mae': 0}
                             
-                            mse_csdi_total[feature]["mse"] += mse_csdi
+                            mse_csdi_total[feature]["rmse"] += mse_csdi
                             mse_csdi_total[feature]['mae'] += mae_csdi
 
-                        # mse_csdi = ((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        # mse_csdi = torch.abs((samples_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        # mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        # if "mean" not in mse_csdi_total[feature].keys():
-                        #     mse_csdi_total[feature]["mean"] = mse_csdi
-                        # else:
-                        #     mse_csdi_total[feature]["mean"] += mse_csdi
-
-                        # for k in range(samples.shape[1]):
-                        #     # mse_csdi = ((samples[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        #     mse_csdi = torch.abs((samples[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        #     mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        #     if feature not in mse_csdi_total.keys():
-                        #         mse_csdi_total[feature] = {str(k): mse_csdi}
-                        #     else:
-                        #         if str(k) not in mse_csdi_total[feature].keys():
-                        #             mse_csdi_total[feature][str(k)] = mse_csdi
-                        #         else:
-                        #             mse_csdi_total[feature][str(k)] += mse_csdi
-                            
-
-                        # mse_diff_saits = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        # mse_diff_saits = torch.abs((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        # mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         if feature not in mse_diff_saits_total.keys():
                             mse_diff_saits_total[feature] = {'mse': 0, 'mae': 0, 'diff_mse_med': 0}
-                        # if "median" not in mse_diff_saits_total[feature].keys():
-                        #     mse_diff_saits_total[feature]["median"] = mse_diff_saits
-                        # else:
-                        #     mse_diff_saits_total[feature]["median"] += mse_diff_saits
 
                         mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        mse_diff_saits = torch.sqrt(mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
 
                         mse_diff_saits_median = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits_median = mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        mse_diff_saits_median = torch.sqrt(mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item())
 
                         mae_diff_saits = torch.abs((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                         mae_diff_saits = mae_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         
-                        mse_diff_saits_total[feature]["mse"] += mse_diff_saits
+                        mse_diff_saits_total[feature]["rmse"] += mse_diff_saits
                         mse_diff_saits_total[feature]["mae"] += mae_diff_saits
-                        mse_diff_saits_total[feature]["diff_mse_med"] += mse_diff_saits_median
-
-                        # for k in range(samples.shape[1]):
-                        #     # mse_diff_saits = ((samples_diff_saits[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        #     mse_diff_saits = torch.abs((samples_diff_saits[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        #     mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        #     if feature not in mse_diff_saits_total.keys():
-                        #         mse_diff_saits_total[feature] = {str(k): mse_diff_saits}
-                        #     else:
-                        #         if str(k) not in mse_diff_saits_total[feature].keys():
-                        #             mse_diff_saits_total[feature][str(k)] = mse_diff_saits
-                        #         else:
-                        #             mse_diff_saits_total[feature][str(k)] += mse_diff_saits
-
-                        
-                        # mse_diff_saits_simple = ((samples_diff_saits_median_simple.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        # mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        # if feature not in mse_diff_saits_simple_total.keys():
-                        #     mse_diff_saits_simple_total[feature] = {"median": mse_diff_saits_simple}
-                        # else:
-                        #     mse_diff_saits_simple_total[feature]["median"] += mse_diff_saits_simple
-
-                        # for k in range(samples.shape[1]):
-                        #     mse_diff_saits_simple = ((samples_diff_saits_simple[0, k, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        #     mse_diff_saits_simple = mse_diff_saits_simple.sum().item() / eval_points[0, :, feature_idx].sum().item()
-                        #     if feature not in mse_diff_saits_simple_total.keys():
-                        #         mse_diff_saits_simple_total[feature] = {str(k): mse_diff_saits_simple}
-                        #     else:
-                        #         if str(k) not in mse_diff_saits_simple_total[feature].keys():
-                        #             mse_diff_saits_simple_total[feature][str(k)] = mse_diff_saits_simple
-                        #         else:
-                        #             mse_diff_saits_simple_total[feature][str(k)] += mse_diff_saits_simple
+                        mse_diff_saits_total[feature]["diff_rmse_med"] += mse_diff_saits_median
 
 
                         mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mae_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
+                        mse_saits = torch.sqrt(mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
                         mae_saits = mae_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                         if feature not in mse_saits_total.keys():
-                            mse_saits_total[feature] = {'mse': 0, 'mae': 0}
+                            mse_saits_total[feature] = {'rmse': 0, 'mae': 0}
 
-                        mse_saits_total[feature]['mse'] += mse_saits
+                        mse_saits_total[feature]['rmse'] += mse_saits
                         mse_saits_total[feature]['mae'] += mae_saits
 
         if trials > 1:
@@ -676,10 +617,10 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     mse_saits_total[feature][i] /= trials
                 if 'CSDI' in models.keys():
                     print(f"\n\tFor feature = {feature}\n\tCSDI mae: {mse_csdi_total[feature]['mae']}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
-                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}\n\tDiffSAITS median: {mse_diff_saits_total[feature]['diff_mse_med']}\n\tSAITS mse: {mse_saits_total[feature]['mse']}")# \
+                    print(f"\n\tFor feature = {feature}\n\tCSDI rmse: {mse_csdi_total[feature]['rmse']}\n\tDiffSAITS rmse: {mse_diff_saits_total[feature]['rmse']}\n\tDiffSAITS median: {mse_diff_saits_total[feature]['diff_rmse_med']}\n\tSAITS mse: {mse_saits_total[feature]['rmse']}")# \
                 else:
                     print(f"\n\tFor feature = {feature}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
-                    print(f"\n\tFor feature = {feature}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
+                    print(f"\n\tFor feature = {feature}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['rmse']}")# \
                 
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
                 # except:
