@@ -120,7 +120,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             mse_csdi_total[feature]['mae'] += mae_csdi
 
                         if feature not in mse_diff_saits_total.keys():
-                            mse_diff_saits_total[feature] = {'mse': 0, 'mae': 0, 'diff_mse_med': 0}
+                            mse_diff_saits_total[feature] = {'rmse': 0, 'mae': 0, 'diff_rmse_med': 0}
 
                         mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mse_diff_saits = math.sqrt(mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
@@ -318,23 +318,26 @@ filename = "model_csdi_synth.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
-train(
-    model_csdi,
-    config_dict_csdi["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=f"{filename}",
-    is_saits=True
-)
-
+# train(
+#     model_csdi,
+#     config_dict_csdi["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=f"{filename}",
+#     is_saits=True
+# )
+model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 saits_model_file = f"{model_folder}/saits_model_synth.pkl"
 saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
-X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
-print(f"\n\SAITS training starts.....\n")
-saits.fit(X)
-pickle.dump(saits, open(saits_model_file, 'wb'))
+# X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
+# print(f"\n\SAITS training starts.....\n")
+# saits.fit(X)
+# pickle.dump(saits, open(saits_model_file, 'wb'))
+
+
+saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
@@ -374,16 +377,16 @@ config_dict_diffsaits = {
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 filename = "model_diffsaits_synth.pth"
 print(f"\n\DiffSAITS training starts.....\n")
-train(
-    model_diff_saits,
-    config_dict_diffsaits["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=f"{filename}",
-    is_saits=True
-)
-
+# train(
+#     model_diff_saits,
+#     config_dict_diffsaits["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=f"{filename}",
+#     is_saits=True
+# )
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
 
