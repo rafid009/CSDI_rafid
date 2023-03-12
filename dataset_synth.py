@@ -120,7 +120,7 @@ def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_rati
     np.random.seed(seed=seed)
     train_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, seed=seed)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataset = Synth_Dataset(n_steps, n_features, 2, rate=missing_ratio, seed=seed)
+    test_dataset = Synth_Dataset(n_steps, n_features, 2, rate=missing_ratio, seed=seed*5)
     if is_test:
         test_loader = DataLoader(test_dataset, batch_size=1)
     else:
