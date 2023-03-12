@@ -295,7 +295,7 @@ config_dict_csdi = {
         'n_layers': 3, 
         'd_time': 100,
         'n_feature': len(given_features),
-        'd_model': 256,
+        'd_model': 128,
         'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
