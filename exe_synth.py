@@ -33,6 +33,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     # trials = 30
     season_avg_mse = {}
     num_seasons = 1
+    n_steps = 100
     # exclude_features = ['MEAN_AT', 'MIN_AT', 'AVG_AT', 'MAX_AT']
     results = {}
     models['CSDI'].eval()
@@ -44,7 +45,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_saits_total = {}
         mse_diff_saits_total = {}
         for i in range(trials):
-            test_loader = get_testloader(50, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i)
+            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i)
             for j, test_batch in enumerate(test_loader, start=1):
                 if 'CSDI' in models.keys():
                     output = models['CSDI'].evaluate(test_batch, nsample)
@@ -349,7 +350,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 50,
+        'num_steps': 70,
         'schedule': "quad"
     },
     'model': {

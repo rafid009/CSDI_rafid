@@ -682,7 +682,7 @@ class ResidualEncoderLayer_2(nn.Module):
         #                  diagonal_attention_mask)
         # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  diagonal_attention_mask)
-
+        print(f"d_time: {d_time}")
         self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
@@ -739,6 +739,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # _, channels, _ = y.shape
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
+        
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
         # print(f"y, attn: {y.shape} and {attn_weights_1.shape}")
