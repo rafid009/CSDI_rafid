@@ -339,7 +339,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 1500,
         'batch_size': 16 ,
-        'lr': 1.0e-3
+        'lr': 1.0e-4
     },      
     'diffusion': {
         'layers': 4, 
@@ -348,7 +348,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 100,
+        'num_steps': 50,
         'schedule': "quad"
     },
     'model': {
@@ -357,7 +357,7 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "random",
         'type': 'SAITS',
-        'n_layers': 3, 
+        'n_layers': 4, 
         'd_time': 50,
         'n_feature': len(given_features),
         'd_model': 256,
@@ -392,7 +392,7 @@ models = {
 }
 mse_folder = "results_mse_synth"
 
-lengths = [10, 20]#[10, 25, 40, 45]
+lengths = [20]#[10, 25, 40, 45]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
