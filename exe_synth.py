@@ -343,7 +343,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 1500,
         'batch_size': 16 ,
-        'lr': 1.0e-4
+        'lr': 1.0e-3
     },      
     'diffusion': {
         'layers': 4, 
@@ -364,7 +364,7 @@ config_dict_diffsaits = {
         'n_layers': 4, 
         'd_time': 100,
         'n_feature': len(given_features),
-        'd_model': 128,
+        'd_model': 256,
         'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
@@ -377,16 +377,16 @@ config_dict_diffsaits = {
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 filename = "model_diffsaits_synth.pth"
 print(f"\n\DiffSAITS training starts.....\n")
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
 
