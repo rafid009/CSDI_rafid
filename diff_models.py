@@ -874,7 +874,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = torch.zeros_like(enc_output)
         # print(f"tilde: {skips_tilde_1.shape}")
         for encoder_layer in self.layer_stack_for_first_block:
-            enc_output, skip, _, _ = encoder_layer(enc_output, pos_cond, diff_emb)
+            enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
             # print(f"skip: {skip.shape}")
             skips_tilde_1 += skip
 
@@ -911,7 +911,8 @@ class diff_SAITS_2(nn.Module):
         enc_output = self.position_enc_noise(noise)
         skips_tilde_2 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_second_block:
-            enc_output, skip, attn_weights, attn_weights_f = encoder_layer(enc_output, pos_cond, diff_emb)
+            # enc_output, skip, attn_weights, attn_weights_f = encoder_layer(enc_output, pos_cond, diff_emb)
+            enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
             skips_tilde_2 += skip
 
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
