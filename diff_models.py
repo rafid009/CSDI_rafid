@@ -683,7 +683,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  diagonal_attention_mask)
         # print(f"d_time: {d_time}")
-        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
@@ -699,9 +699,11 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
 
         self.init_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
-        self.conv_layer = Conv(channels, channels, kernel_size=3)
+        self.conv_layer = Conv1d_with_init_saits_new(channels, channels, kernel_size=1)
         self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
-        self.conv_cond = Conv(channels, 2 * channels, kernel_size=3)
+        self.conv_noisy = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
+        self.conv_cond = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
+
 
         self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
@@ -747,6 +749,7 @@ class ResidualEncoderLayer_2(nn.Module):
 
         # print(f"pre conv cond: {cond.shape}")
         c_y = self.conv_cond(cond)
+        y = self.conv_noisy(y)
         # print(f"post conv cond: {cond.shape}")
         y = y + c_y
         # print(f"y+c_y: {y.shape}")
