@@ -203,7 +203,7 @@ def train(
         with tqdm(train_loader, mininterval=5.0, maxinterval=50.0) as it:
             for batch_no, train_batch in enumerate(it, start=1):
                 optimizer.zero_grad()
-                print(f"train data: {train_batch}")
+                # print(f"train data: {train_batch}")
                 loss = model(train_batch)
                 loss.backward()
                 avg_loss += loss.item()
