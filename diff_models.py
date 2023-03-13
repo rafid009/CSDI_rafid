@@ -824,7 +824,7 @@ class diff_SAITS_2(nn.Module):
         # self.feature_weight_conv = conv_with_init(n_head, 1, 3)
         self.feature_weight_conv = conv_with_init(1, 1, 3)
         hout = get_output_size(2 * channels, 3, 2)
-        # print(f"hout: {hout}")
+        print(f"hout: {hout}")
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
 
@@ -922,6 +922,7 @@ class diff_SAITS_2(nn.Module):
 
         # Feature cross
         attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        print(f"attn 0: {attn_weights_f.shape}")
         if len(attn_weights_f.shape) == 4:
             # if having more than 1 head, then average attention weights from all heads
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
@@ -929,10 +930,11 @@ class diff_SAITS_2(nn.Module):
             attn_weights_f = torch.transpose(attn_weights, 1, 2)
 
         attn_weights_f = torch.unsqueeze(attn_weights_f, dim=1)
+        print(f"attn 1: {attn_weights_f.shape}")
         attn_weights_f = F.relu(self.feature_weight_conv(attn_weights_f))
 
         attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
-
+        print(f"attn 2: {attn_weights_f.shape}")
         attn_weights_f = self.attn_feature_proj(attn_weights_f)
         attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
 
