@@ -91,13 +91,11 @@ class Synth_Dataset(Dataset):
             self.gt_intact.append(obs_intact)
         self.gt_masks = torch.tensor(np.array(self.gt_masks), dtype=torch.float32)
         self.observed_values = torch.tensor(np.array(self.observed_values), dtype=torch.float32)
-        print(f"obs value 2: {self.observed_values}")
         self.obs_data_intact = np.array(self.obs_data_intact)
         self.gt_intact = np.array(self.gt_intact)
         self.observed_masks = torch.tensor(np.array(self.observed_masks), dtype=torch.float32)
         # print(f"obs mask: {self.observed_values}\n\nmean: {}")
         self.observed_values = ((self.observed_values - self.mean) / self.std) * self.observed_masks
-        print(f"obs value 3: {self.observed_values}")
         self.obs_data_intact = ((self.obs_data_intact - self.mean) / self.std) * self.observed_masks.numpy()
         self.gt_intact = ((self.gt_intact - self.mean) / self.std) * self.gt_masks.numpy()
 

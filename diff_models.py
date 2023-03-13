@@ -683,7 +683,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  diagonal_attention_mask)
         # print(f"d_time: {d_time}")
-        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
@@ -699,9 +699,9 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
 
         self.init_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
-        self.conv_layer = Conv(channels, 2 * channels, kernel_size=3)
-        self.cond_proj = Conv1d_with_init_saits_new(d_model, 2 * channels, 1)
-        self.conv_cond = Conv(2 * channels, 2 * channels, kernel_size=3)
+        self.conv_layer = Conv(channels, channels, kernel_size=3)
+        self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
+        self.conv_cond = Conv(channels, 2 * channels, kernel_size=3)
 
         self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
@@ -739,7 +739,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"post-conv y: {y.shape}")
         # _, channels, _ = y.shape
 
-        y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
+        y = torch.transpose(y, 1, 2) # (B, K, channels)
         
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
@@ -788,7 +788,7 @@ class diff_SAITS_2(nn.Module):
         actual_d_feature = d_feature * 2
         self.is_simple = is_simple
         self.d_feature = d_feature
-        channels = int(d_model / 2)
+        channels = d_model #int(d_model / 2)
         
         self.layer_stack_for_first_block = nn.ModuleList([
             ResidualEncoderLayer_2(channels=channels, d_time=d_time, actual_d_feature=actual_d_feature, 
@@ -824,7 +824,7 @@ class diff_SAITS_2(nn.Module):
         # self.feature_weight_conv = conv_with_init(n_head, 1, 3)
         self.feature_weight_conv = conv_with_init(1, 1, 3)
         hout = get_output_size(2 * channels, 3, 2)
-        print(f"hout: {hout}")
+        # print(f"hout: {hout}")
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
 
@@ -864,14 +864,7 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_1 += skip
 
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
-        # print(f"skip tilde: {skips_tilde_1.shape}")
-        # print(f"attn_weights_f: {attn_weights_f.shape}")
-        # feature corr start
-        # attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        # attn_weights_f = torch.mean(attn_weights_f, dim=3)
-        # attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        # attn_weights_f = torch.sigmoid(attn_weights_f)
-        # skips_tilde_1 = torch.matmul(skips_tilde_1, attn_weights_f)
+
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
@@ -949,8 +942,8 @@ class diff_SAITS_2(nn.Module):
         # feature corr added way 1
         # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
         #     combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
-        skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 * (1 - combining_weights_f) +\
-                    combining_weights * skips_tilde_1 * combining_weights_f
+        skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 * (1 - combining_weights_f) +\
+                    combining_weights * skips_tilde_2 * combining_weights_f # 1 and 2 is flipped in the paper
 
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
