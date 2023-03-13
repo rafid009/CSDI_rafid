@@ -800,13 +800,13 @@ class diff_SAITS_2(nn.Module):
 
         
         self.layer_stack_for_first_block = nn.ModuleList([
-            ResidualEncoderLayer_2(channels=d_model, d_time=d_time, actual_d_feature=actual_d_feature, 
+            ResidualEncoderLayer_2(channels=128, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
             for _ in range(n_layers)
         ])
         self.layer_stack_for_second_block = nn.ModuleList([
-            ResidualEncoderLayer_2(channels=d_model, d_time=d_time, actual_d_feature=actual_d_feature, 
+            ResidualEncoderLayer_2(channels=128, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
             for _ in range(n_layers)
