@@ -352,7 +352,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 70,
+        'num_steps': 100,
         'schedule': "quad"
     },
     'model': {
