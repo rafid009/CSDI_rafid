@@ -39,13 +39,12 @@ def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=
     
     for i in range(data.shape[0]):
         for feature in synth_features.keys():
-            lr = int(np.ceil(n_steps * (np.random.rand() * length_rate)))
+            lr = int(np.floor(n_steps * (np.random.rand() * length_rate)))
             args = synth_features[feature]
             if feature == 'sin':
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
                 data[i, :, feats.index(feature)] = np.sin(np.linspace(low, high, data.shape[1]))
-                
             elif feature == 'cos2':
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])

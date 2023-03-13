@@ -735,6 +735,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"pre-conv y: {y.shape}")
 
         y = self.conv_layer(y)
+        y = y + cond
         # print(f"post-conv y: {y.shape}")
         # _, channels, _ = y.shape
 
@@ -761,17 +762,7 @@ class ResidualEncoderLayer_2(nn.Module):
 
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
-        # out, attn_weights_f = self.enc_layer_f(out)
-        
-        # print(f"attn_weights_f inside: {attn_weights_f.shape}")
-        # Feature attention added
-        # attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        # attn_weights_f = torch.mean(attn_weights_f, dim=-1)
-        # out = torch.transpose(out, 1, 2)
-        # print(f"out before: {out.shape}\nattn: {attn_weights_f.shape}")
-        # out = torch.matmul(out, torch.sigmoid(attn_weights_f))
-        # out = torch.transpose(out, 1, 2)
-        # print(f"out: {out.shape}")
+
 
         residual = self.res_proj(out) # (B, L, K)
         residual = torch.transpose(residual, 1, 2) # (B, K, L)
@@ -797,16 +788,16 @@ class diff_SAITS_2(nn.Module):
         actual_d_feature = d_feature * 2
         self.is_simple = is_simple
         self.d_feature = d_feature
-
+        channels = int(d_model / 2)
         
         self.layer_stack_for_first_block = nn.ModuleList([
-            ResidualEncoderLayer_2(channels=d_model, d_time=d_time, actual_d_feature=actual_d_feature, 
+            ResidualEncoderLayer_2(channels=channels, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
             for _ in range(n_layers)
         ])
         self.layer_stack_for_second_block = nn.ModuleList([
-            ResidualEncoderLayer_2(channels=d_model, d_time=d_time, actual_d_feature=actual_d_feature, 
+            ResidualEncoderLayer_2(channels=channels, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
             for _ in range(n_layers)
@@ -832,7 +823,7 @@ class diff_SAITS_2(nn.Module):
 
         # self.feature_weight_conv = conv_with_init(n_head, 1, 3)
         self.feature_weight_conv = conv_with_init(1, 1, 3)
-        hout = get_output_size(2 * d_model, 3, 2)
+        hout = get_output_size(2 * channels, 3, 2)
         # print(f"hout: {hout}")
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         
@@ -935,6 +926,7 @@ class diff_SAITS_2(nn.Module):
             # if having more than 1 head, then average attention weights from all heads
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3)
+            attn_weights_f = torch.transpose(attn_weights, 1, 2)
 
         attn_weights_f = torch.unsqueeze(attn_weights_f, dim=1)
         attn_weights_f = F.relu(self.feature_weight_conv(attn_weights_f))
