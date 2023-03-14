@@ -361,7 +361,7 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "random",
         'type': 'SAITS',
-        'n_layers': 3, 
+        'n_layers': 4,
         'd_time': 100,
         'n_feature': len(given_features),
         'd_model': 256,
