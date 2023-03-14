@@ -30,7 +30,7 @@ given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb
 
 def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False):
     # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
-    nsample = 50
+    nsample = 30
     # trials = 30
     season_avg_mse = {}
     num_seasons = 1
@@ -359,7 +359,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 4,
         'd_time': 100,
@@ -401,7 +401,7 @@ lengths = [20]#[10, 25, 40, 45]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
-    evaluate_imputation(models, mse_folder, length=l, trials=1)
+    # evaluate_imputation(models, mse_folder, length=l, trials=1)
     evaluate_imputation(models, mse_folder, length=l, trials=10)
     # evaluate_imputation_data(models, length=l)
 

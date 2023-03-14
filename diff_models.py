@@ -646,10 +646,13 @@ class Conv(nn.Module):
         return out
     
 
-def Conv1d_with_init_saits_new(in_channels, out_channels, kernel_size):
+def Conv1d_with_init_saits_new(in_channels, out_channels, kernel_size, init_zero=False):
     layer = nn.Conv1d(in_channels, out_channels, kernel_size)
     # layer = nn.utils.weight_norm(layer)
-    nn.init.kaiming_normal_(layer.weight)
+    if init_zero:
+        nn.init.zeros_(layer.weight)
+    else:
+        nn.init.kaiming_normal_(layer.weight)
     return layer
     
 class ZeroConv1d(nn.Module):
