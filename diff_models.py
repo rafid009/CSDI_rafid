@@ -5,6 +5,7 @@ import math
 from pypots.imputation.transformer import EncoderLayer, PositionalEncoding
 from pypots.imputation import SAITS
 import numpy as np
+# torch.manual_seed(42)
 
 def get_torch_trans(heads=8, layers=1, channels=64):
     encoder_layer = nn.TransformerEncoderLayer(
