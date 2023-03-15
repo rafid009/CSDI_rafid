@@ -15,7 +15,7 @@ from json import JSONEncoder
 import math
 matplotlib.rc('xtick', labelsize=20) 
 matplotlib.rc('ytick', labelsize=20) 
-torch.manual_seed(42)
+# torch.manual_seed(42)
 np.set_printoptions(threshold=sys.maxsize)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -351,7 +351,7 @@ config_dict_diffsaits = {
         'nheads': 8,
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
-        'beta_end': 0.6,
+        'beta_end': 0.5,
         'num_steps': 50,
         'schedule': "quad"
     },
