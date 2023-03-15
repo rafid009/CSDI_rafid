@@ -820,10 +820,10 @@ class diff_SAITS_2(nn.Module):
         # for operation on time dim
         self.embedding_1 = nn.Linear(actual_d_feature, d_model)
         self.embedding_cond = nn.Linear(actual_d_feature, d_model)
-        self.reduce_dim_z = nn.Linear(d_model, d_feature)
+        # self.reduce_dim_z = nn.Linear(d_model, d_feature)
         # for operation on measurement dim
-        self.embedding_2 = nn.Linear(actual_d_feature, d_model)
-        self.reduce_skip_z = nn.Linear(d_model, d_feature)
+        # self.embedding_2 = nn.Linear(actual_d_feature, d_model)
+        # self.reduce_skip_z = nn.Linear(d_model, d_feature)
         self.reduce_dim_beta = nn.Linear(d_model, d_feature)
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
@@ -864,30 +864,30 @@ class diff_SAITS_2(nn.Module):
 
         pos_cond = self.position_enc_cond(cond)
         
-        enc_output = self.dropout(self.position_enc_noise(noise))
-        skips_tilde_1 = torch.zeros_like(enc_output)
-        # print(f"tilde: {skips_tilde_1.shape}")
-        for encoder_layer in self.layer_stack_for_first_block:
-            enc_output, skip, _, _ = encoder_layer(enc_output, pos_cond, diff_emb)
-            # print(f"skip: {skip.shape}")
-            skips_tilde_1 += skip
+        # enc_output = self.dropout(self.position_enc_noise(noise))
+        # skips_tilde_1 = torch.zeros_like(enc_output)
+        # # print(f"tilde: {skips_tilde_1.shape}")
+        # for encoder_layer in self.layer_stack_for_first_block:
+        #     enc_output, skip, _, _ = encoder_layer(enc_output, pos_cond, diff_emb)
+        #     # print(f"skip: {skip.shape}")
+        #     skips_tilde_1 += skip
 
-        skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
+        # skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
 
         # feature corr end
-        skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
+        # skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
-        X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
+        # X_tilde_1 = self.reduce_dim_z(enc_output)
+        # X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
 
         # print(f"X_tilde 1: {X_tilde_1}")
         # print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
         # input_X_for_second = torch.stack([X_tilde_1, X[:,0,:,:]], dim=1)
-        input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
-        input_X_for_second = self.embedding_2(input_X_for_second)
+        # input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
+        # input_X_for_second = self.embedding_2(input_X_for_second)
 
-        noise = input_X_for_second#[:, 1, :, :], input_X_for_second[:, 0, :, :]
+        # noise = input_X_for_second#[:, 1, :, :], input_X_for_second[:, 0, :, :]
         # noise_mask, cond_mask = masks[:, 1, :, :], masks[:, 0, :, :]
 
         # diff_emb = self.diffusion_embedding(diffusion_step)
@@ -951,10 +951,11 @@ class diff_SAITS_2(nn.Module):
         # feature corr added way 1
         # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
         #     combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
-        skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 * (1 - combining_weights_f) +\
-                    combining_weights * skips_tilde_2 * combining_weights_f # 1 and 2 is flipped in the paper
-
-        skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
+        # skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 * (1 - combining_weights_f) +\
+        #             combining_weights * skips_tilde_2 * combining_weights_f # 1 and 2 is flipped in the paper
+        skips_tilde_3 = combining_weights * skips_tilde_2 * combining_weights_f
+        skips_tilde_1 = None
+        # skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
 
