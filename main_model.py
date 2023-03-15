@@ -157,11 +157,11 @@ class CSDI_base(nn.Module):
                     'missing_mask': total_mask
                 }
             predicted_1, predicted_2, predicted_3 = self.diffmodel(inputs, t)
-            # residual_1 = (noise - predicted_1) * target_mask
-            # residual_2 = (noise - predicted_2) * target_mask
+            residual_1 = (noise - predicted_1) * target_mask
+            residual_2 = (noise - predicted_2) * target_mask
             residual_3 = (noise - predicted_3) * target_mask
-            # loss = ((residual_1 ** 2).sum() + (residual_2 ** 2).sum() + (residual_3 ** 2).sum()) / (3 * (num_eval if num_eval > 0 else 1))
-            loss = (residual_3 ** 2).sum() / (num_eval if num_eval > 0 else 1)
+            loss = ((residual_1 ** 2).sum() + (residual_2 ** 2).sum() + (residual_3 ** 2).sum()) / (3 * (num_eval if num_eval > 0 else 1))
+            # loss = (residual_3 ** 2).sum() / (num_eval if num_eval > 0 else 1)
         else:
             predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
             residual = (noise - predicted) * target_mask
