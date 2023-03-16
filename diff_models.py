@@ -745,17 +745,17 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"post-conv y: {y.shape}")
         # _, channels, _ = y.shape
 
-        y = torch.transpose(y, 1, 2) # (B, K, channels)
+        # y = torch.transpose(y, 1, 2) # (B, K, channels)
         
-        y, attn_weights_1 = self.enc_layer_1(y)
-        y = torch.transpose(y, 1, 2)
+        # y, attn_weights_1 = self.enc_layer_1(y)
+        # y = torch.transpose(y, 1, 2)
         # print(f"y, attn: {y.shape} and {attn_weights_1.shape}")
 
         # print(f"pre conv cond: {cond.shape}")
         c_y = self.conv_cond(cond)
         y = self.conv_noisy(y)
         # print(f"post conv cond: {cond.shape}")
-        y = y + c_y
+        # y = y + c_y
         # print(f"y+c_y: {y.shape}")
         
 
