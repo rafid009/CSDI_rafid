@@ -757,15 +757,15 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"post conv cond: {cond.shape}")
         y = y + c_y
         # print(f"y+c_y: {y.shape}")
-        y, attn_weights_f = self.enc_layer_f(y)
+        
 
-        y = y + c_y
+        # y = y + c_y
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
         y = torch.transpose(y, 1, 2)
         # print(f"y: {y.shape}")
-        
+        y, attn_weights_f = self.enc_layer_f(y)
         # The feature encoder
         # y, attn_weights_f = self.enc_layer_f(y)
 
