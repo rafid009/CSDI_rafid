@@ -101,7 +101,7 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "mix",
         'type': 'SAITS',
-        'n_layers': 4,
+        'n_layers': 3,
         'd_time': 252,
         'n_feature': len(features),
         'd_model': 128,
@@ -109,7 +109,7 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
+        'dropout': 0.3,
         'diagonal_attention_mask': True
     }
 }
