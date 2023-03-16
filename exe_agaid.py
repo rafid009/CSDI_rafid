@@ -106,10 +106,10 @@ config_dict_diffsaits = {
         'n_feature': len(features),
         'd_model': 128,
         'd_inner': 128,
-        'n_head': 8,
+        'n_head': 4,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.3,
+        'dropout': 0.2,
         'diagonal_attention_mask': True
     }
 }
