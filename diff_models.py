@@ -878,10 +878,8 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 #+ X[:, 1, :, :]        
+        X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
 
-        # print(f"X_tilde 1: {X_tilde_1}")
-        # print(f"skip tilde 1: {skips_tilde_1}")
         # second DMSA block
         input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
         input_X_for_second = self.embedding_2(input_X_for_second)
