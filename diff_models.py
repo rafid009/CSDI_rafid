@@ -782,7 +782,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"skip: {skip.shape}")
         # skip = self.norm(skip)
 
-        attn_weights = (attn_weights_1 + attn_weights_2)
+        attn_weights = attn_weights_2#(attn_weights_1 + attn_weights_2)
         # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
