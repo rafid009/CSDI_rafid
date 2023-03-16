@@ -254,8 +254,8 @@ def create_xy(df, timeseries_idx, max_length, features):
     return np.array(x), np.array(y), actual_seq_lenghts
 
 def get_mean_std(df, features):
-    # mean = np.nanmean(df[features], axis=0)
-    # std = np.nanmean(df[features], axis=0)
+    mean = np.nanmean(df[features], axis=0)
+    std = np.nanmean(df[features], axis=0)
     mean = []
     std = []
     for feature in features:
