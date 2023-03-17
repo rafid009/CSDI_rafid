@@ -941,7 +941,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
 
-        skips_tilde_3 = self.output_proj(skips_tilde_3)
+        skips_tilde_3 = F.relu(self.output_proj(skips_tilde_3))
 
         # skips_tilde_3 = self.final_conv(skips_tilde_3)
         # X_c = masks * X + (1 - masks) * X_tilde_3  # replace non-missing part with original data
