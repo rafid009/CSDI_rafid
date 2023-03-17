@@ -748,11 +748,11 @@ class ResidualEncoderLayer_2(nn.Module):
 
         c_y = self.conv_cond(cond)
         y = self.conv_noisy(y)
-
         y = y + c_y
+        
         y, attn_weights_f = self.enc_layer_f(y)
-
         y = y + c_y
+
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
         y = torch.transpose(y, 1, 2)
@@ -823,7 +823,7 @@ class diff_SAITS_2(nn.Module):
         hout = get_output_size(2 * channels, 3, 2)
         # print(f"hout: {hout}")
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
-        self.output_proj = Conv1d_with_init_saits_new(self.d_feature, self.d_feature, 1, True)
+        self.output_proj = Conv1d_with_init_saits_new(self.d_feature, self.d_feature, 1)
         
 
 
@@ -941,7 +941,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
 
-        skips_tilde_3 = F.relu(self.output_proj(skips_tilde_3))
+        skips_tilde_3 = self.output_proj(skips_tilde_3)
 
         # skips_tilde_3 = self.final_conv(skips_tilde_3)
         # X_c = masks * X + (1 - masks) * X_tilde_3  # replace non-missing part with original data
