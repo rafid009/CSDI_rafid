@@ -745,27 +745,26 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"post-conv y: {y.shape}")
         # _, channels, _ = y.shape
 
-        # y = torch.transpose(y, 1, 2) # (B, K, channels)
+        y = torch.transpose(y, 1, 2) # (B, K, channels)
         
-        # y, attn_weights_1 = self.enc_layer_1(y)
-        # y = torch.transpose(y, 1, 2)
+        y, attn_weights_1 = self.enc_layer_1(y)
+        y = torch.transpose(y, 1, 2)
         # print(f"y, attn: {y.shape} and {attn_weights_1.shape}")
 
         # print(f"pre conv cond: {cond.shape}")
         c_y = self.conv_cond(cond)
         y = self.conv_noisy(y)
         # print(f"post conv cond: {cond.shape}")
-        # y = y + c_y
+        y = y + c_y
         # print(f"y+c_y: {y.shape}")
+        y, attn_weights_f = self.enc_layer_f(y)
 
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
         y = torch.transpose(y, 1, 2)
         # print(f"y: {y.shape}")
-        y = y + c_y
-
-        y, attn_weights_f = self.enc_layer_f(y)
+        
         # The feature encoder
         # y, attn_weights_f = self.enc_layer_f(y)
 
@@ -782,7 +781,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"skip: {skip.shape}")
         # skip = self.norm(skip)
 
-        attn_weights = attn_weights_2#(attn_weights_1 + attn_weights_2)
+        attn_weights = attn_weights_1#(attn_weights_1 + attn_weights_2)
         # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
