@@ -711,7 +711,7 @@ class ResidualEncoderLayer_2(nn.Module):
 
         self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
-
+        
         # self.norm = nn.LayerNorm([d_time, d_model])
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
 
@@ -749,7 +749,7 @@ class ResidualEncoderLayer_2(nn.Module):
         c_y = self.conv_cond(cond)
         y = self.conv_noisy(y)
         y = y + c_y
-        
+
         y, attn_weights_f = self.enc_layer_f(y)
         y = y + c_y
 
@@ -770,7 +770,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = attn_weights_2#(attn_weights_1 + attn_weights_2)
+        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
         # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
