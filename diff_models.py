@@ -823,7 +823,7 @@ class diff_SAITS_2(nn.Module):
         hout = get_output_size(2 * channels, 3, 2)
         # print(f"hout: {hout}")
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
-        self.output_proj = Conv1d_with_init_saits_new(1, 1, 1, True)
+        self.output_proj = Conv1d_with_init_saits_new(self.d_feature, self.d_feature, 1, True)
         
 
 
@@ -940,9 +940,9 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
-        skips_tilde_3 = torch.unsqueeze(skips_tilde_3, dim=1)
+
         skips_tilde_3 = self.output_proj(skips_tilde_3)
-        skips_tilde_3 = torch.squeeze(skips_tilde_3)
+
         # skips_tilde_3 = self.final_conv(skips_tilde_3)
         # X_c = masks * X + (1 - masks) * X_tilde_3  # replace non-missing part with original data
         return skips_tilde_1, skips_tilde_2, skips_tilde_3
