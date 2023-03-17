@@ -723,11 +723,10 @@ class ResidualEncoderLayer_2(nn.Module):
         # L -> feature
         # K -> time
         B, K, L = x.shape
-        base_shape = x.shape
-        # print(f"x input: {base_shape}")
+
         x_proj = torch.transpose(x, 1, 2) # (B, L, K)
         x_proj = self.init_proj(x_proj)
-        # print(f"x_proj: {x_proj.shape}")
+
         cond = torch.transpose(cond, 1, 2) # (B, L, K)
         # trying feature
         
@@ -736,37 +735,28 @@ class ResidualEncoderLayer_2(nn.Module):
         # print(f"cond: {cond.shape}")
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-        # print(f"diff_proj: {diff_proj.shape}")
         y = x_proj + diff_proj
-        # print(f"pre-conv y: {y.shape}")
 
         y = self.conv_layer(y)
         y = y + cond
-        # print(f"post-conv y: {y.shape}")
-        # _, channels, _ = y.shape
+
 
         y = torch.transpose(y, 1, 2) # (B, K, channels)
         
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
-        # print(f"y, attn: {y.shape} and {attn_weights_1.shape}")
 
-        # print(f"pre conv cond: {cond.shape}")
         c_y = self.conv_cond(cond)
         y = self.conv_noisy(y)
-        # print(f"post conv cond: {cond.shape}")
+
         y = y + c_y
-        # print(f"y+c_y: {y.shape}")
         y, attn_weights_f = self.enc_layer_f(y)
 
         y = y + c_y
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
         y, attn_weights_2 = self.enc_layer_2(y)
         y = torch.transpose(y, 1, 2)
-        # print(f"y: {y.shape}")
-        
-        # The feature encoder
-        # y, attn_weights_f = self.enc_layer_f(y)
+ 
 
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
@@ -774,14 +764,13 @@ class ResidualEncoderLayer_2(nn.Module):
 
         residual = self.res_proj(out) # (B, L, K)
         residual = torch.transpose(residual, 1, 2) # (B, K, L)
-        # print(f"residual: {residual.shape}")
+
 
         skip = self.skip_proj(out) # (B, L, K)
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
-        # print(f"skip: {skip.shape}")
-        # skip = self.norm(skip)
 
-        attn_weights = attn_weights_1#(attn_weights_1 + attn_weights_2)
+
+        attn_weights = attn_weights_2#(attn_weights_1 + attn_weights_2)
         # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
@@ -834,6 +823,7 @@ class diff_SAITS_2(nn.Module):
         hout = get_output_size(2 * channels, 3, 2)
         # print(f"hout: {hout}")
         self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
+        self.output_proj = Conv1d_with_init_saits_new(1, 1, 1, True)
         
 
 
@@ -885,7 +875,7 @@ class diff_SAITS_2(nn.Module):
 
         noise = input_X_for_second
 
-        diff_emb = self.diffusion_embedding(diffusion_step)
+        # diff_emb = self.diffusion_embedding(diffusion_step)
 
         pos_cond = self.position_enc_cond(cond)
 
@@ -928,7 +918,7 @@ class diff_SAITS_2(nn.Module):
 
         attn_weights_f = torch.unsqueeze(attn_weights_f, dim=1)
         # print(f"attn 1: {attn_weights_f.shape}")
-        attn_weights_f = F.relu(self.feature_weight_conv(attn_weights_f))
+        attn_weights_f = self.feature_weight_conv(attn_weights_f)
 
         attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
         # print(f"attn 2: {attn_weights_f.shape}")
@@ -951,6 +941,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
         skips_tilde_3 = torch.transpose(skips_tilde_3, 1, 2)
 
+        skips_tilde_3 = self.output_proj(skips_tilde_3)
         # skips_tilde_3 = self.final_conv(skips_tilde_3)
         # X_c = masks * X + (1 - masks) * X_tilde_3  # replace non-missing part with original data
         return skips_tilde_1, skips_tilde_2, skips_tilde_3
