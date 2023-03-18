@@ -692,7 +692,7 @@ class ResidualEncoderLayer_2(nn.Module):
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
-        self.enc_layer_f = EncoderLayer(2 * channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
+        self.enc_layer_f = EncoderLayer(channels, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
         # self.init_projection = Conv1d_with_init(2, channels, 1)
@@ -746,11 +746,12 @@ class ResidualEncoderLayer_2(nn.Module):
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
 
+        y = y + cond
+        y, attn_weights_f = self.enc_layer_f(y)
+
         c_y = self.conv_cond(cond)
         y = self.conv_noisy(y)
-        y = y + c_y
 
-        y, attn_weights_f = self.enc_layer_f(y)
         y = y + c_y
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
@@ -947,7 +948,7 @@ class diff_SAITS_2(nn.Module):
         # )
         # combining_weights_f = torch.transpose(combining_weights_f, 1, 2)
 
-        skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
+        skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 + combining_weights * skips_tilde_2
 
         # feature corr added way 1
         # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
