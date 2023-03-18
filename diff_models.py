@@ -818,11 +818,10 @@ class diff_SAITS_2(nn.Module):
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
         self.weight_combine_f = nn.Linear(d_feature + d_time, d_time)
 
-        # self.feature_weight_conv = conv_with_init(n_head, 1, 3)
-        self.feature_weight_conv = conv_with_init(1, 1, 3)
-        hout = get_output_size(2 * channels, 3, 2)
+        # self.feature_weight_conv = conv_with_init(1, 1, 3)
+        # hout = get_output_size(2 * channels, 3, 2)
         # print(f"hout: {hout}")
-        self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
+        # self.attn_feature_proj = nn.Linear(hout * hout, d_feature * d_feature)
         # self.output_proj = Conv1d_with_init_saits_new(self.d_feature, self.d_feature, 1)
         
 
@@ -857,11 +856,20 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_1 = torch.zeros_like(enc_output)
         # print(f"tilde: {skips_tilde_1.shape}")
         for encoder_layer in self.layer_stack_for_first_block:
-            enc_output, skip, _, _ = encoder_layer(enc_output, pos_cond, diff_emb)
+            enc_output, skip, _, attn_weights_f = encoder_layer(enc_output, pos_cond, diff_emb)
             # print(f"skip: {skip.shape}")
             skips_tilde_1 += skip
 
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
+        # Feature cross
+        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        # print(f"attn 0: {attn_weights_f.shape}")
+        if len(attn_weights_f.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+            attn_weights_f = attn_weights_f.mean(dim=3)
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        skips_tilde_1 = skips_tilde_1 * attn_weights_f
 
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
@@ -888,7 +896,15 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_2 += skip
 
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-
+        # Feature cross
+        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        # print(f"attn 0: {attn_weights_f.shape}")
+        if len(attn_weights_f.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+            attn_weights_f = attn_weights_f.mean(dim=3)
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        skips_tilde_2 = skips_tilde_2 * attn_weights_f
 
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
@@ -908,34 +924,38 @@ class diff_SAITS_2(nn.Module):
         # skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
 
         # Feature cross
-        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # print(f"attn 0: {attn_weights_f.shape}")
-        if len(attn_weights_f.shape) == 4:
-            # if having more than 1 head, then average attention weights from all heads
-            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-            attn_weights_f = attn_weights_f.mean(dim=3)
-            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        # # print(f"attn 0: {attn_weights_f.shape}")
+        # if len(attn_weights_f.shape) == 4:
+        #     # if having more than 1 head, then average attention weights from all heads
+        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        #     attn_weights_f = attn_weights_f.mean(dim=3)
+        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
 
-        attn_weights_f = torch.unsqueeze(attn_weights_f, dim=1)
+        # attn_weights_f = torch.unsqueeze(attn_weights_f, dim=1)
         # print(f"attn 1: {attn_weights_f.shape}")
-        attn_weights_f = self.feature_weight_conv(attn_weights_f)
+        # attn_weights_f = self.feature_weight_conv(attn_weights_f)
 
-        attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
-        # print(f"attn 2: {attn_weights_f.shape}")
-        attn_weights_f = self.attn_feature_proj(attn_weights_f)
-        attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
+        # attn_weights_f = torch.reshape(attn_weights_f, (-1, attn_weights_f.shape[2] * attn_weights_f.shape[3]))
+        # # print(f"attn 2: {attn_weights_f.shape}")
+        # attn_weights_f = self.attn_feature_proj(attn_weights_f)
+        # attn_weights_f = torch.reshape(attn_weights_f, (-1, self.d_feature, self.d_feature))
 
-        masks_f = torch.transpose(masks[:, 0, :, :], 1, 2)
-        combining_weights_f = torch.sigmoid(
-            self.weight_combine_f(torch.cat([masks_f, attn_weights_f], dim=2))
-        )
-        combining_weights_f = torch.transpose(combining_weights_f, 1, 2)
+        # masks_f = torch.transpose(masks[:, 0, :, :], 1, 2)
+        # combining_weights_f = torch.sigmoid(
+        #     self.weight_combine_f(torch.cat([masks_f, attn_weights_f], dim=2))
+        # )
+        # combining_weights_f = torch.transpose(combining_weights_f, 1, 2)
+
+        skips_tilde_3 = (1 - combining_weights) * skips_tilde_2 + combining_weights * skips_tilde_1
 
         # feature corr added way 1
         # skips_tilde_3 = (1 - combining_weights) * torch.matmul(skips_tilde_2, (1 - attn_weights_f)) + \
         #     combining_weights * torch.matmul(skips_tilde_1, attn_weights_f) 
-        skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 * (1 - combining_weights_f) +\
-                    combining_weights * skips_tilde_2 * combining_weights_f # 1 and 2 is flipped in the paper
+        # skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 * (1 - combining_weights_f) +\
+        #             combining_weights * skips_tilde_2 * combining_weights_f # 1 and 2 is flipped in the paper
+        
+
         # skips_tilde_3 = combining_weights * skips_tilde_2 * combining_weights_f
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)
