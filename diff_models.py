@@ -817,7 +817,8 @@ class diff_SAITS_2(nn.Module):
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
-        self.weight_combine_f = nn.Linear(d_feature + d_time, d_time)
+        # self.weight_combine_f = nn.Linear(d_feature + d_time, d_time)
+        # self.feature_dim_reduce = nn.Linear
 
         # self.feature_weight_conv = conv_with_init(1, 1, 3)
         # hout = get_output_size(2 * channels, 3, 2)
@@ -870,7 +871,7 @@ class diff_SAITS_2(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3)
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        skips_tilde_1 = skips_tilde_1 * attn_weights_f
+        skips_tilde_1 = skips_tilde_1 @ torch.sigmoid(attn_weights_f)
 
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
@@ -905,7 +906,7 @@ class diff_SAITS_2(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3)
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        skips_tilde_2 = skips_tilde_2 * attn_weights_f
+        skips_tilde_2 = skips_tilde_2 @ torch.sigmoid(attn_weights_f)
 
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 

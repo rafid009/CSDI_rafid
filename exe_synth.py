@@ -318,15 +318,15 @@ filename = "model_csdi_synth.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
-train(
-    model_csdi,
-    config_dict_csdi["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=f"{filename}",
-    is_saits=True
-)
+# train(
+#     model_csdi,
+#     config_dict_csdi["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=f"{filename}",
+#     is_saits=True
+# )
 model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 saits_model_file = f"{model_folder}/saits_model_synth.pkl"
