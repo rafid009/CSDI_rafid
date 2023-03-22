@@ -771,7 +771,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = attn_weights_2#torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
+        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
         # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
@@ -871,7 +871,7 @@ class diff_SAITS_2(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3)
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        skips_tilde_1 = skips_tilde_1 @ torch.sigmoid(attn_weights_f)
+        skips_tilde_1 = skips_tilde_1 @ attn_weights_f
 
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
@@ -906,7 +906,7 @@ class diff_SAITS_2(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3)
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        skips_tilde_2 = skips_tilde_2 @ torch.sigmoid(attn_weights_f)
+        skips_tilde_2 = skips_tilde_2 @ attn_weights_f
 
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
