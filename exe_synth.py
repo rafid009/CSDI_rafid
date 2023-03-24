@@ -350,7 +350,7 @@ config_dict_diffsaits = {
         'channels': 64,
         'nheads': 8,
         'diffusion_embedding_dim': 128,
-        'beta_start': 0.0001,
+        'beta_start': 0.00001,
         'beta_end': 0.5,
         'num_steps': 50,
         'schedule': "quad"
