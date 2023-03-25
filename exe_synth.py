@@ -341,7 +341,7 @@ pickle.dump(saits, open(saits_model_file, 'wb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2000,
+        'epochs': 1500,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -370,7 +370,7 @@ config_dict_diffsaits = {
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.1,
-        'diagonal_attention_mask': False
+        'diagonal_attention_mask': True
     }
 }
 
