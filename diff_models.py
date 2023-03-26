@@ -902,13 +902,13 @@ class diff_SAITS_2(nn.Module):
             skips_tilde_2 += skip
 
         # Feature cross
-        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # print(f"attn 0: {attn_weights_f.shape}")
-        if len(attn_weights_f.shape) == 4:
-            # if having more than 1 head, then average attention weights from all heads
-            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-            attn_weights_f = attn_weights_f.mean(dim=3)
-            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        # # print(f"attn 0: {attn_weights_f.shape}")
+        # if len(attn_weights_f.shape) == 4:
+        #     # if having more than 1 head, then average attention weights from all heads
+        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        #     attn_weights_f = attn_weights_f.mean(dim=3)
+        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
 
         # Skip_tilde_1
         # skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
@@ -918,7 +918,7 @@ class diff_SAITS_2(nn.Module):
 
         # skip_tilde_2
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-        skips_tilde_2 = skips_tilde_2 @ attn_weights_f
+        # skips_tilde_2 = skips_tilde_2 @ attn_weights_f
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # attention-weighted combine
