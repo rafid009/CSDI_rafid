@@ -709,8 +709,8 @@ class ResidualEncoderLayer_2(nn.Module):
         self.conv_cond = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
 
 
-        self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
-        self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
+        # self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
+        # self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
 
         self.output_proj = Conv1d_with_init_saits_new(channels, 2 * d_model, 1)
         
@@ -768,11 +768,11 @@ class ResidualEncoderLayer_2(nn.Module):
         out = self.output_proj(out)
         residual, skip = torch.chunk(out, 2, dim=1)
 
-        residual = self.res_proj(residual) # (B, L, K)
+        # residual = self.res_proj(residual) # (B, L, K)
         residual = torch.transpose(residual, 1, 2) # (B, K, L)
 
 
-        skip = self.skip_proj(skip) # (B, L, K)
+        # skip = self.skip_proj(skip) # (B, L, K)
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
