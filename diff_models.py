@@ -897,7 +897,7 @@ class diff_SAITS_2(nn.Module):
         enc_output = self.position_enc_noise(noise)
         skips_tilde_2 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_second_block:
-            enc_output, skip, attn_weights, attn_weights_f = encoder_layer(enc_output, pos_cond, diff_emb)
+            enc_output, skip, attn_weights, _ = encoder_layer(enc_output, pos_cond, diff_emb)
             # enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
             skips_tilde_2 += skip
 
@@ -907,7 +907,7 @@ class diff_SAITS_2(nn.Module):
         # if len(attn_weights_f.shape) == 4:
         #     # if having more than 1 head, then average attention weights from all heads
         #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        #     attn_weights_f = attn_weights_f.mean(dim=3)
+        #     attn_weights_f = attn_weights_f.mean(dim=3) 
         #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
 
         # Skip_tilde_1
@@ -918,7 +918,7 @@ class diff_SAITS_2(nn.Module):
 
         # skip_tilde_2
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-        # skips_tilde_2 = skips_tilde_2 @ attn_weights_f
+        skips_tilde_2 = skips_tilde_2 @ (1 - attn_weights_f)
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # attention-weighted combine
