@@ -711,6 +711,8 @@ class ResidualEncoderLayer_2(nn.Module):
 
         self.res_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
         self.skip_proj = Conv1d_with_init_saits_new(channels, d_model, 1)
+
+        self.output_proj = Conv1d_with_init_saits_new(channels, 2 * d_model, 1)
         
         # self.norm = nn.LayerNorm([d_time, d_model])
         # self.post_enc_proj = Conv1d_with_init(channels, 4, 1)
@@ -761,17 +763,20 @@ class ResidualEncoderLayer_2(nn.Module):
 
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
+        
+        # out put chunk divide
+        out = self.output_proj(out)
+        residual, skip = torch.chunk(out, 2, dim=1)
 
-
-        residual = self.res_proj(out) # (B, L, K)
+        residual = self.res_proj(residual) # (B, L, K)
         residual = torch.transpose(residual, 1, 2) # (B, K, L)
 
 
-        skip = self.skip_proj(out) # (B, L, K)
+        skip = self.skip_proj(skip) # (B, L, K)
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = (attn_weights_1 + attn_weights_2)/2 #torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
+        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
         # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, attn_weights_f
