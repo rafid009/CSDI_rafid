@@ -178,7 +178,7 @@ def train(
     # exp_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
     if is_saits:
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=[p1, p2], gamma=0.1
+            optimizer, milestones=[p1], gamma=0.1
         )
         # pa
     else:
