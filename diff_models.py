@@ -860,7 +860,7 @@ class diff_SAITS_2(nn.Module):
         # input_X_for_first = self.embedding_1(input_X_for_first)
 
         # combi 2
-        input_X_for_first = torch.cat([cond_X[:,1,:,:], masks[:,1,:,:]], dim=2)
+        input_X_for_first = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
         input_X_for_first = self.embedding_1(input_X_for_first)
 
 
