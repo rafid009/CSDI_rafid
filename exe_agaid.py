@@ -135,19 +135,19 @@ train(
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 
-# filename = "ColdHardiness_Grape_Merlot_2.csv"
-# df = pd.read_csv(filename)
-# modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
-# season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
-# train_season_df = season_df.drop(season_array[-1], axis=0)
-# # train_season_df = train_season_df.drop(season_array[-2], axis=0)
-# mean, std = get_mean_std(train_season_df, features)
-# X, Y = split_XY(season_df, max_length, season_array, features)
+filename = "ColdHardiness_Grape_Merlot_2.csv"
+df = pd.read_csv(filename)
+modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+train_season_df = season_df.drop(season_array[-1], axis=0)
+# train_season_df = train_season_df.drop(season_array[-2], axis=0)
+mean, std = get_mean_std(train_season_df, features)
+X, Y = split_XY(season_df, max_length, season_array, features)
 
 # # # observed_mask = ~np.isnan(X)
 
-# X = X[:-1]
-# X = (X - mean) / std
+X = X[:-1]
+X = (X - mean) / std
 saits_model_file = f"{model_folder}/model_saits.pth"
 saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
