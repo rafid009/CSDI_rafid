@@ -832,7 +832,7 @@ class diff_SAITS_2(nn.Module):
         # self.output_proj = Conv1d_with_init_saits_new(self.d_feature, self.d_feature, 1)
         
 
-
+    # got good results: 300e8bf9e80d21fb1465950aa9f4148290078bb3
     def forward(self, inputs, diffusion_step):
         # print(f"Entered forward")
         X, masks = inputs['X'], inputs['missing_mask']

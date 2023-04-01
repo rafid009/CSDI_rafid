@@ -28,7 +28,7 @@ class NumpyArrayEncoder(JSONEncoder):
 
 given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb']
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False):
     # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
     nsample = 30
     # trials = 30
@@ -46,7 +46,8 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_saits_total = {}
         mse_diff_saits_total = {}
         for i in range(trials):
-            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i)
+            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i, forward_trial=forward_trial)
+            
             for j, test_batch in enumerate(test_loader, start=1):
                 if 'CSDI' in models.keys():
                     output = models['CSDI'].evaluate(test_batch, nsample)
@@ -74,7 +75,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
                 
-                if trials == 1:
+                if trials == 1 and not forward_trial:
                     if 'CSDI' in models.keys():
                         results[season] = {
                             'target mask': eval_points[0, :, :].cpu().numpy(),
@@ -147,7 +148,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_saits_total[feature]['rmse'] += mse_saits
                         mse_saits_total[feature]['mae'] += mae_saits
 
-        if trials > 1:
+        if trials > 1 or (trials == 1 and forward_trial):
             print(f"For season = {season}:")
             for feature in given_features:
                 if exclude_features is not None and feature in exclude_features:
@@ -186,7 +187,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
-    if trials == 1:
+    if trials == 1 and not forward_trial:
         fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{random_trial}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
@@ -402,7 +403,10 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     # evaluate_imputation(models, mse_folder, length=l, trials=1)
+    print(f"blackout case:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=10)
+    print(f"Forecasting case:\n")
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
