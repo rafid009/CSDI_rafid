@@ -142,7 +142,7 @@ class CSDI_base(nn.Module):
         noisy_data = (current_alpha ** 0.5) * observed_data + ((1.0 - current_alpha) ** 0.5) * noise
         total_input = self.set_input_to_diffmodel(noisy_data, observed_data, cond_mask)
         target_mask = observed_mask - cond_mask
-        num_eval = target_mask.sum()
+        num_eval = observed_mask.sum() #target_mask.sum()
         if self.is_saits:
             temp_mask = cond_mask.unsqueeze(dim=1)
             if self.is_simple:
@@ -159,7 +159,7 @@ class CSDI_base(nn.Module):
             predicted_1, predicted_2, predicted_3 = self.diffmodel(inputs, t)
             # residual_1 = (noise - predicted_1) * target_mask
             # residual_2 = (noise - predicted_2) * target_mask
-            residual_3 = (noise - predicted_3) * cond_mask #target_mask
+            residual_3 = (noise - predicted_3) * observed_mask #target_mask
             # loss = ((residual_1 ** 2).sum() * 0.5 + (residual_2 ** 2).sum() * 0.5 + (residual_3 ** 2).sum()) / (3 * (num_eval if num_eval > 0 else 1))
             loss = (residual_3 ** 2).sum() / (num_eval if num_eval > 0 else 1)
         else:
