@@ -760,7 +760,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # y, attn_weights_f = self.enc_layer_f(y)
 
         c_y = self.conv_cond(cond)
-        
+
         # before combi 2
         # y = self.conv_noisy(y)
 
@@ -913,7 +913,6 @@ class diff_SAITS_2(nn.Module):
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         # combi 2
-        print(f"skips tilde 1: {skips_tilde_1.shape}\nattn_f: {attn_weights_f.shape}")
         skips_tilde_1 = skips_tilde_1 @ attn_weights_f
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
