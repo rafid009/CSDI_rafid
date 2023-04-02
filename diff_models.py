@@ -681,14 +681,13 @@ class ResidualEncoderLayer_2(nn.Module):
         super().__init__()
 
 
-        # new_design
-        # self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
+        # before combi 2
+        # self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  diagonal_attention_mask)
-        # self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, d_model, d_inner, n_head, d_k, d_v, dropout, 0,
-        #                  diagonal_attention_mask)
-        # print(f"d_time: {d_time}")
-        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
+        # combi 2
+        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
+        
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
 
@@ -703,9 +702,16 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.pre_mid_proj = Conv1d_with_init(channels, int(channels / 2), 1)
 
         self.init_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
-        self.conv_layer = Conv1d_with_init_saits_new(channels, channels, kernel_size=1)
+        # before combi 2
+        # self.conv_layer = Conv1d_with_init_saits_new(channels, channels, kernel_size=1)
+        # cmobi 2
+        self.conv_layer = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
+
         self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
-        self.conv_noisy = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
+
+        # before combi 2
+        # self.conv_noisy = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
+
         self.conv_cond = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
 
 
@@ -740,7 +746,8 @@ class ResidualEncoderLayer_2(nn.Module):
         y = x_proj + diff_proj
 
         y = self.conv_layer(y)
-        y = y + cond
+        # before combi 2
+        # y = y + cond
 
 
         y = torch.transpose(y, 1, 2) # (B, K, channels)
@@ -748,11 +755,14 @@ class ResidualEncoderLayer_2(nn.Module):
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
 
+        # before combi 2
         # y = y + cond
         # y, attn_weights_f = self.enc_layer_f(y)
 
         c_y = self.conv_cond(cond)
-        y = self.conv_noisy(y)
+        
+        # before combi 2
+        # y = self.conv_noisy(y)
 
         y = y + c_y
 
