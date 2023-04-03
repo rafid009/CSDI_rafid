@@ -172,7 +172,7 @@ for l in lengths:
     print(f"Blackout Missing:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
     print(f"Forecasting:\n")
-    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33, forecasting=True)
+    evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33, forecasting=True)
     print(f"Random Missing:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33, random_trial=True)
 

@@ -528,7 +528,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
                 
-                if trials == 1:
+                if trials == 1 and not forecasting:
                     if 'CSDI' in models.keys():
                         results[season] = {
                             'target mask': eval_points[0, :, :].cpu().numpy(),
@@ -601,7 +601,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_saits_total[feature]['rmse'] += mse_saits
                         mse_saits_total[feature]['mae'] += mae_saits
 
-        if trials > 1:
+        if trials > 1 or (trials == 1 and forecasting):
             print(f"For season = {season}:")
             for feature in features:
                 if exclude_features is not None and feature in exclude_features:
@@ -642,7 +642,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
-    if trials == 1:
+    if trials == 1 and not forecasting:
         fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{season_names[0] if len(season_names) == 1 else season_names}_random_{random_trial}_forecast_{forecasting}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()

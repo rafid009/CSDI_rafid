@@ -188,11 +188,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
     if trials == 1 and not forward_trial:
-        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{random_trial}.json", "w")
+        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_random_{random_trial}_forecast_{forward_trial}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
-        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{random_trial}.json", "w")
+        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_random_{random_trial}_forecast_{forward_trial}.json", "w")
         json.dump(season_avg_mse, out_file, indent = 4)
         out_file.close()
 
@@ -403,9 +403,11 @@ print("For All")
 for l in lengths:
     print(f"For length: {l}")
     # evaluate_imputation(models, mse_folder, length=l, trials=1)
-    print(f"blackout case:\n")
+    print(f"blackout Missing:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=10)
     print(f"Forecasting case:\n")
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
+    print(f"Random Missing:")
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
     # evaluate_imputation_data(models, length=l)
 
