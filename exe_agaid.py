@@ -64,16 +64,16 @@ model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
 filename = 'model_csdi.pth'
-# train(
-#     model_csdi,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=filename
-# )
+train(
+    model_csdi,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=filename
+)
 # nsample = 50
-model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # evaluate(model_csdi, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 # model_folder_exp = "./saved_model_explode"
 # if not os.path.isdir(model_folder_exp):
@@ -151,10 +151,10 @@ X = (X - mean) / std
 saits_model_file = f"{model_folder}/model_saits.pth"
 saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
-# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-# pickle.dump(saits, open(saits_model_file, 'wb'))
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
 
-saits = pickle.load(open(saits_model_file, 'rb'))
+# saits = pickle.load(open(saits_model_file, 'rb'))
 
 models = {
     'CSDI': model_csdi,
@@ -162,14 +162,20 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_final_stable_feat_corr"
+mse_folder = "results_out_feat"
 
 lengths = [100]#[20, 50, 100, 200]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
-    evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33, random_trial=True)
+    # evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
+    print(f"Blackout Missing:\n")
+    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
+    print(f"Forecasting:\n")
+    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33, forecasting=True)
+    print(f"Random Missing:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33, random_trial=True)
+
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {

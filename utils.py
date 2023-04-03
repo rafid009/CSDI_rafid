@@ -377,7 +377,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forecasting=False):
     seasons = {
     '1988-1989': 0,
     '1989-1990': 1,
@@ -500,7 +500,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_diff_saits_total = {}
         # mse_diff_saits_simple_total = {}
         for i in range(trials):
-            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length, random_trial=random_trial)
+            test_loader = get_testloader(seed=(10 + i), season_idx=season_idx, exclude_features=exclude_features, length=length, random_trial=random_trial, forecastig=forecasting)
             for j, test_batch in enumerate(test_loader, start=1):
                 if 'CSDI' in models.keys():
                     output = models['CSDI'].evaluate(test_batch, nsample)
@@ -643,11 +643,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
     if trials == 1:
-        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{season_names[0] if len(season_names) == 1 else season_names}_{random_trial}.json", "w")
+        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_{season_names[0] if len(season_names) == 1 else season_names}_random_{random_trial}_forecast_{forecasting}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
-        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{season_names[0] if len(season_names) == 1 else season_names}_{random_trial}.json", "w")
+        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_{season_names[0] if len(season_names) == 1 else season_names}_random_{random_trial}_forecast_{forecasting}.json", "w")
         json.dump(season_avg_mse, out_file, indent = 4)
         out_file.close()
 

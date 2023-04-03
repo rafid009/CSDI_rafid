@@ -46,7 +46,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_saits_total = {}
         mse_diff_saits_total = {}
         for i in range(trials):
-            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i, forward_trial=forward_trial)
+            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i, forward_trial=forward_trial, random_trial=random_trial)
             
             for j, test_batch in enumerate(test_loader, start=1):
                 if 'CSDI' in models.keys():
