@@ -64,14 +64,14 @@ model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
 filename = 'model_csdi.pth'
-train(
-    model_csdi,
-    config_dict_csdi["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=filename
-)
+# train(
+#     model_csdi,
+#     config_dict_csdi["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=filename
+# )
 # nsample = 50
 # model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # evaluate(model_csdi, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
@@ -81,9 +81,9 @@ train(
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 4000,
+        'epochs': 5000,
         'batch_size': 16 ,
-        'lr': 1.0e-4
+        'lr': 1.0e-3
     },      
     'diffusion': {
         'layers': 4, 
@@ -101,15 +101,15 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "mix",
         'type': 'SAITS',
-        'n_layers': 3,
+        'n_layers': 4,
         'd_time': 252,
         'n_feature': len(features),
         'd_model': 128,
         'd_inner': 128,
-        'n_head': 4,
+        'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
+        'dropout': 0.1,
         'diagonal_attention_mask': True
     }
 }
@@ -151,10 +151,10 @@ X = (X - mean) / std
 saits_model_file = f"{model_folder}/model_saits.pth"
 saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
-saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-pickle.dump(saits, open(saits_model_file, 'wb'))
+# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+# pickle.dump(saits, open(saits_model_file, 'wb'))
 
-# saits = pickle.load(open(saits_model_file, 'rb'))
+saits = pickle.load(open(saits_model_file, 'rb'))
 
 models = {
     'CSDI': model_csdi,

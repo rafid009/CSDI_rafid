@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from main_model import CSDI_Agaid
 from pypots.imputation import SAITS
+import math
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 matplotlib.rc('xtick', labelsize=20) 
@@ -562,7 +563,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             continue
                         if 'CSDI' in models.keys():
                             mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                            mse_csdi = torch.sqrt(mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                            mse_csdi = math.sqrt(mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item())
 
                             mae_csdi = torch.abs((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                             mae_csdi = mae_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
@@ -577,10 +578,10 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             mse_diff_saits_total[feature] = {'mse': 0, 'mae': 0, 'diff_mse_med': 0}
 
                         mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits = torch.sqrt(mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                        mse_diff_saits = math.sqrt(mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
 
                         mse_diff_saits_median = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits_median = torch.sqrt(mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                        mse_diff_saits_median = math.sqrt(mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item())
 
                         mae_diff_saits = torch.abs((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                         mae_diff_saits = mae_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
@@ -592,7 +593,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
                         mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mae_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        mse_saits = torch.sqrt(mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                        mse_saits = math.sqrt(mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
                         mae_saits = mae_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                         if feature not in mse_saits_total.keys():
