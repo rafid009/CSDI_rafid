@@ -344,7 +344,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 3500,
         'batch_size': 16 ,
-        'lr': 1.0e-4
+        'lr': 5.0e-4
     },      
     'diffusion': {
         'layers': 4, 
