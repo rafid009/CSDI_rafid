@@ -81,7 +81,7 @@ filename = 'model_csdi.pth'
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 5000,
+        'epochs': 6000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
