@@ -167,7 +167,7 @@ class CSDI_base(nn.Module):
             recon_loss_2 = (noise - predicted_2) * cond_mask
             recon_loss_3 = (noise - predicted_3) * cond_mask
             recon_loss = ((recon_loss_1 ** 2).sum() + (recon_loss_2 ** 2).sum() + (recon_loss_3 ** 2).sum()) / (3 * (recon_eval if recon_eval > 0 else 1))
-            loss = loss + 0.3 * recon_loss
+            loss = 0.7 * loss + 0.3 * recon_loss
         else:
             predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
             residual = (noise - predicted) * target_mask
