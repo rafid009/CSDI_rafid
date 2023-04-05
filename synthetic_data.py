@@ -1,5 +1,5 @@
 import numpy as np
-feats = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb']
+feats = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
 
 
 def add_rn_missing(X, length=-1, rate=-1):
@@ -20,7 +20,7 @@ def add_rn_missing(X, length=-1, rate=-1):
     
 
 
-def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=0.05):
+def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=0.02):
     # num_seasons = 32
     np.random.seed(seed)
     
@@ -30,7 +30,8 @@ def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=
         'harmonic': np.pi/2, # f3
         'weight': (0.3, 0.6), # f4
         'lin_comb': (0.2, 0.03), # f5
-        'non_lin_comb': (0) # f6
+        'non_lin_comb': (0), # f6
+        'mixed_history': (0) # f7
     }
     num_steps = n_steps # config['n_steps']
     num_features = len(feats) # config['n_features']
@@ -48,7 +49,7 @@ def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=
             elif feature == 'cos2':
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
-                data[i, :, feats.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2) * (np.random.rand(data.shape[1]) ** (1/8))
+                data[i, :, feats.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2) + (np.random.rand(data.shape[1]) ** (1/8))
             elif feature == 'harmonic':
                 f1 = data[i, :, feats.index('sin')]
                 f2 = data[i, :, feats.index('cos2')]
@@ -70,6 +71,12 @@ def create_synthetic_data(n_steps, num_seasons, seed=10, rate=0.05, length_rate=
                 f1 = data[i, 0:-1, feats.index('sin')]
                 f3 = data[i, 0:-1, feats.index('weight')]
                 data[i, 1:, feats.index(feature)] = f1 * f5 + f2 * f3
+            elif feature == 'mixed_history':
+                data[i, 0, feats.index(feature)] = np.random.uniform(0, 1)
+                data[i, 1, feats.index(feature)] = np.random.uniform(0, 1)
+                f1 = data[i, 0:-2, feats.index('sin')]
+                f2 = data[i, 0:-2, feats.index('cos2')]
+                data[i, 2:, feats.index(feature)] = f1 + f2
             if feature == 'sin' or feature == 'cos2':
                 data[i, :, feats.index(feature)] = add_rn_missing(data[i, :, feats.index(feature)], length=lr)
         data[i] = add_rn_missing(data[i], rate=rate)

@@ -331,7 +331,7 @@ train(
 model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 saits_model_file = f"{model_folder}/saits_model_synth.pkl"
-saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2000, patience=30, device=device)
+saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2000, patience=300, device=device)
 X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
 print(f"\n\SAITS training starts.....\n")
 saits.fit(X)
