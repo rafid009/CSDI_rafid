@@ -405,13 +405,13 @@ for l in lengths:
     # evaluate_imputation(models, mse_folder, length=l, trials=1)
     print(f"blackout Missing:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=10)
-    evaluate_imputation(models, mse_folder, length=l, trials=1, data=True)
+    evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
     print(f"Forecasting case:\n")
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
-    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1, data=True)
+    evaluate_imputation(models, data_folder=mse_folder, length=l, forward_trial=True, trials=1, data=True)
     print(f"Random Missing:")
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=10)
-    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1, data=True)
+    evaluate_imputation(models, data_folder=mse_folder, length=l, forward_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
