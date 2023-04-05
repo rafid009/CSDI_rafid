@@ -148,7 +148,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                         mse_saits_total[feature]['rmse'] += mse_saits
                         mse_saits_total[feature]['mae'] += mae_saits
 
-        if trials > 1 or (trials == 1 and forward_trial):
+        if data:
             print(f"For season = {season}:")
             for feature in given_features:
                 if exclude_features is not None and feature in exclude_features:
