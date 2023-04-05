@@ -26,9 +26,9 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb']
+given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False, data=False):
     # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
     nsample = 30
     # trials = 30
@@ -75,7 +75,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                 saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
                 
-                if trials == 1 and not forward_trial:
+                if data:
                     if 'CSDI' in models.keys():
                         results[season] = {
                             'target mask': eval_points[0, :, :].cpu().numpy(),
@@ -187,7 +187,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
-    if trials == 1 and not forward_trial:
+    if data:
         fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_random_{random_trial}_forecast_{forward_trial}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
@@ -396,8 +396,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_mse_synth"
-
+mse_folder = "results_rmse_synth"
+data_folder = "results_synth_data"
 lengths = [20]#[10, 25, 40, 45]
 print("For All")
 for l in lengths:
@@ -405,10 +405,13 @@ for l in lengths:
     # evaluate_imputation(models, mse_folder, length=l, trials=1)
     print(f"blackout Missing:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=10)
+    evaluate_imputation(models, mse_folder, length=l, trials=1, data=True)
     print(f"Forecasting case:\n")
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1, data=True)
     print(f"Random Missing:")
-    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=10)
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
