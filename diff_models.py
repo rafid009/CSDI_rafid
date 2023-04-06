@@ -978,7 +978,7 @@ class diff_SAITS_2(nn.Module):
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # combi 2
-        skips_tilde_2 = skips_tilde_2 + skips_tilde_2 @ attn_weights_f
+        skips_tilde_2 = skips_tilde_1 + skips_tilde_2 @ attn_weights_f
 
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
