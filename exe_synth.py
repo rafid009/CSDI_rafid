@@ -387,7 +387,7 @@ train(
     filename=f"{filename}",
     is_saits=True
 )
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
 
