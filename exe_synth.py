@@ -410,7 +410,7 @@ for l in lengths:
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
     evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
     print(f"Random Missing:")
-    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=10)
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=30)
     evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 
