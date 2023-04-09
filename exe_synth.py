@@ -396,8 +396,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_rmse_synth_1"
-data_folder = "results_synth_data_1"
+mse_folder = "results_rmse_synth"
+data_folder = "results_synth_data"
 lengths = [20]#[10, 25, 40, 45]
 print("For All")
 for l in lengths:
