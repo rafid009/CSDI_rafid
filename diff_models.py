@@ -836,6 +836,7 @@ class diff_SAITS_2(nn.Module):
         # combi 2: trying feature weights here
         self.feature_weights = EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
+        self.down_cond = nn.Linear(d_model, d_feature)
 
         # self.weight_combine_f = nn.Linear(d_feature + d_time, d_time)
         # self.feature_dim_reduce = nn.Linear
@@ -923,7 +924,8 @@ class diff_SAITS_2(nn.Module):
         # second DMSA block
         
         # combi 2
-        cond_X = X_tilde_1 #+ X[:, 0, :, :]
+        down_cond = self.down_cond(cond)
+        cond_X = X_tilde_1 + down_cond#+ X[:, 0, :, :]
         cond_X = torch.transpose(cond_X, 1, 2)
         cond_X, attn_weights_f = self.feature_weights(cond_X)
         cond_X = torch.transpose(cond_X, 1, 2)
