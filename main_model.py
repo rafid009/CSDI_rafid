@@ -169,6 +169,9 @@ class CSDI_base(nn.Module):
                 recon_loss_3 = (noise - predicted_3) * cond_mask
                 recon_loss = ((recon_loss_1 ** 2).sum() + (recon_loss_2 ** 2).sum() + (recon_loss_3 ** 2).sum()) / (3 * (recon_eval if recon_eval > 0 else 1))
                 loss = 0.7 * loss + 0.3 * recon_loss
+                l1_weights = torch.cat([p.view(-1) for p in self.diffmodel.parameters()])
+                l1_loss = torch.abs(l1_weights).sum()
+                loss += l1_loss
         else:
             predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
             residual = (noise - predicted) * target_mask
