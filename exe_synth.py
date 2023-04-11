@@ -275,7 +275,7 @@ config_dict_csdi = {
     'train': {
         'epochs': 1500,
         'batch_size': 16 ,
-        'lr': 1.0e-5
+        'lr': 1.0e-4
     },      
     'diffusion': {
         'layers': 4, 

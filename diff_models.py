@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.utils.weight_norm as weight_norm
 import math
 from pypots.imputation.transformer import EncoderLayer, PositionalEncoding
 from pypots.imputation import SAITS
@@ -531,7 +532,7 @@ class diff_SAITS(nn.Module):
         self.reduce_dim_beta = nn.Linear(d_model, d_feature)
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
-        self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
+        self.weight_combine = weight_norm(nn.Linear(d_feature + d_time, d_feature))
 
     def forward(self, inputs, diffusion_step):
         # print(f"Entered forward")
