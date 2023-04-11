@@ -166,7 +166,7 @@ def train(
     filename="",
     is_saits=False
 ):
-    optimizer = Adam(model.parameters(), lr=config["lr"], weight_decay=1e-6)
+    optimizer = Adam(model.parameters(), lr=config["lr"], weight_decay=1e-5)
     if foldername != "":
         output_path = foldername + f"/{filename if len(filename) != 0 else 'model_csdi.pth'}"
 
