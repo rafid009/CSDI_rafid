@@ -954,7 +954,7 @@ class diff_SAITS_2(nn.Module):
         pos_cond = self.position_enc_cond(cond)
 
         skips_tilde_2 = torch.zeros_like(noise)
-        enc_output = self.position_enc_noise(noise)
+        enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_2 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_second_block:
             enc_output, skip, attn_weights, _ = encoder_layer(enc_output, pos_cond, diff_emb)
