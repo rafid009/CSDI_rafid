@@ -706,9 +706,9 @@ class ResidualEncoderLayer_2(nn.Module):
         # before combi 2
         # self.conv_layer = Conv1d_with_init_saits_new(channels, channels, kernel_size=1)
         # cmobi 2
-        self.conv_layer = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
+        self.conv_layer = Conv1d_with_init_saits_new(2 * channels, 2 * channels, kernel_size=1)
 
-        self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
+        self.cond_proj = Conv1d_with_init_saits_new(d_model, 2 * channels, 1)
 
         # before combi 2
         # self.conv_noisy = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
