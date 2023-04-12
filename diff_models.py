@@ -748,7 +748,7 @@ class ResidualEncoderLayer_2(nn.Module):
 
         y = self.conv_layer(y)
         # before combi 2
-        # y = y + cond
+        y = y + cond
 
 
         y = torch.transpose(y, 1, 2) # (B, K, channels)
@@ -774,10 +774,6 @@ class ResidualEncoderLayer_2(nn.Module):
 
         y1, y2 = torch.chunk(y, 2, dim=1)
         out = torch.sigmoid(y1) * torch.tanh(y2) # (B, channels, K)
-        
-        # out put chunk divide
-        # out = self.output_proj(out)
-        # residual, skip = torch.chunk(out, 2, dim=1)
 
         residual = self.res_proj(out) # (B, L, K)
         residual = torch.transpose(residual, 1, 2) # (B, K, L)
@@ -915,7 +911,6 @@ class diff_SAITS_2(nn.Module):
         # feature corr end
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         # combi 2
-        skips_1_preserved = skips_tilde_1
         skips_tilde_1 = skips_tilde_1 + skips_tilde_1 @ attn_weights_f
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
@@ -954,7 +949,7 @@ class diff_SAITS_2(nn.Module):
         pos_cond = self.position_enc_cond(cond)
 
         skips_tilde_2 = torch.zeros_like(noise)
-        enc_output = self.dropout(self.position_enc_noise(noise))
+        enc_output = self.position_enc_noise(noise)
         skips_tilde_2 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_second_block:
             enc_output, skip, attn_weights, _ = encoder_layer(enc_output, pos_cond, diff_emb)
