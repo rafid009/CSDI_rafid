@@ -16,6 +16,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 matplotlib.rc('xtick', labelsize=20) 
 matplotlib.rc('ytick', labelsize=20) 
 
+def get_num_params(model):
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    return params
+
 
 def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):
     seasons_list = [
