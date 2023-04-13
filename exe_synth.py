@@ -1,6 +1,6 @@
 from main_model import CSDI_Synth
 from dataset_synth import get_dataloader, get_testloader
-from utils import train, get_num_params
+from utils import train, get_num_params, calc_quantile_CRPS
 import numpy as np
 import torch
 import sys
@@ -45,6 +45,8 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         mse_csdi_total = {}
         mse_saits_total = {}
         mse_diff_saits_total = {}
+        CRPS_csdi = 0
+        CRPS_diff_saits = 0
         for i in range(trials):
             test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i, forward_trial=forward_trial, random_trial=random_trial)
             
@@ -147,7 +149,10 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
                         mse_saits_total[feature]['rmse'] += mse_saits
                         mse_saits_total[feature]['mae'] += mae_saits
-
+                CRPS_csdi += calc_quantile_CRPS(c_target, samples, eval_points, 0, 1)
+                CRPS_diff_saits += calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
+        print(f"CSDI CRPS: {CRPS_csdi/trials}")
+        print(f"DiffSAITS CRPS: {CRPS_diff_saits/trials}")
         if not data:
             print(f"For season = {season}:")
             for feature in given_features:
