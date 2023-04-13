@@ -17,9 +17,7 @@ matplotlib.rc('xtick', labelsize=20)
 matplotlib.rc('ytick', labelsize=20) 
 
 def get_num_params(model):
-    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    params = sum([np.prod(p.size()) for p in model_parameters])
-    return params
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 def cross_validate(input_file, config_csdi, config_diffsaits, seed=10):

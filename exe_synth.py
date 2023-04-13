@@ -381,16 +381,16 @@ model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(give
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 filename = "model_diffsaits_synth_1.pth"
 print(f"\n\DiffSAITS training starts.....\n")
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 
 
@@ -405,18 +405,18 @@ mse_folder = "results_rmse_synth"
 data_folder = "results_synth_data"
 lengths = [20]#[10, 25, 40, 45]
 print("For All")
-# for l in lengths:
-#     print(f"For length: {l}")
-#     # evaluate_imputation(models, mse_folder, length=l, trials=1)
-#     print(f"blackout Missing:\n")
-#     evaluate_imputation(models, mse_folder, length=l, trials=10)
-#     evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-#     print(f"Forecasting case:\n")
-#     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
-#     evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-#     print(f"Random Missing:")
-#     evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=30)
-#     evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
+for l in lengths:
+    print(f"For length: {l}")
+    # evaluate_imputation(models, mse_folder, length=l, trials=1)
+    print(f"blackout Missing:\n")
+    evaluate_imputation(models, mse_folder, length=l, trials=10)
+    evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
+    print(f"Forecasting case:\n")
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
+    evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
+    print(f"Random Missing:")
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=30)
+    evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {
