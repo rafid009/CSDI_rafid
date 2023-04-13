@@ -392,27 +392,27 @@ class diff_SAITS_2(nn.Module):
         masks = torch.transpose(masks, 2, 3)
 
         # combi 2:
-        # cond_X = X[:,0,:,:] + X[:,1,:,:]
-        # cond_X = torch.transpose(cond_X, 1, 2)
-        # cond_X, attn_weights_f = self.feature_weights(cond_X)
-        # cond_X = torch.transpose(cond_X, 1, 2)
-        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # # print(f"attn 0: {attn_weights_f.shape}")
-        # if len(attn_weights_f.shape) == 4:
-        #     # if having more than 1 head, then average attention weights from all heads
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        #     attn_weights_f = attn_weights_f.mean(dim=3) 
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        #     attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
+        cond_X = X[:,0,:,:] + X[:,1,:,:]
+        cond_X = torch.transpose(cond_X, 1, 2)
+        cond_X, attn_weights_f = self.feature_weights(cond_X)
+        cond_X = torch.transpose(cond_X, 1, 2)
+        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        # print(f"attn 0: {attn_weights_f.shape}")
+        if len(attn_weights_f.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+            attn_weights_f = attn_weights_f.mean(dim=3) 
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+            attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
 
 
         # before combi 2
-        input_X_for_first = torch.cat([X[:,1,:,:], masks[:,1,:,:]], dim=2)
-        input_X_for_first = self.embedding_1(input_X_for_first)
+        # input_X_for_first = torch.cat([X[:,1,:,:], masks[:,1,:,:]], dim=2)
+        # input_X_for_first = self.embedding_1(input_X_for_first)
 
         # combi 2
-        # input_X_for_first = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
-        # input_X_for_first = self.embedding_1(input_X_for_first)
+        input_X_for_first = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
+        input_X_for_first = self.embedding_1(input_X_for_first)
 
 
         # cond separate
