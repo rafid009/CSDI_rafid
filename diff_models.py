@@ -605,8 +605,8 @@ class diff_SAITS_3(nn.Module):
         cond = self.embedding_cond(cond)
 
         diff_emb = self.diffusion_embedding(diffusion_step)
-
         pos_cond = self.position_enc_cond(cond)
+
         
         enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_1 = torch.zeros_like(enc_output)
@@ -626,39 +626,18 @@ class diff_SAITS_3(nn.Module):
         X_tilde_1 = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :]# ds3   
 
         # second DMSA block
-        
-        # combi 2
-        # cond_X = X_tilde_1 + X[:, 0, :, :]
-        # cond_X = torch.transpose(cond_X, 1, 2)
-        # cond_X, attn_weights_f = self.feature_weights(cond_X)
-        # cond_X = torch.transpose(cond_X, 1, 2)
-        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # # print(f"attn 0: {attn_weights_f.shape}")
-        # if len(attn_weights_f.shape) == 4:
-        #     # if having more than 1 head, then average attention weights from all heads
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        #     attn_weights_f = attn_weights_f.mean(dim=3) 
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        #     attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
 
 
         # before combi 2
         input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
         input_X_for_second = self.embedding_2(input_X_for_second)
-
-        # combi 2
-        # input_X_for_second = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
-        # input_X_for_second = self.embedding_2(input_X_for_second)
-
-
         noise = input_X_for_second
 
-        # diff_emb = self.diffusion_embedding(diffusion_step)
-
-        pos_cond = self.position_enc_cond(cond)
+        # pos_cond = self.position_enc_cond(cond)
 
         enc_output = self.position_enc_noise(noise)
         skips_tilde_2 = torch.zeros_like(enc_output)
+
         for encoder_layer in self.layer_stack_for_second_block:
             enc_output, skip, attn_weights, _ = encoder_layer(enc_output, pos_cond, diff_emb)
             # enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
