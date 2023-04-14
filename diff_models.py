@@ -283,8 +283,6 @@ class ResidualEncoderLayer_2(nn.Module):
 
         y = self.conv_layer(y)
         # before combi 2
-        y = y + cond
-
 
         y = torch.transpose(y, 1, 2) # (B, K, channels)
         
