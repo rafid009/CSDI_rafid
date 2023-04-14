@@ -471,7 +471,6 @@ class diff_SAITS_2(nn.Module):
 
         # diff_emb = self.diffusion_embedding(diffusion_step)
 
-        pos_cond = self.position_enc_cond(cond)
 
         skips_tilde_2 = torch.zeros_like(noise)
         enc_output = self.position_enc_noise(noise)
@@ -604,7 +603,6 @@ class diff_SAITS_3(nn.Module):
         noise = input_X_for_first
         cond = torch.cat([X[:,0,:,:], masks[:,0,:,:]], dim=2)
         cond = self.embedding_cond(cond)
-        # noise_mask, cond_mask = masks[:, 1, :, :], masks[:, 0, :, :]
 
         diff_emb = self.diffusion_embedding(diffusion_step)
 
@@ -612,6 +610,7 @@ class diff_SAITS_3(nn.Module):
         
         enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_1 = torch.zeros_like(enc_output)
+
         # print(f"tilde: {skips_tilde_1.shape}")
         for encoder_layer in self.layer_stack_for_first_block:
             enc_output, skip, _, _ = encoder_layer(enc_output, pos_cond, diff_emb)
@@ -621,35 +620,37 @@ class diff_SAITS_3(nn.Module):
         
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         # combi 2
-        skips_tilde_1 = skips_tilde_1 + skips_tilde_1 @ attn_weights_f
+        # skips_tilde_1 = skips_tilde_1 + skips_tilde_1 @ attn_weights_f
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 + X[:, 1, :, :]        
+        X_tilde_1 = X_tilde_1 @ attn_weights_f #+ X[:, 1, :, :]# ds3   
+
+
 
         # second DMSA block
         
         # combi 2
-        cond_X = X_tilde_1 + X[:, 0, :, :]
-        cond_X = torch.transpose(cond_X, 1, 2)
-        cond_X, attn_weights_f = self.feature_weights(cond_X)
-        cond_X = torch.transpose(cond_X, 1, 2)
-        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # print(f"attn 0: {attn_weights_f.shape}")
-        if len(attn_weights_f.shape) == 4:
-            # if having more than 1 head, then average attention weights from all heads
-            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-            attn_weights_f = attn_weights_f.mean(dim=3) 
-            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-            attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
+        # cond_X = X_tilde_1 + X[:, 0, :, :]
+        # cond_X = torch.transpose(cond_X, 1, 2)
+        # cond_X, attn_weights_f = self.feature_weights(cond_X)
+        # cond_X = torch.transpose(cond_X, 1, 2)
+        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        # # print(f"attn 0: {attn_weights_f.shape}")
+        # if len(attn_weights_f.shape) == 4:
+        #     # if having more than 1 head, then average attention weights from all heads
+        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+        #     attn_weights_f = attn_weights_f.mean(dim=3) 
+        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+        #     attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
 
 
         # before combi 2
-        # input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
-        # input_X_for_second = self.embedding_2(input_X_for_second)
+        input_X_for_second = torch.cat([X_tilde_1, masks[:,1,:,:]], dim=2)
+        input_X_for_second = self.embedding_2(input_X_for_second)
 
         # combi 2
-        input_X_for_second = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
-        input_X_for_second = self.embedding_2(input_X_for_second)
+        # input_X_for_second = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
+        # input_X_for_second = self.embedding_2(input_X_for_second)
 
 
         noise = input_X_for_second
@@ -658,7 +659,6 @@ class diff_SAITS_3(nn.Module):
 
         pos_cond = self.position_enc_cond(cond)
 
-        skips_tilde_2 = torch.zeros_like(noise)
         enc_output = self.position_enc_noise(noise)
         skips_tilde_2 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_second_block:
@@ -667,19 +667,13 @@ class diff_SAITS_3(nn.Module):
             skips_tilde_2 += skip
 
 
-        # Skip_tilde_1
-        # skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
-        # skips_tilde_1 = skips_tilde_1 @ (1 - attn_weights_f)
-
-        # skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
-
         # skip_tilde_2
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
         # skips_tilde_2 = skips_tilde_2 @ (1 - attn_weights_f)
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # combi 2
-        skips_tilde_2 = skips_tilde_2 + skips_tilde_2 @ attn_weights_f
+        # skips_tilde_2 = skips_tilde_2 + skips_tilde_2 @ attn_weights_f
 
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
