@@ -623,7 +623,7 @@ class diff_SAITS_3(nn.Module):
         # skips_tilde_1 = skips_tilde_1 + skips_tilde_1 @ attn_weights_f
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 @ attn_weights_f + X[:, 1, :, :]# ds3   
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + X_tilde_1 #X[:, 1, :, :]# ds3   
 
         # second DMSA block
         
