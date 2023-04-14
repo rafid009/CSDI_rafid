@@ -559,7 +559,7 @@ class diff_SAITS_3(nn.Module):
 
         # combi 2: trying feature weights here
         self.feature_weights = EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
-                         diagonal_attention_mask)
+                         True)
 
         
 
@@ -623,9 +623,7 @@ class diff_SAITS_3(nn.Module):
         # skips_tilde_1 = skips_tilde_1 + skips_tilde_1 @ attn_weights_f
 
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 @ attn_weights_f #+ X[:, 1, :, :]# ds3   
-
-
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + X[:, 1, :, :]# ds3   
 
         # second DMSA block
         
