@@ -676,6 +676,9 @@ class diff_SAITS_3(nn.Module):
         return skips_tilde_1, skips_tilde_2, skips_tilde_3
     
 
+
+
+
 class diff_SAITS_4(nn.Module):
     def __init__(self, diff_steps, diff_emb_dim, n_layers, d_time, d_feature, d_model, d_inner, n_head, d_k, d_v,
             dropout, diagonal_attention_mask=True, is_simple=False):

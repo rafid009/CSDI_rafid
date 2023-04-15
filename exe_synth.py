@@ -372,11 +372,11 @@ config_dict_diffsaits = {
         'n_layers': 3,
         'd_time': 100,
         'n_feature': len(given_features),
-        'd_model': 128,
-        'd_inner': 128,
+        'd_model': 64, #128,
+        'd_inner': 64, #128,
         'n_head': 8,
-        'd_k': 128,#64,
-        'd_v': 128,#64,
+        'd_k': 64,
+        'd_v': 64,
         'dropout': 0.2,
         'diagonal_attention_mask': False
     }
