@@ -526,7 +526,7 @@ class diff_SAITS_3(nn.Module):
             ResidualEncoderLayer_2(channels=channels, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
-            for _ in range(n_layers-1)
+            for _ in range(n_layers - 1)
         ])
         self.diffusion_embedding = DiffusionEmbedding(diff_steps, diff_emb_dim)
         self.dropout = nn.Dropout(p=dropout)
