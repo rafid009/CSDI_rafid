@@ -375,8 +375,8 @@ config_dict_diffsaits = {
         'd_model': 128,
         'd_inner': 128,
         'n_head': 8,
-        'd_k': 64,
-        'd_v': 64,
+        'd_k': 128,#64,
+        'd_v': 128,#64,
         'dropout': 0.2,
         'diagonal_attention_mask': False
     }
