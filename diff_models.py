@@ -288,17 +288,9 @@ class ResidualEncoderLayer_2(nn.Module):
         y, attn_weights_1 = self.enc_layer_1(y)
         y = torch.transpose(y, 1, 2)
 
-        # before combi 2
-        # y = y + cond
-        # y, attn_weights_f = self.enc_layer_f(y)
-
         y = self.conv_layer(y)
 
         c_y = self.conv_cond(cond)
-
-        # before combi 2
-        # y = self.conv_noisy(y)
-
         y = y + c_y
 
         y = torch.transpose(y, 1, 2) # (B, K, 2*channels)
@@ -318,7 +310,6 @@ class ResidualEncoderLayer_2(nn.Module):
 
 
         attn_weights = attn_weights_2 # torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
-        # print(f"attn: {attn_weights.shape}")
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, None#attn_weights_f
 
@@ -535,7 +526,7 @@ class diff_SAITS_3(nn.Module):
             ResidualEncoderLayer_2(channels=channels, d_time=d_time, actual_d_feature=actual_d_feature, 
                         d_model=d_model, d_inner=d_inner, n_head=n_head, d_k=d_k, d_v=d_v, dropout=dropout,
                         diffusion_embedding_dim=diff_emb_dim, diagonal_attention_mask=diagonal_attention_mask)
-            for _ in range(n_layers)
+            for _ in range(n_layers-1)
         ])
         self.diffusion_embedding = DiffusionEmbedding(diff_steps, diff_emb_dim)
         self.dropout = nn.Dropout(p=dropout)
