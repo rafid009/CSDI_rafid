@@ -64,16 +64,16 @@ model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
 filename = 'model_csdi.pth'
-train(
-    model_csdi,
-    config_dict_csdi["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=model_folder,
-    filename=filename
-)
+# train(
+#     model_csdi,
+#     config_dict_csdi["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename=filename
+# )
 # nsample = 50
-# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # evaluate(model_csdi, valid_loader, nsample=nsample, scaler=1, foldername=model_folder)
 # model_folder_exp = "./saved_model_explode"
 # if not os.path.isdir(model_folder_exp):
