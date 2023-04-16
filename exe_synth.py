@@ -372,8 +372,8 @@ config_dict_diffsaits = {
         'n_layers': 3,
         'd_time': 100,
         'n_feature': len(given_features),
-        'd_model': 64, #128,
-        'd_inner': 64, #128,
+        'd_model': 128,
+        'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
@@ -420,7 +420,7 @@ for l in lengths:
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
     evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
     print(f"Random Missing:")
-    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=30)
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=20)
     evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 

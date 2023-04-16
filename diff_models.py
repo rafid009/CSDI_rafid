@@ -309,7 +309,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
+        attn_weights = attn_weights_2 #torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, None#attn_weights_f
 
@@ -389,7 +389,6 @@ class diff_SAITS_3(nn.Module):
             cond_X, attn_weights_f = feat_enc_layer(cond_X)
         cond_X = torch.transpose(cond_X, 1, 2)
         
-
 
         # before combi 2
         # input_X_for_first = torch.cat([X[:,1,:,:], masks[:,1,:,:]], dim=2)

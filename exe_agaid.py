@@ -39,13 +39,13 @@ config_dict_csdi = {
         'n_layers': 3, 
         'd_time': 252,
         'n_feature': len(features),
-        'd_model': 256,
+        'd_model': 128,
         'd_inner': 128,
         'n_head': 4,
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.1,
-        'diagonal_attention_mask': True
+        'diagonal_attention_mask': False
     }
 }
 
@@ -81,7 +81,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 5000,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -101,7 +101,7 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "mix",
         'type': 'SAITS',
-        'n_layers': 4,
+        'n_layers': 3,
         'd_time': 252,
         'n_feature': len(features),
         'd_model': 128,
@@ -109,16 +109,16 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.1,
-        'diagonal_attention_mask': True
+        'dropout': 0.2,
+        'diagonal_attention_mask': False
     }
 }
 print(config_dict_diffsaits)
 # model_diff_saits_simple = CSDI_Agaid(config_dict, device, is_simple=True).to(device)
 model_diff_saits = CSDI_Agaid(config_dict_diffsaits, device, is_simple=False).to(device)
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_final_stable_feat_corr.pth'
-config_info = 'model_diff_saits_final_stack.pth'
+filename = 'model_diff_saits_final.pth'
+config_info = 'model_diff_saits_final.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
@@ -162,19 +162,22 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_out_feat"
-
+mse_folder = "results_agaidt"
+data_folder = "results_data_agaid"
 lengths = [100]#[20, 50, 100, 200]
 print("For All")
 for l in lengths:
     print(f"For length: {l}")
     # evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
     print(f"Blackout Missing:\n")
-    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33)
+    evaluate_imputation(models, mse_folder, length=l, trials=10, season_idx=33)
+    evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
     print(f"Forecasting:\n")
     evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33, forecasting=True)
+    evaluate_imputation(models, mse_folder=data_folder, length=l, forecasting=True, trials=1, data=True)
     print(f"Random Missing:\n")
-    evaluate_imputation(models, mse_folder, length=l, trials=20, season_idx=33, random_trial=True)
+    evaluate_imputation(models, mse_folder, length=l, trials=10, season_idx=33, random_trial=True)
+    evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
 
     # evaluate_imputation_data(models, length=l)
 
