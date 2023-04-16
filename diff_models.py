@@ -309,7 +309,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = attn_weights_2 # torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
+        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights, None#attn_weights_f
 
@@ -715,9 +715,6 @@ class ResidualEncoderLayer_3(nn.Module):
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
         y = x_proj + diff_proj + cond
-
-        # y = self.conv_layer(y)
-        # before combi 2
 
         y = torch.transpose(y, 1, 2) # (B, K, channels)
         y, attn_weights_1 = self.enc_layer_1(y)
