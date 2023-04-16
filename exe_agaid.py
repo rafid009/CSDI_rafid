@@ -81,9 +81,9 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
     
 config_dict_diffsaits = {
     'train': {
-        'epochs': 5000,
+        'epochs': 4000,
         'batch_size': 16 ,
-        'lr': 1.0e-3
+        'lr': 1.0e-4
     },      
     'diffusion': {
         'layers': 4, 
