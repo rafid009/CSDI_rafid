@@ -102,6 +102,7 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
+        'loss_weight': 0.3, 
         'd_time': 252,
         'n_feature': len(features),
         'd_model': 128,
