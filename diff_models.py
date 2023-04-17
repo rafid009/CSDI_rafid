@@ -495,7 +495,7 @@ class diff_SAITS_4(nn.Module):
         self.position_enc_cond = PositionalEncoding(d_model, n_position=d_time)
         self.position_enc_noise = PositionalEncoding(d_model, n_position=d_time)
 
-        self.conv_cond_X = Conv1d_with_init_saits_new(2, 1, 1)
+        # self.conv_cond_X = Conv1d_with_init_saits_new(2, 1, 1)
 
         # for operation on time dim
         self.embedding_1 = nn.Linear(actual_d_feature, d_model)
@@ -550,7 +550,8 @@ class diff_SAITS_4(nn.Module):
             # cond_X = self.conv_cond_X(cond_X) # (B, 1, L*K)
             # cond_X = torch.squeeze(cond_X, dim=1)
             # cond_X = cond_X.reshape(shape[0], shape[1], shape[2]) # (B, L, K)
-            cond_X = cond_X + X[:,0,:,:]
+            if i == 0:
+                cond_X = cond_X + X[:,0,:,:]
             cond_X = torch.transpose(cond_X, 1, 2)
             cond_X, attn_weights_f = self.layer_stack_for_feature_weights[i](cond_X)
             cond_X = torch.transpose(cond_X, 1, 2)
