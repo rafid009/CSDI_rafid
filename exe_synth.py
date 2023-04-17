@@ -28,7 +28,7 @@ class NumpyArrayEncoder(JSONEncoder):
 
 given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False, data=False):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False, data=False, missing_ratio=-1):
     # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
     nsample = 30
     # trials = 30
@@ -48,7 +48,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         CRPS_csdi = 0
         CRPS_diff_saits = 0
         for i in range(trials):
-            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i, forward_trial=forward_trial, random_trial=random_trial)
+            test_loader = get_testloader(n_steps, len(given_features), 1, exclude_features=exclude_features, length=length, seed=5*i, forward_trial=forward_trial, random_trial=random_trial, missing_ratio=missing_ratio)
             
             for j, test_batch in enumerate(test_loader, start=1):
                 if 'CSDI' in models.keys():
@@ -193,11 +193,11 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
     if data:
-        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_random_{random_trial}_forecast_{forward_trial}.json", "w")
+        fp = open(f"{mse_folder}/samples-{exclude_key if len(exclude_key) != 0 else 'all'}-{length}_random_{random_trial}_forecast_{forward_trial}_miss_{missing_ratio}.json", "w")
         json.dump(results, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
     else:
-        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_random_{random_trial}_forecast_{forward_trial}.json", "w")
+        out_file = open(f"{mse_folder}/mse_mae_{exclude_key if len(exclude_key) != 0 else 'all'}_{length}_random_{random_trial}_forecast_{forward_trial}_miss_{missing_ratio}.json", "w")
         json.dump(season_avg_mse, out_file, indent = 4)
         out_file.close()
 
@@ -422,9 +422,9 @@ for l in lengths:
 
 miss_ratios = [0.1, 0.2, 0.5, 0.8]
 for ratio in miss_ratios:
-    print(f"\nRandom Missing:\n")
+    print(f"\nRandom Missing: ratio ({ratio})\n")
     evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
-
+    evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
 # print("For All")
 # for l in lengths:
 #     print(f"For length: {l}")

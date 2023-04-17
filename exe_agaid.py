@@ -177,13 +177,13 @@ for l in lengths:
     evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
     print(f"\nForecasting:\n")
     evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l, forecasting=True)
-    evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
+    evaluate_imputation(models, mse_folder=data_folder, length=l, forecasting=True, trials=1, data=True)
 
 miss_ratios = [0.1, 0.2, 0.5, 0.8]
 for ratio in miss_ratios:
-    print(f"\nRandom Missing:\n")
+    print(f"\nRandom Missing: ratio ({ratio})\n")
     evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, missing_ratio=ratio, random_trial=True)
-
+    evaluate_imputation(models, mse_folder=data_folder, random_trial=True, trials=1, data=True, missing_ratio=ratio)
 
 
 # print("For All")
