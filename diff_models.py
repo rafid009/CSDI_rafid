@@ -542,7 +542,7 @@ class diff_SAITS_4(nn.Module):
         pos_cond = self.position_enc_cond(cond)
 
         cond_X = X[:,0,:,:] + X[:,1,:,:] # (B, K, L)
-        skips_tilde_1 = torch.zeros_like(cond_X)
+        skips_tilde_1 = torch.zeros_like(cond)
         for i in range(len(self.layer_stack_for_first_block)):
             cond_X = torch.stack([cond_X, masks[:,1,:,:]], dim=1) # (B, K, L)
             cond_X = torch.transpose(cond_X, 2, 3) # (B, 2, L, K)
@@ -587,6 +587,7 @@ class diff_SAITS_4(nn.Module):
                 attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
             
             cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :]
+            
             skips_tilde_1 += skip
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_dim_gamma(F.relu(self.reduce_skip_z(skips_tilde_1)))
