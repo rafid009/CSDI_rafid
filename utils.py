@@ -8,6 +8,7 @@ from json import JSONEncoder
 import os
 from dataset_agaid import get_testloader, get_testloader_agaid
 from dataset_synth import get_testloader_synth
+from dataset_physio import get_testloader_physio
 import matplotlib.pyplot as plt
 import matplotlib
 from main_model import CSDI_Agaid
@@ -570,43 +571,43 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                             continue
                         if 'CSDI' in models.keys():
                             mse_csdi = ((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                            mse_csdi = math.sqrt(mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                            mse_csdi = mse_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                             mae_csdi = torch.abs((samples_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                             mae_csdi = mae_csdi.sum().item() / eval_points[0, :, feature_idx].sum().item()
                             
                             if feature not in mse_csdi_total.keys():
-                                mse_csdi_total[feature] = {'rmse': 0, 'mae': 0}
+                                mse_csdi_total[feature] = {'mse': 0, 'mae': 0}
                             
-                            mse_csdi_total[feature]["rmse"] += mse_csdi
+                            mse_csdi_total[feature]["mse"] += mse_csdi
                             mse_csdi_total[feature]['mae'] += mae_csdi
 
                         if feature not in mse_diff_saits_total.keys():
-                            mse_diff_saits_total[feature] = {'rmse': 0, 'mae': 0, 'diff_rmse_med': 0}
+                            mse_diff_saits_total[feature] = {'mse': 0, 'mae': 0, 'diff_mse_med': 0}
 
                         mse_diff_saits = ((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits = math.sqrt(mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                        mse_diff_saits = mse_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                         mse_diff_saits_median = ((samples_diff_saits_median.values[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
-                        mse_diff_saits_median = math.sqrt(mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                        mse_diff_saits_median = mse_diff_saits_median.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                         mae_diff_saits = torch.abs((samples_diff_saits_mean[0, :, feature_idx] - c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
                         mae_diff_saits = mae_diff_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         
-                        mse_diff_saits_total[feature]["rmse"] += mse_diff_saits
+                        mse_diff_saits_total[feature]["mse"] += mse_diff_saits
                         mse_diff_saits_total[feature]["mae"] += mae_diff_saits
-                        mse_diff_saits_total[feature]["diff_rmse_med"] += mse_diff_saits_median
+                        mse_diff_saits_total[feature]["diff_mse_med"] += mse_diff_saits_median
 
 
                         mse_saits = ((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx]) ** 2
                         mae_saits = torch.abs((torch.tensor(saits_output[0, :, feature_idx], device=device)- c_target[0, :, feature_idx]) * eval_points[0, :, feature_idx])
-                        mse_saits = math.sqrt(mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item())
+                        mse_saits = mse_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
                         mae_saits = mae_saits.sum().item() / eval_points[0, :, feature_idx].sum().item()
 
                         if feature not in mse_saits_total.keys():
-                            mse_saits_total[feature] = {'rmse': 0, 'mae': 0}
+                            mse_saits_total[feature] = {'mse': 0, 'mae': 0}
 
-                        mse_saits_total[feature]['rmse'] += mse_saits
+                        mse_saits_total[feature]['mse'] += mse_saits
                         mse_saits_total[feature]['mae'] += mae_saits
                 CRPS_csdi += calc_quantile_CRPS(c_target, samples, eval_points, 0, 1)
                 CRPS_diff_saits += calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
@@ -614,7 +615,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         print(f"DiffSAITS CRPS: {CRPS_diff_saits/trials}")
         if not data:
             print(f"For season = {season}:")
-            for feature in features:
+            for feature in given_features:
                 if exclude_features is not None and feature in exclude_features:
                     continue
                 # if feature not in mse_csdi_total.keys() or feature not in mse_diff_saits_total.keys():
@@ -628,10 +629,10 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     mse_saits_total[feature][i] /= trials
                 if 'CSDI' in models.keys():
                     print(f"\n\tFor feature = {feature}\n\tCSDI mae: {mse_csdi_total[feature]['mae']}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
-                    print(f"\n\tFor feature = {feature}\n\tCSDI rmse: {mse_csdi_total[feature]['rmse']}\n\tDiffSAITS rmse: {mse_diff_saits_total[feature]['rmse']}\n\tDiffSAITS median: {mse_diff_saits_total[feature]['diff_rmse_med']}\n\tSAITS mse: {mse_saits_total[feature]['rmse']}")# \
+                    print(f"\n\tFor feature = {feature}\n\tCSDI mse: {mse_csdi_total[feature]['mse']}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}\n\tDiffSAITS median: {mse_diff_saits_total[feature]['diff_mse_med']}\n\tSAITS mse: {mse_saits_total[feature]['mse']}")# \
                 else:
                     print(f"\n\tFor feature = {feature}\n\tDiffSAITS mae: {mse_diff_saits_total[feature]['mae']}")
-                    print(f"\n\tFor feature = {feature}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['rmse']}")# \
+                    print(f"\n\tFor feature = {feature}\n\tDiffSAITS mse: {mse_diff_saits_total[feature]['mse']}")# \
                 
                 # DiffSAITSsimple mse: {mse_diff_saits_simple_total[feature]}")
                 # except:
@@ -663,15 +664,17 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         out_file.close()
 
 
-def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=10, length=-1, random_trial=False, forecasting=False, missing_ratio=-1):  
+def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=10, length=-1, random_trial=False, forecasting=False, missing_ratio=0.1, test_indices=None):  
     nsample = 50
     if 'CSDI' in models.keys():
         models['CSDI'].eval()
     if 'DiffSAITS' in models.keys():
         models['DiffSAITS'].eval()
 
-    results = {'csdi': {}, 'diffsaits': {}, 'saits': {}}
-    results_rmse = {'csdi': 0, 'diffsaits': 0, 'saits': 0}
+    results_trials_mse = {'csdi': {}, 'diffsaits': {}, 'saits': {}}
+    results_trials_mae = {'csdi': {}, 'diffsaits': {}, 'saits': {}}
+    results_mse = {'csdi': 0, 'diffsaits': 0, 'saits': 0}
+    results_mae = {'csdi': 0, 'diffsaits': 0, 'saits': 0}
     results_crps = {
         'csdi_trials':{}, 'csdi': 0, 
         'diffsaits_trials': {}, 'diffsaits': 0, 
@@ -681,13 +684,17 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         if dataset_name == 'synth':
             test_loader = get_testloader_synth(n_steps=100, n_features=7, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting)
         elif dataset_name == 'physio':
-            pass
+            test_loader = get_testloader_physio(test_indices=test_indices, seed=(10+trial), batch_size=batch_size, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting, length=length)
         else:
-            test_loader = get_testloader_agaid(seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecastig=forecasting)
+            test_loader = get_testloader_agaid(seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecastig=forecasting, batch_size=batch_size)
         
         csdi_rmse_avg = 0
         diffsaits_rmse_avg = 0
         saits_rmse_avg = 0
+
+        csdi_mae_avg = 0
+        diffsaits_mae_avg = 0
+        saits_mae_avg = 0
 
         csdi_crps_avg = 0
         diffsaits_crps_avg = 0
@@ -719,19 +726,33 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
             saits_X = gt_intact #test_batch['obs_data_intact']
             saits_output = models['SAITS'].impute(saits_X)
 
-            ###### RMSE ######
+            ###### MSE ######
 
             rmse_csdi = ((samples_median.values - c_target) * eval_points) ** 2
-            rmse_csdi = math.sqrt(rmse_csdi.sum().item() / eval_points.sum().item())
+            rmse_csdi = rmse_csdi.sum().item() / eval_points.sum().item()
             csdi_rmse_avg += rmse_csdi
 
             rmse_diff_saits = ((samples_diff_saits_mean - c_target) * eval_points) ** 2
-            rmse_diff_saits = math.sqrt(rmse_diff_saits.sum().item() / eval_points.sum().item())
+            rmse_diff_saits = rmse_diff_saits.sum().item() / eval_points.sum().item()
             diffsaits_rmse_avg += rmse_diff_saits
 
             rmse_saits = ((torch.tensor(saits_output, device=device)- c_target) * eval_points) ** 2
-            rmse_saits = math.sqrt(rmse_saits.sum().item() / eval_points.sum().item())
+            rmse_saits = rmse_saits.sum().item() / eval_points.sum().item()
             saits_rmse_avg += rmse_saits
+
+            ###### MSE ######
+
+            mae_csdi = torch.abs((samples_median.values - c_target) * eval_points)
+            mae_csdi = mae_csdi.sum().item() / eval_points.sum().item()
+            csdi_mae_avg += mae_csdi
+
+            mae_diff_saits = torch.abs((samples_diff_saits_mean - c_target) * eval_points)
+            mae_diff_saits = mae_diff_saits.sum().item() / eval_points.sum().item()
+            diffsaits_mae_avg += mae_diff_saits
+
+            mae_saits = torch.abs((torch.tensor(saits_output, device=device)- c_target) * eval_points)
+            mae_saits = mae_saits.sum().item() / eval_points.sum().item()
+            saits_mae_avg += mae_saits
 
             ###### CRPS ######
 
@@ -741,14 +762,25 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
             diff_saits_crps = calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
             diffsaits_crps_avg += diff_saits_crps
 
-        results['csdi'][trial] = csdi_rmse_avg / batch_size
-        results_rmse['csdi'] += csdi_rmse_avg / batch_size
+        results_trials_mse['csdi'][trial] = csdi_rmse_avg / batch_size
+        results_mse['csdi'] += csdi_rmse_avg / batch_size
 
-        results['diffsaits'][trial] = diffsaits_rmse_avg / batch_size
-        results_rmse['diffsaits'] += diffsaits_rmse_avg / batch_size
+        results_trials_mse['diffsaits'][trial] = diffsaits_rmse_avg / batch_size
+        results_mse['diffsaits'] += diffsaits_rmse_avg / batch_size
 
-        results['saits'][trial] = saits_rmse_avg / batch_size
-        results_rmse['saits'] += saits_rmse_avg / batch_size
+        results_trials_mse['saits'][trial] = saits_rmse_avg / batch_size
+        results_mse['saits'] += saits_rmse_avg / batch_size
+
+
+        results_trials_mae['csdi'][trial] = csdi_mae_avg / batch_size
+        results_mae['csdi'] += csdi_mae_avg / batch_size
+
+        results_trials_mae['diffsaits'][trial] = diffsaits_mae_avg / batch_size
+        results_mae['diffsaits'] += diffsaits_mae_avg / batch_size
+
+        results_trials_mae['saits'][trial] = saits_mae_avg / batch_size
+        results_mae['saits'] += saits_mae_avg / batch_size
+
 
         results_crps['csdi_trials'][trial] = csdi_crps
         results_crps['csdi'] += csdi_crps
@@ -756,26 +788,44 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         results_crps['diffsaits_trials'][trial] = diffsaits_crps_avg / batch_size
         results_crps['diffsaits'] += diffsaits_crps_avg / batch_size
 
-    results_rmse['csdi'] /= trials
-    results_rmse['diffsaits'] /= trials
-    results_rmse['saits'] /= trials
+    results_mse['csdi'] /= trials
+    results_mse['diffsaits'] /= trials
+    results_mse['saits'] /= trials
+
+    print(f"MSE loss:\n\tCSDI: {results_mse['csdi']}\n\tDiffSAITS: {results_mse['diffsaits']}\n\tSAITS: {results_mse['saits']}")
+
+    results_mae['csdi'] /= trials
+    results_mae['diffsaits'] /= trials
+    results_mae['saits'] /= trials
+
+    print(f"MAE loss:\n\tCSDI: {results_mae['csdi']}\n\tDiffSAITS: {results_mae['diffsaits']}\n\tSAITS: {results_mae['saits']}")
 
     results_crps['csdi'] /= trials
     results_crps['diffsaits'] /= trials
 
+    print(f"CRPS:\n\tCSDI: {results_crps['csdi']}\n\tDiffSAITS: {results_crps['diffsaits']}")
+
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
 
-    fp = open(f"{mse_folder}/rmse-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results, fp=fp, indent=4)
+    fp = open(f"{mse_folder}/mse-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+    json.dump(results_trials_mse, fp=fp, indent=4)
     fp.close()
 
-    fp = open(f"{mse_folder}/rmse-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results_rmse, fp=fp, indent=4)
+    fp = open(f"{mse_folder}/mae-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+    json.dump(results_trials_mae, fp=fp, indent=4)
+    fp.close()
+
+    fp = open(f"{mse_folder}/mse-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+    json.dump(results_mse, fp=fp, indent=4)
+    fp.close()
+
+    fp = open(f"{mse_folder}/mae-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+    json.dump(results_mae, fp=fp, indent=4)
     fp.close()
     
     fp = open(f"{mse_folder}/crps-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results, fp=fp, indent=4)
+    json.dump(results_crps, fp=fp, indent=4)
     fp.close()
 
 
@@ -962,121 +1012,4 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
                 }
                 draw_data_plot(results, feature, season, folder=f"subplots_result/subplots-{exclude_key if len(exclude_key) != 0 else 'all'}", num_missing=length)
 
-def graph_bar_diff_multi(diff_folder, GT_values, result_dict, title, x, xlabel, ylabel, season, feature, missing=None, existing=-1):
-    plot_dict = {}
-    plt.figure(figsize=(32,20))
-    for key, value in result_dict.items():
-        # print(f"key: {key}")
-        if missing is None:
-            plot_dict[key] = np.abs(GT_values) - np.abs(value)
-        else:
-            plot_dict[key] = np.abs(GT_values) - np.abs(value[missing])
-    # ind = np.arange(prediction.shape[0])
-    # x = np.array(x)
-    width = 0.7
-    pos = 0
-    remove_keys = ['real', 'missing']
 
-    colors = ['tab:orange', 'tab:blue', 'tab:cyan', 'tab:purple']
-    # if drop_linear:
-    #   remove_keys.append('LinearInterp')
-    i = 0
-    for key, value in plot_dict.items():
-        if key not in remove_keys:
-            # print(f"x = {len(x)}, value = {len(value)}")
-            print(f"x={x}\npos={pos}\nvalue={value}\nwidth={width}")
-            plt.bar(x + pos, value, width, label = key, color=colors[i])
-            i += 1
-            pos += width
-
-    plt.xlabel(xlabel, fontsize=20)
-    plt.ylabel(ylabel, fontsize=20)
-    plt.title(title, fontsize=25)
-    plt.xticks([r + width for r in range(len(x))], [str(i) for i in x],fontsize=20)
-    plt.yticks(fontsize=20)
-    # plt.axis([0, 80, -2, 3])
-
-    plt.legend(loc='best', fontsize=25)
-    plt.tight_layout(pad=5)
-    folder = f"{diff_folder}/{season}"
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
-    plt.savefig(f'{folder}/diff-{feature}-{season}-{existing}.png', dpi=300)
-    plt.close()
-
-def forward_evaluation(models, filename, features):
-    seasons = {
-        # '1988-1989': 0,
-        # '1989-1990': 1,
-        # '1990-1991': 2,
-        # '1991-1992': 3,
-        # '1992-1993': 4,
-        # '1993-1994': 5,
-        # '1994-1995': 6,
-        # '1995-1996': 7,
-        # '1996-1997': 8,
-        # '1997-1998': 9,
-        # '1998-1999': 10,
-        # '1999-2000': 11,
-        # '2000-2001': 12,
-        # '2001-2002': 13,
-        # '2002-2003': 14,
-        # '2003-2004': 15,
-        # '2004-2005': 16,
-        # '2005-2006': 17,
-        # '2006-2007': 18,
-        # '2007-2008': 19,
-        # '2008-2009': 20,
-        # '2009-2010': 21,
-        # '2010-2011': 22,
-        # '2011-2012': 23,
-        # '2012-2013': 24,
-        # '2013-2014': 25,
-        # '2014-2015': 26,
-        # '2015-2016': 27,
-        # '2016-2017': 28,
-        # '2017-2018': 29,
-        # '2018-2019': 30,
-        # '2019-2020': 31,
-        '2020-2021': 32,
-        # '2021-2022': 33,
-    }
-    nsample = 50
-    for season in seasons.keys():
-        season_idx = seasons[season]
-        df = pd.read_csv(filename)
-        modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
-        season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
-        train_season_df = season_df.drop(season_array[-1], axis=0)
-        train_season_df = train_season_df.drop(season_array[-2], axis=0)
-        mean, std = get_mean_std(train_season_df, features)
-        X, Y = split_XY(season_df, max_length, season_array, features)
-        X = np.expand_dims(X[season_idx], 0)
-        lte_idx = features.index('LTE50')
-        indices = np.where(~np.isnan(X[0, :, lte_idx]))[0].tolist()
-        for i in range(2, len(indices) - 1):
-            test_loader = get_forward_testloader(X, mean, std, forward_trial=i, lte_idx=lte_idx)
-
-            for j, test_batch in enumerate(test_loader, start=1):
-                output = models['CSDI'].evaluate(test_batch, nsample)
-                samples, c_target, eval_points, observed_points, observed_time, obs_data_intact, gt_intact = output
-                samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
-                c_target = c_target.permute(0, 2, 1)  # (B,L,K)
-                eval_points = eval_points.permute(0, 2, 1)
-                observed_points = observed_points.permute(0, 2, 1)
-                samples_median = samples.median(dim=1)
-                gt_intact = gt_intact.squeeze(axis=0)
-                saits_output = models['SAITS'].impute(gt_intact)
-                start = indices[i]
-                mse_saits_same = ((torch.tensor(saits_output[0, start, lte_idx], device=device)- c_target[0, start, lte_idx])) ** 2
-                mse_saits_next = ((torch.tensor(saits_output[0, indices[i+1], lte_idx], device=device)- c_target[0, indices[i+1], lte_idx])) ** 2
-                
-                mse_csdi_same = ((samples_median.values[0, start, lte_idx] - c_target[0, start, lte_idx])) ** 2
-                mse_csdi_next = ((samples_median.values[0, indices[i+1], lte_idx] - c_target[0, indices[i+1], lte_idx])) ** 2
-
-                print(f"Season: {season} LTE50 Existing: {i-1} :\n\tSAITS:\n\t\tSame day: {mse_saits_same}\n\t\tNext LTE: {mse_saits_next}\n\tCSDI:\n\t\tSame day: {mse_csdi_same}\n\t\tNext day: {mse_csdi_next}")
-                results_for_diff = {
-                    'SAITS': saits_output[0, :, lte_idx] * eval_points[0, :, lte_idx].cpu().numpy(),
-                    'CSDI': samples_median.values[0, :, lte_idx].cpu().numpy() * eval_points[0, :, lte_idx].cpu().numpy()
-                }
-                graph_bar_diff_multi(f"diff_LTE", c_target[0, :, lte_idx].cpu().numpy() * eval_points[0, :, lte_idx].cpu().numpy(), results_for_diff, f'Season: {season}, LTE50 prediction existing GT: {i-1}', np.arange(len(c_target[0, :, lte_idx])), 'Days', 'Difference from GT (LTE50)', season, 'LTE50', existing=(i-1))

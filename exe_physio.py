@@ -149,19 +149,19 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_rmse_synth"
+mse_folder = "results_crps_mse_synth"
 data_folder = "results_synth_data"
-lengths = [10, 20, 40, 50]
+lengths = [10, 20, 30]
 for l in lengths:
     print(f"length = {l}")
     print(f"\nBlackout:\n")
-    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l, test_indices=test_indices)
     print(f"\nForecasting:\n")
-    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l, forecasting=True)
+    evaluate_imputation_all(models=models, trials=1, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l, forecasting=True, test_indices=test_indices)
 
-miss_ratios = [0.1, 0.2, 0.5, 0.8]
+miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})\n")
-    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='physio', batch_size=16, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='physio', batch_size=16, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
 
 
