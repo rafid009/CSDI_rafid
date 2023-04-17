@@ -543,7 +543,7 @@ class diff_SAITS_4(nn.Module):
 
         cond_X = X[:,0,:,:] + X[:,1,:,:] # (B, K, L)
         skips_tilde_1 = torch.zeros_like(cond_X)
-        for i in range(self.layer_stack_for_first_block):
+        for i in range(len(self.layer_stack_for_first_block)):
             cond_X = torch.stack([cond_X, masks[:,1,:,:]], dim=1) # (B, K, L)
             cond_X = torch.transpose(cond_X, 2, 3) # (B, 2, L, K)
             cond_X = cond_X.reshape(shape[0], -1, shape[1] * shape[2]) # (B, 2, L*K)
