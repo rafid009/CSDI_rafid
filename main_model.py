@@ -64,7 +64,8 @@ class CSDI_base(nn.Module):
         self.alpha = np.cumprod(self.alpha_hat)
         self.alpha_torch = torch.tensor(self.alpha).float().to(self.device).unsqueeze(1).unsqueeze(1)
         if self.is_saits:
-            self.loss_weight = config['model']['loss_weight']
+            self.loss_weight_p = config['model']['loss_weight_p']
+            self.loss_weight_f = config['model']['loss_weight_f']
 
     def time_embedding(self, pos, d_model=128):
         pe = torch.zeros(pos.shape[0], pos.shape[1], d_model).to(self.device)
@@ -173,7 +174,7 @@ class CSDI_base(nn.Module):
                 # recon_loss_3 = (noise - predicted_3) * cond_mask
                 pred_loss = ((pred_loss_1 ** 2).sum() + (pred_loss_2 ** 2).sum()) / (2 * (num_eval if num_eval > 0 else 1))
                 # loss = 0.7 * loss + 0.3 * recon_loss
-                loss = (1 - self.loss_weight) * loss + self.loss_weight * pred_loss
+                loss = self.loss_weight_f * loss + self.loss_weight_p * pred_loss
         else:
             predicted = self.diffmodel(total_input, side_info, t)  # (B,K,L)
             residual = (noise - predicted) * target_mask
