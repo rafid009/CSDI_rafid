@@ -532,7 +532,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
                     samples_diff_saits_median = samples_diff_saits.median(dim=1)
                     samples_diff_saits_mean = samples_diff_saits.mean(dim=1)
 
-                gt_intact = gt_intact.squeeze(axis=0)
+                # gt_intact = gt_intact.squeeze(axis=0)
                 saits_X = gt_intact #test_batch['obs_data_intact']
                 saits_output = models['SAITS'].impute(saits_X)
                 
