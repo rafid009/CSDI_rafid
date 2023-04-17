@@ -410,34 +410,35 @@ models = {
 }
 mse_folder = "results_crps_rmse_synth"
 data_folder = "results_synth_data"
-lengths = [10, 20, 40, 50]
-for l in lengths:
-    print(f"length = {l}")
-    print(f"\nBlackout:\n")
-    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
-    evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-    print(f"\nForecasting:\n")
-    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l, forecasting=True)
-    evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-
-miss_ratios = [0.1, 0.2, 0.5, 0.8]
-for ratio in miss_ratios:
-    print(f"\nRandom Missing: ratio ({ratio})\n")
-    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
-    evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
-# print("For All")
+# lengths = [10, 20, 40, 50]
 # for l in lengths:
-#     print(f"For length: {l}")
-#     # evaluate_imputation(models, mse_folder, length=l, trials=1)
-#     print(f"blackout Missing:\n")
-#     evaluate_imputation(models, mse_folder, length=l, trials=10)
+#     print(f"length = {l}")
+#     print(f"\nBlackout:\n")
+#     evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
 #     evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-#     print(f"Forecasting case:\n")
-#     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
+#     print(f"\nForecasting:\n")
+#     evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l, forecasting=True)
 #     evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-#     print(f"Random Missing:")
-#     evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=20)
-#     evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
+
+# miss_ratios = [0.1, 0.2, 0.5, 0.8]
+# for ratio in miss_ratios:
+#     print(f"\nRandom Missing: ratio ({ratio})\n")
+#     evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
+#     evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
+lengths = [20]
+print("For All")
+for l in lengths:
+    print(f"For length: {l}")
+    # evaluate_imputation(models, mse_folder, length=l, trials=1)
+    print(f"blackout Missing:\n")
+    evaluate_imputation(models, mse_folder, length=l, trials=10)
+    # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
+    print(f"Forecasting case:\n")
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
+    # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
+    print(f"Random Missing:")
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=20)
+    # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 
 # feature_combinations = {

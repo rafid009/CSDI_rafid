@@ -383,7 +383,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=-1, season_idx=None, random_trial=False, forecasting=False, data=False, missing_ratio=-1):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=-1, season_idx=None, random_trial=False, forecasting=False, data=False, missing_ratio=0.2):
     seasons = {
     '1988-1989': 0,
     '1989-1990': 1,
@@ -663,7 +663,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         out_file.close()
 
 
-def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=20, length=-1, random_trial=False, forecasting=False, missing_ratio=-1):  
+def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=10, length=-1, random_trial=False, forecasting=False, missing_ratio=-1):  
     nsample = 50
     if 'CSDI' in models.keys():
         models['CSDI'].eval()

@@ -9,7 +9,7 @@ import pickle
 import numpy as np
 from main_model import CSDI_Physio
 from dataset_physio import get_dataloader, attributes
-from utils import train, evaluate, get_num_params
+from utils import train, evaluate, get_num_params, evaluate_imputation_all
 
 # parser = argparse.ArgumentParser(description="CSDI")
 # parser.add_argument("--config", type=str, default="base.yaml")
@@ -142,4 +142,26 @@ X = np.array(X)
 saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
 pickle.dump(saits, open(saits_model_file, 'wb'))
 saits = pickle.load(open(saits_model_file, 'rb'))
+
+
+models = {
+    'CSDI': model_csdi,
+    'SAITS': saits,
+    'DiffSAITS': model_diff_saits
+}
+mse_folder = "results_crps_rmse_synth"
+data_folder = "results_synth_data"
+lengths = [10, 20, 40, 50]
+for l in lengths:
+    print(f"length = {l}")
+    print(f"\nBlackout:\n")
+    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l)
+    print(f"\nForecasting:\n")
+    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l, forecasting=True)
+
+miss_ratios = [0.1, 0.2, 0.5, 0.8]
+for ratio in miss_ratios:
+    print(f"\nRandom Missing: ratio ({ratio})\n")
+    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='physio', batch_size=16, missing_ratio=ratio, random_trial=True)
+
 
