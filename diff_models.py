@@ -541,16 +541,17 @@ class diff_SAITS_4(nn.Module):
         diff_emb = self.diffusion_embedding(diffusion_step)
         pos_cond = self.position_enc_cond(cond)
 
-        cond_X = X[:,0,:,:] + X[:,1,:,:] # (B, K, L)
+        cond_X = X[:,1,:,:] # (B, K, L)
         skips_tilde_1 = torch.zeros_like(cond)
         for i in range(len(self.layer_stack_for_first_block)):
-            cond_X = torch.stack([cond_X, masks[:,1,:,:]], dim=1) # (B, K, L)
-            cond_X = torch.transpose(cond_X, 2, 3) # (B, 2, L, K)
-            cond_X = cond_X.reshape(shape[0], -1, shape[1] * shape[2]) # (B, 2, L*K)
-            cond_X = self.conv_cond_X(cond_X) # (B, 1, L*K)
-            cond_X = torch.squeeze(cond_X, dim=1)
-            cond_X = cond_X.reshape(shape[0], shape[1], shape[2]) # (B, L, K)
-
+            # cond_X = torch.stack([cond_X, masks[:,1,:,:]], dim=1) # (B, K, L)
+            # cond_X = torch.transpose(cond_X, 2, 3) # (B, 2, L, K)
+            # cond_X = cond_X.reshape(shape[0], -1, shape[1] * shape[2]) # (B, 2, L*K)
+            # cond_X = self.conv_cond_X(cond_X) # (B, 1, L*K)
+            # cond_X = torch.squeeze(cond_X, dim=1)
+            # cond_X = cond_X.reshape(shape[0], shape[1], shape[2]) # (B, L, K)
+            cond_X = cond_X + X[:,0,:,:]
+            cond_X = torch.transpose(cond_X, 1, 2)
             cond_X, attn_weights_f = self.layer_stack_for_feature_weights[i](cond_X)
             cond_X = torch.transpose(cond_X, 1, 2)
 
@@ -586,8 +587,10 @@ class diff_SAITS_4(nn.Module):
                 attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
                 attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
             
-            cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :]
-            
+            if (i + 1) % 2 == 0:
+                cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :]
+            else:
+                cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 #+ X[:, 1, :, :]
             skips_tilde_1 += skip
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_dim_gamma(F.relu(self.reduce_skip_z(skips_tilde_1)))
