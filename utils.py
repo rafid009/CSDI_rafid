@@ -679,7 +679,7 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         }
     for trial in range(trials):
         if dataset_name == 'synth':
-            test_loader = get_testloader_synth(n_steps=100, n_features=7, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecastig=forecasting)
+            test_loader = get_testloader_synth(n_steps=100, n_features=7, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting)
         elif dataset_name == 'physio':
             pass
         else:
