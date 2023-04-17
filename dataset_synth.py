@@ -140,9 +140,9 @@ def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10,
     test_loader = DataLoader(test_dataset, batch_size=1)
     return test_loader
 
-def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=False, random_trial=False):
+def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forecasting=False, random_trial=False):
     np.random.seed(seed=seed)
-    if forward_trial:
+    if forecasting:
         forward = n_steps - length
         test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, forward_trial=forward)
     else:
