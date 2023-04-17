@@ -165,7 +165,7 @@ class CSDI_base(nn.Module):
             residual_3 = (noise - predicted_3) * target_mask
             # loss = ((residual_1 ** 2).sum() * 0.5 + (residual_2 ** 2).sum() * 0.5 + (residual_3 ** 2).sum()) / (3 * (num_eval if num_eval > 0 else 1))
             loss = (residual_3 ** 2).sum() / (num_eval if num_eval > 0 else 1)
-            if is_train != 0 and (pred_loss_1 is not None) and (predicted_2 is not None):
+            if is_train != 0 and (predicted_1 is not None) and (predicted_2 is not None):
 
                 pred_loss_1 = (noise - predicted_1) * target_mask
                 pred_loss_2 = (noise - predicted_2) * target_mask
