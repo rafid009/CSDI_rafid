@@ -64,14 +64,14 @@ model_folder = "./saved_model"
 # if not os.path.isdir(model_folder):
 #     os.makedirs(model_folder)
 filename = 'model_csdi.pth'
-# train(
-#     model_csdi,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=filename
-# )
+train(
+    model_csdi,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=filename
+)
 # nsample = 50
 model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"CSDI params: {get_num_params(model_csdi)}")
@@ -138,24 +138,24 @@ train(
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
 
-# filename = "ColdHardiness_Grape_Merlot_2.csv"
-# df = pd.read_csv(filename)
-# modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
-# season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
-# train_season_df = season_df.drop(season_array[-1], axis=0)
-# # train_season_df = train_season_df.drop(season_array[-2], axis=0)
-# mean, std = get_mean_std(train_season_df, features)
-# X, Y = split_XY(season_df, max_length, season_array, features)
+filename = "ColdHardiness_Grape_Merlot_2.csv"
+df = pd.read_csv(filename)
+modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+train_season_df = season_df.drop(season_array[-1], axis=0)
+# train_season_df = train_season_df.drop(season_array[-2], axis=0)
+mean, std = get_mean_std(train_season_df, features)
+X, Y = split_XY(season_df, max_length, season_array, features)
 
-# # # observed_mask = ~np.isnan(X)
+# # observed_mask = ~np.isnan(X)
 
-# X = X[:-1]
-# X = (X - mean) / std
+X = X[:-1]
+X = (X - mean) / std
 saits_model_file = f"{model_folder}/model_saits.pth"
 saits = SAITS(n_steps=252, n_features=len(features), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
-# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-# pickle.dump(saits, open(saits_model_file, 'wb'))
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
 
 saits = pickle.load(open(saits_model_file, 'rb'))
 
@@ -167,20 +167,37 @@ models = {
 }
 mse_folder = "results_agaidt"
 data_folder = "results_data_agaid"
-lengths = [100]#[20, 50, 100, 200]
-print("For All")
+lengths = [20, 50, 100, 200]
+
 for l in lengths:
-    print(f"For length: {l}")
-    # evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
-    print(f"Blackout Missing:\n")
-    evaluate_imputation(models, mse_folder, length=l, trials=10, season_idx=33)
+    print(f"length = {l}")
+    print(f"\nBlackout:\n")
+    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l)
     evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-    print(f"Forecasting:\n")
-    evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33, forecasting=True)
-    evaluate_imputation(models, mse_folder=data_folder, length=l, forecasting=True, trials=1, data=True)
-    print(f"Random Missing:\n")
-    evaluate_imputation(models, mse_folder, length=l, trials=10, season_idx=33, random_trial=True)
-    evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
+    print(f"\nForecasting:\n")
+    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l, forecasting=True)
+    evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
+
+miss_ratios = [0.1, 0.2, 0.5, 0.8]
+for ratio in miss_ratios:
+    print(f"\nRandom Missing:\n")
+    evaluate_imputation_all(models=models, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, missing_ratio=ratio, random_trial=True)
+
+
+
+# print("For All")
+# for l in lengths:
+#     print(f"For length: {l}")
+#     # evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33)
+#     print(f"Blackout Missing:\n")
+#     evaluate_imputation(models, mse_folder, length=l, trials=10, season_idx=33)
+#     evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
+#     print(f"Forecasting:\n")
+#     evaluate_imputation(models, mse_folder, length=l, trials=1, season_idx=33, forecasting=True)
+#     evaluate_imputation(models, mse_folder=data_folder, length=l, forecasting=True, trials=1, data=True)
+#     print(f"Random Missing:\n")
+#     evaluate_imputation(models, mse_folder, length=l, trials=10, season_idx=33, random_trial=True)
+#     evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
 
     # evaluate_imputation_data(models, length=l)
 

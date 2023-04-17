@@ -32,7 +32,7 @@ def parse_data(x):
     return values
 
 
-def parse_id(id_, missing_ratio=0.1):
+def parse_id(id_, missing_ratio=0.1, is_test=False, forecasting=False, length=-1, random_trial=False):
     data = pd.read_csv("./data/physio/set-a/{}.txt".format(id_))
     # set hour
     data["Time"] = data["Time"].apply(lambda x: extract_hour(x))
@@ -46,18 +46,35 @@ def parse_id(id_, missing_ratio=0.1):
 
     # randomly set some percentage as ground-truth
     masks = observed_masks.reshape(-1).copy()
-    obs_indices = np.where(masks)[0].tolist()
-    miss_indices = np.random.choice(
-        obs_indices, (int)(len(obs_indices) * missing_ratio), replace=False
-    )
-    masks[miss_indices] = False
-    gt_masks = masks.reshape(observed_masks.shape)
-
+    if (not is_test) or random_trial:
+        obs_indices = np.where(masks)[0].tolist()
+        miss_indices = np.random.choice(
+            obs_indices, (int)(len(obs_indices) * missing_ratio), replace=False
+        )
+        masks[miss_indices] = False
+        gt_masks = masks.reshape(observed_masks.shape)
+        gt_intact = observed_values.reshape(-1).copy()
+        gt_intact[miss_indices] = np.nan
+    elif forecasting:
+        time_length = observed_values.shape[0]
+        start_idx = time_length - length
+        gt_intact = observed_values.copy()
+        gt_intact[start_idx:, :] = np.nan
+        gt_masks = ~np.isnan(gt_intact)
+    else:
+        a = np.arange(observed_values.shape[0] - length)
+        start_idx = np.random.choice(a)
+        end_idx = start_idx + length
+        gt_intact = observed_values.copy()
+        gt_intact[start_idx:end_idx, :] = np.nan
+        gt_masks = ~np.isnan(gt_intact)
+    
+    gt_intact = gt_intact.reshape(observed_values.shape)
     observed_values = np.nan_to_num(observed_values)
     observed_masks = observed_masks.astype("float32")
     gt_masks = gt_masks.astype("float32")
-
-    return observed_values, observed_masks, gt_masks
+    
+    return observed_values, observed_masks, gt_masks, gt_intact
 
 
 def get_idlist():
@@ -71,13 +88,14 @@ def get_idlist():
 
 
 class Physio_Dataset(Dataset):
-    def __init__(self, eval_length=48, use_index_list=None, missing_ratio=0.0, seed=0):
+    def __init__(self, eval_length=48, use_index_list=None, missing_ratio=0.0, seed=0, is_test=False, random_trial=False, forecasting=False, length=-1):
         self.eval_length = eval_length
         np.random.seed(seed)  # seed for ground truth choice
 
         self.observed_values = []
         self.observed_masks = []
         self.gt_masks = []
+        self.gt_intacts = []
         path = (
             "./data/physio_missing" + str(missing_ratio) + "_seed" + str(seed) + ".pk"
         )
@@ -86,18 +104,20 @@ class Physio_Dataset(Dataset):
             idlist = get_idlist()
             for id_ in idlist:
                 try:
-                    observed_values, observed_masks, gt_masks = parse_id(
-                        id_, missing_ratio
+                    observed_values, observed_masks, gt_masks, gt_intact = parse_id(
+                        id_, missing_ratio, is_test=is_test, forecasting=forecasting, length=length, random_trial=random_trial
                     )
                     self.observed_values.append(observed_values)
                     self.observed_masks.append(observed_masks)
                     self.gt_masks.append(gt_masks)
+                    self.gt_intacts.append(gt_intact)
                 except Exception as e:
                     print(id_, e)
                     continue
             self.observed_values = np.array(self.observed_values)
             self.observed_masks = np.array(self.observed_masks)
             self.gt_masks = np.array(self.gt_masks)
+            self.gt_intacts = np.array(self.gt_intacts)
 
             # calc mean and std and normalize values
             # (it is the same normalization as Cao et al. (2018) (https://github.com/caow13/BRITS))
@@ -134,6 +154,7 @@ class Physio_Dataset(Dataset):
             "observed_mask": self.observed_masks[index],
             "gt_mask": self.gt_masks[index],
             "timepoints": np.arange(self.eval_length),
+            'gt_intact': self.gt_intacts[index]
         }
         return s
 
@@ -174,4 +195,13 @@ def get_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
         use_index_list=test_index, missing_ratio=missing_ratio, seed=seed
     )
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=0)
-    return train_loader, valid_loader, test_loader
+    return train_loader, valid_loader, test_loader, test_index
+
+
+def get_testloader_physio(test_indices, seed=1, batch_size=16, missing_ratio=0.1, random_trial=False, forecasting=False, length=-1):
+    test_dataset = Physio_Dataset(
+        use_index_list=test_indices, missing_ratio=missing_ratio, seed=seed, is_test=True, 
+        random_trial=random_trial, forecasting=forecasting, length=length
+    )
+    test_loader = DataLoader(test_dataset, batch_size=batch_size)
+    return test_loader

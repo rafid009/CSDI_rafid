@@ -13,7 +13,19 @@ def parse_data(sample, rate=0.2, is_test=False, length=100, include_features=Non
         sample = sample.numpy()
 
     obs_mask = ~np.isnan(sample)
-    if random_trial:
+    if not is_test:
+        shp = sample.shape
+        evals = sample.reshape(-1).copy()
+        indices = np.where(~np.isnan(evals))[0].tolist()
+        indices = np.random.choice(indices, int(len(indices) * rate))
+        values = evals.copy()
+        values[indices] = np.nan
+        mask = ~np.isnan(values)
+        mask = mask.reshape(shp)
+        gt_intact = values.reshape(shp).copy()
+        obs_data = np.nan_to_num(evals, copy=True)
+        obs_data = obs_data.reshape(shp)
+    elif random_trial:
         evals = sample.copy()
         values = evals.copy()
         for i in range(evals.shape[1]):
@@ -30,19 +42,6 @@ def parse_data(sample, rate=0.2, is_test=False, length=100, include_features=Non
         gt_intact = sample.copy()
         gt_intact[start:, :] = np.nan
         mask = ~np.isnan(gt_intact)
-    elif not is_test:
-        shp = sample.shape
-        evals = sample.reshape(-1).copy()
-        indices = np.where(~np.isnan(evals))[0].tolist()
-        indices = np.random.choice(indices, int(len(indices) * rate))
-        values = evals.copy()
-        values[indices] = np.nan
-        mask = ~np.isnan(values)
-        mask = mask.reshape(shp)
-        gt_intact = values.reshape(shp).copy()
-        obs_data = np.nan_to_num(evals, copy=True)
-        obs_data = obs_data.reshape(shp)
-        # obs_data_intact = evals.reshape(shp)
     else:
         shp = sample.shape
         evals = sample.reshape(-1).copy()
@@ -111,7 +110,7 @@ class Agaid_Dataset(Dataset):
         self.mean = torch.tensor(mean, dtype=torch.float32)
         self.std = torch.tensor(std, dtype=torch.float32)
 
-        print(f"X: {X.shape} in {'Test' if is_test else 'Train'}")
+        # print(f"X: {X.shape} in {'Test' if is_test else 'Train'}")
         
         include_features = []
         if exclude_features is not None:
@@ -215,4 +214,21 @@ def get_testloader(filename='ColdHardiness_Grape_Merlot_2.csv', missing_ratio=0.
 def get_forward_testloader(X, mean, std, forward_trial=-1, lte_idx=None):  
     test_dataset = Agaid_Dataset(X, mean, std, is_test=True, forward_trial=forward_trial, lte_idx=lte_idx)
     test_loader = DataLoader(test_dataset, batch_size=1)
+    return test_loader
+
+def get_testloader_agaid(filename='ColdHardiness_Grape_Merlot_2.csv', batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=-1, random_trial=False, forecastig=False):
+    np.random.seed(seed=seed)
+    df = pd.read_csv(filename)
+    modified_df, dormant_seasons = preprocess_missing_values(df, features, is_dormant=True)
+    season_df, season_array, max_length = get_seasons_data(modified_df, dormant_seasons, features, is_dormant=True)
+
+    train_season_df = season_df.drop(season_array[-1], axis=0)
+    train_season_df = train_season_df.drop(season_array[-2], axis=0)
+    mean, std = get_mean_std(train_season_df, features)
+    X, Y = split_XY(season_df, max_length, season_array, features)
+    X = X[-2:]
+    if forecastig:
+        forward_trial = max_length - length
+    test_dataset = Agaid_Dataset(X, mean, std, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, forward_trial=forward_trial, randon_trial=random_trial)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size)
     return test_loader

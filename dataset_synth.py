@@ -11,7 +11,21 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
         sample = sample.numpy()
 
     obs_mask = ~np.isnan(sample)
-    if random_trial:
+    
+    if not is_test:
+        shp = sample.shape
+        evals = sample.reshape(-1).copy()
+        indices = np.where(~np.isnan(evals))[0].tolist()
+        indices = np.random.choice(indices, int(len(indices) * rate))
+        values = evals.copy()
+        values[indices] = np.nan
+        mask = ~np.isnan(values)
+        mask = mask.reshape(shp)
+        gt_intact = values.reshape(shp).copy()
+        obs_data = np.nan_to_num(evals, copy=True)
+        obs_data = obs_data.reshape(shp)
+        # obs_data_intact = evals.reshape(shp)
+    elif random_trial:
         evals = sample.copy()
         values = evals.copy()
         for i in range(evals.shape[1]):
@@ -28,19 +42,6 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
         gt_intact = sample.copy()
         gt_intact[start:, :] = np.nan
         mask = ~np.isnan(gt_intact)
-    elif not is_test:
-        shp = sample.shape
-        evals = sample.reshape(-1).copy()
-        indices = np.where(~np.isnan(evals))[0].tolist()
-        indices = np.random.choice(indices, int(len(indices) * rate))
-        values = evals.copy()
-        values[indices] = np.nan
-        mask = ~np.isnan(values)
-        mask = mask.reshape(shp)
-        gt_intact = values.reshape(shp).copy()
-        obs_data = np.nan_to_num(evals, copy=True)
-        obs_data = obs_data.reshape(shp)
-        # obs_data_intact = evals.reshape(shp)
     else:
         shp = sample.shape
         evals = sample.reshape(-1).copy()
@@ -137,4 +138,14 @@ def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10,
     else:
         test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, random_trial=random_trial)
     test_loader = DataLoader(test_dataset, batch_size=1)
+    return test_loader
+
+def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=False, random_trial=False):
+    np.random.seed(seed=seed)
+    if forward_trial:
+        forward = n_steps - length
+        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, forward_trial=forward)
+    else:
+        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, random_trial=random_trial)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size)
     return test_loader

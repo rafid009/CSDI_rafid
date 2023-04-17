@@ -353,6 +353,7 @@ class CSDI_Physio(CSDI_base):
         observed_mask = batch["observed_mask"].to(self.device).float()
         observed_tp = batch["timepoints"].to(self.device).float()
         gt_mask = batch["gt_mask"].to(self.device).float()
+        gt_intact = batch["gt_intact"]
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
         gt_mask = gt_mask.permute(0, 2, 1)
@@ -367,6 +368,8 @@ class CSDI_Physio(CSDI_base):
             gt_mask,
             for_pattern_mask,
             cut_length,
+            None,
+            gt_intact
         )
 
 class CSDI_Agaid(CSDI_base):

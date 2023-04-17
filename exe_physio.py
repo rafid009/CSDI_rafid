@@ -4,10 +4,12 @@ import datetime
 import json
 import yaml
 import os
-
+from pypots.imputation import SAITS
+import pickle
+import numpy as np
 from main_model import CSDI_Physio
-from dataset_physio import get_dataloader
-from utils import train, evaluate
+from dataset_physio import get_dataloader, attributes
+from utils import train, evaluate, get_num_params
 
 # parser = argparse.ArgumentParser(description="CSDI")
 # parser.add_argument("--config", type=str, default="base.yaml")
@@ -25,7 +27,7 @@ from utils import train, evaluate
 # print(args)
 
 args = {
-    'config': 'config/base.ymal',
+    'config': 'config/base.yaml',
     'device': 'cuda:0',
     'seed': 1,
     'testmissingratio': 0.1,
@@ -51,24 +53,92 @@ os.makedirs(foldername, exist_ok=True)
 with open(foldername + "config.json", "w") as f:
     json.dump(config, f, indent=4)
 
-train_loader, valid_loader, test_loader = get_dataloader(
+train_loader, valid_loader, test_loader, test_indices = get_dataloader(
     seed=args["seed"],
     nfold=args["nfold"],
     batch_size=config["train"]["batch_size"],
     missing_ratio=config["model"]["test_missing_ratio"],
 )
 
-model = CSDI_Physio(config, args.device).to(args.device)
+model_csdi = CSDI_Physio(config, args['device']).to(args['device'])
+model_folder = "saved_model_physio"
+train(
+    model_csdi,
+    config["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=foldername,
+    filename='model_csdi_physio.pth'
+)
 
-if args.modelfolder == "":
-    train(
-        model,
-        config["train"],
-        train_loader,
-        valid_loader=valid_loader,
-        foldername=foldername,
-    )
-else:
-    model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
+# model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
 
-evaluate(model, test_loader, nsample=args.nsample, scaler=1, foldername=foldername)
+config_dict_diffsaits = {
+    'train': {
+        'epochs': 5000,
+        'batch_size': 16 ,
+        'lr': 1.0e-3
+    },      
+    'diffusion': {
+        'layers': 4, 
+        'channels': 64,
+        'nheads': 8,
+        'diffusion_embedding_dim': 128,
+        'beta_start': 0.0001,
+        'beta_end': 0.5,
+        'num_steps': 50,
+        'schedule': "quad"
+    },
+    'model': {
+        'is_unconditional': 0,
+        'timeemb': 128,
+        'featureemb': 16,
+        'target_strategy': "random",
+        'type': 'SAITS',
+        'n_layers': 3,
+        'loss_weight': 0.3, 
+        'd_time': 48,
+        'n_feature': len(attributes),
+        'd_model': 128,
+        'd_inner': 128,
+        'n_head': 8,
+        'd_k': 64,
+        'd_v': 64,
+        'dropout': 0.2,
+        'diagonal_attention_mask': False
+    }
+}
+
+model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
+# filename_simple = 'model_diff_saits_simple.pth'
+filename = 'model_diff_saits_final.pth'
+config_info = 'model_diff_saits_final.pth'
+
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# 
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# nsample = 100
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
+
+saits_model_file = f"{model_folder}/model_saits.pth"
+saits = SAITS(n_steps=252, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+
+X = []
+for j, test_batch in enumerate(train_loader, start=1):
+    observed_data, _, _, _, _, _, _, _ = model_diff_saits.process_data(test_batch)
+    X.append(observed_data)
+X = np.array(X)
+
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
+saits = pickle.load(open(saits_model_file, 'rb'))
+
