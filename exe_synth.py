@@ -28,7 +28,7 @@ class NumpyArrayEncoder(JSONEncoder):
 
 given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
 
-def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False, data=False, missing_ratio=-1):
+def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False, data=False, missing_ratio=0.2):
     # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
     nsample = 30
     # trials = 30
@@ -437,7 +437,7 @@ for l in lengths:
     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
     print(f"Random Missing:")
-    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=20)
+    evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=20, missing_ratio=0.2)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
     # evaluate_imputation_data(models, length=l)
 
