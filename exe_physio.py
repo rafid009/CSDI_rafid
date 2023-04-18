@@ -27,7 +27,7 @@ from utils import train, evaluate, get_num_params, evaluate_imputation_all
 # print(args)
 
 args = {
-    'config': 'config/base.yaml',
+    'config': 'base.yaml',
     'device': 'cuda:0',
     'seed': 1,
     'testmissingratio': 0.1,
