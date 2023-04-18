@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_ds3"
-data_folder = "results_synth_data_ds3"
+mse_folder = "results_crps_mse_synth_ds3_final"
+data_folder = "results_synth_data_ds3_final"
 lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")

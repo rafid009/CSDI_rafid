@@ -680,7 +680,10 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         'diffsaits_trials': {}, 'diffsaits': 0, 
         'saits_trials': {}, 'saits': 0
         }
-    range_len = (length[0], length[1])
+    if forecasting:
+        range_len = (length[0], length[1])
+    else:
+        range_len = None
     for trial in range(trials):
         if forecasting:
             length = np.random.randint(low=range_len[0], high=range_len[1] + 1)

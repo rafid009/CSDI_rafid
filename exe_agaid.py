@@ -166,8 +166,8 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_agaid"
-data_folder = "results_data_agaid"
+mse_folder = "results_agaid_final"
+data_folder = "results_data_agaid_final"
 lengths = [20, 50, 100, 200]
 
 for l in lengths:

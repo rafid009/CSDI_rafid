@@ -149,8 +149,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_physio"
-data_folder = "results_physio_data"
+mse_folder = "results_crps_mse_physio_final"
+data_folder = "results_physio_data_final"
 lengths = [10, 20, 30]
 for l in lengths:
     print(f"\nlength = {l}")
