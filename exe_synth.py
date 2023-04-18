@@ -278,7 +278,7 @@ def evaluate_imputation_data(models, exclude_key='', exclude_features=None, leng
 seed = 10
 config_dict_csdi = {
     'train': {
-        'epochs': 1500,
+        'epochs': 2000,
         'batch_size': 16 ,
         'lr': 1.0e-4
     },      
@@ -416,8 +416,9 @@ for l in lengths:
     print(f"\nBlackout:")
     evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
     # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-    print(f"\nForecasting:")
-    evaluate_imputation_all(models=models, trials=1, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l, forecasting=True)
+
+print(f"\nForecasting:")
+evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=(10, 80), forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
 
 miss_ratios = [0.2, 0.5, 0.8]
