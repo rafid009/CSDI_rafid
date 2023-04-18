@@ -323,17 +323,17 @@ model_folder = "./saved_model_synth"
 filename = "model_csdi_synth.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
-# print(f"\n\nCSDI training starts.....\n")
-# train(
-#     model_csdi,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
-model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+print(f"\n\nCSDI training starts.....\n")
+train(
+    model_csdi,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_ds4.pth"
+filename = "model_diffsaits_synth_ds3.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,9 +408,9 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_ds4"
-data_folder = "results_synth_data_ds4"
-lengths = [10, 20, 50]
+mse_folder = "results_crps_mse_synth_ds3"
+data_folder = "results_synth_data_ds3"
+lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")

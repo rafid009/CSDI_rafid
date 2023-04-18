@@ -30,7 +30,7 @@ class CSDI_base(nn.Module):
         input_dim = 1 if self.is_unconditional == True else 2
         if config['model']['type'] == 'SAITS':
             self.is_saits = True
-            self.diffmodel = diff_SAITS_4(
+            self.diffmodel = diff_SAITS_3(
                 diff_steps=config['diffusion']['num_steps'],
                 n_layers=config['model']['n_layers'],
                 d_time=config['model']['d_time'],

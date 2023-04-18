@@ -173,7 +173,7 @@ lengths = [20, 50, 100, 200]
 for l in lengths:
     print(f"length = {l}")
     print(f"\nBlackout:\n")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l)
+    evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l)
     # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
     print(f"\nForecasting:\n")
     evaluate_imputation_all(models=models, trials=1, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l, forecasting=True)
@@ -182,7 +182,7 @@ for l in lengths:
 miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})\n")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, missing_ratio=ratio, random_trial=True)
     # evaluate_imputation(models, mse_folder=data_folder, random_trial=True, trials=1, data=True, missing_ratio=ratio)
 
 
