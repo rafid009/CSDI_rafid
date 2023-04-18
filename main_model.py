@@ -316,7 +316,7 @@ class CSDI_base(nn.Module):
 
 
 class CSDI_PM25(CSDI_base):
-    def __init__(self, config, device, target_dim=36):
+    def __init__(self, config, device, target_dim=36, is_simple=False):
         super(CSDI_PM25, self).__init__(target_dim, config, device)
 
     def process_data(self, batch):
@@ -342,7 +342,7 @@ class CSDI_PM25(CSDI_base):
 
 
 class CSDI_Physio(CSDI_base):
-    def __init__(self, config, device, target_dim=35):
+    def __init__(self, config, device, target_dim=35, is_simple=False):
         super(CSDI_Physio, self).__init__(target_dim, config, device)
 
     def process_data(self, batch):
