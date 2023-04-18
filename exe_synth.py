@@ -370,8 +370,8 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 0.3,
-        'loss_weight_f': 0.7,
+        'loss_weight_p': 0.5,
+        'loss_weight_f': 1,
         'd_time': 100,
         'n_feature': len(given_features),
         'd_model': 128,
@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_ds3.pth"
+filename = "model_diffsaits_synth_ds4.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,21 +408,21 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_ds3"
-data_folder = "results_synth_data_ds3"
+mse_folder = "results_crps_mse_synth_ds4"
+data_folder = "results_synth_data_ds4"
 lengths = [10, 20, 50]
 for l in lengths:
-    print(f"length = {l}")
-    print(f"\nBlackout:\n")
+    print(f"\nlength = {l}")
+    print(f"\nBlackout:")
     evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
     # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-    print(f"\nForecasting:\n")
+    print(f"\nForecasting:")
     evaluate_imputation_all(models=models, trials=1, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l, forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
 
 miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
-    print(f"\nRandom Missing: ratio ({ratio})\n")
+    print(f"\nRandom Missing: ratio ({ratio})")
     evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
 # lengths = [20]
