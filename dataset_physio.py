@@ -135,11 +135,11 @@ class Physio_Dataset(Dataset):
 
             with open(path, "wb") as f:
                 pickle.dump(
-                    [self.observed_values, self.observed_masks, self.gt_masks], f
+                    [self.observed_values, self.observed_masks, self.gt_masks, self.gt_intacts], f
                 )
         else:  # load datasetfile
             with open(path, "rb") as f:
-                self.observed_values, self.observed_masks, self.gt_masks = pickle.load(
+                self.observed_values, self.observed_masks, self.gt_masks, self.gt_intacts = pickle.load(
                     f
                 )
         if use_index_list is None:
