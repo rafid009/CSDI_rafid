@@ -320,7 +320,7 @@ train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, ba
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
-filename = "model_csdi_synth_final.pth"
+filename = "model_csdi_synth_final_new_time.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_final.pth"
+filename = "model_diffsaits_synth_new_time.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_ds3_final"
-data_folder = "results_synth_data_ds3_final"
+mse_folder = "results_crps_mse_synth_ds3_new_time"
+data_folder = "results_synth_data_ds3_new_time"
 lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")

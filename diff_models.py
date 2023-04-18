@@ -425,7 +425,6 @@ class diff_SAITS_3(nn.Module):
 
         # Feature attention added
         attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-
         if len(attn_weights_f.shape) == 4:
             # if having more than 1 head, then average attention weights from all heads
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
@@ -437,9 +436,9 @@ class diff_SAITS_3(nn.Module):
         X_tilde_1 = X_tilde_1 @ attn_weights_f + X_tilde_1
         # new time add
         X_tilde_1 = torch.transpose(X_tilde_1, 1, 2)
-        X_tilde_1 = X_tilde_1 @ attn_weights
+        X_tilde_1 = X_tilde_1 @ attn_weights + X_tilde_1
         X_tilde_1 = torch.transpose(X_tilde_1, 1, 2)
-        
+
         # Old stable better
         X_tilde_1 = X_tilde_1 + X[:, 1, :, :] 
 
