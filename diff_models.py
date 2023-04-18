@@ -406,12 +406,22 @@ class diff_SAITS_3(nn.Module):
         enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_1 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_first_block:
-            enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
+            # new time add
+            enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
+            # old stable better
+            # enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
             skips_tilde_1 += skip
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
-        # combi 2
-        # skips_tilde_1 = skips_tilde_1 + skips_tilde_1 @ attn_weights_f
+        
+        # new time add
+        attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
+        if len(attn_weights.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights = torch.transpose(attn_weights, 1, 3)
+            attn_weights = attn_weights.mean(dim=3)
+            attn_weights = torch.transpose(attn_weights, 1, 2)
+            attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
 
         # Feature attention added
         attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
@@ -423,7 +433,15 @@ class diff_SAITS_3(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
             attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
         X_tilde_1 = self.reduce_dim_z(enc_output)
-        X_tilde_1 = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :] 
+        # Old stable better
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + X_tilde_1
+        # new time add
+        X_tilde_1 = torch.transpose(X_tilde_1, 1, 2)
+        X_tilde_1 = X_tilde_1 @ attn_weights
+        X_tilde_1 = torch.transpose(X_tilde_1, 1, 2)
+        
+        # Old stable better
+        X_tilde_1 = X_tilde_1 + X[:, 1, :, :] 
 
         # second DMSA block
 
