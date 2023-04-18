@@ -544,7 +544,8 @@ class diff_SAITS_4(nn.Module):
         cond_X = X[:,1,:,:] # (B, K, L)
         skips = []
         combine_weight = None
-        for k in range(2):
+        K = 2
+        for k in range(K):
             skips_tilde_1 = torch.zeros_like(cond)
             for i in range(len(self.layer_stack_for_first_block)):
                 # cond_X = torch.stack([cond_X, masks[:,1,:,:]], dim=1) # (B, K, L)
@@ -562,7 +563,7 @@ class diff_SAITS_4(nn.Module):
                 input_X_for_first = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
                 noise = self.embedding_1(input_X_for_first)
                 
-                if i == 0:
+                if i == 0 and k == 0:
                     enc_output = self.dropout(self.position_enc_noise(noise))
                 else:
                     enc_output = self.position_enc_noise(noise)
@@ -578,7 +579,7 @@ class diff_SAITS_4(nn.Module):
                     attn_weights = torch.transpose(attn_weights, 1, 2)
                     attn_weights = torch.softmax(attn_weights, dim=-1)
 
-                if k == 1 and i == len(self.layer_stack_for_first_block) - 1:
+                if k == K - 1 and i == len(self.layer_stack_for_first_block) - 1:
                     combine_weight = attn_weights
 
                 enc_output = torch.transpose(enc_output, 1, 2) # (B, L, K)
@@ -594,10 +595,10 @@ class diff_SAITS_4(nn.Module):
                     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
                     attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
                 
-                if (i + 1) % 2 == 0:
-                    cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :]
-                else:
-                    cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 #+ X[:, 1, :, :]
+                # if (i + 1) % 2 == 0:
+                cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 + X[:, 1, :, :]
+                # else:
+                #     cond_X = X_tilde_1 @ attn_weights_f + X_tilde_1 #+ X[:, 1, :, :]
                 skips_tilde_1 += skip
             skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
             if k == 0:
