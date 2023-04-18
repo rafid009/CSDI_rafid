@@ -112,8 +112,8 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_final.pth'
-config_info = 'model_diff_saits_final.pth'
+filename = 'model_diff_saits_physio.pth'
+config_info = 'model_diff_saits_physio.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
@@ -130,7 +130,7 @@ train(
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
-saits_model_file = f"{model_folder}/model_saits.pth"
+saits_model_file = f"{model_folder}/model_saits_physio.pth"
 saits = SAITS(n_steps=252, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
 X = []
@@ -149,8 +149,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth"
-data_folder = "results_synth_data"
+mse_folder = "results_crps_mse_physio"
+data_folder = "results_physio_data"
 lengths = [10, 20, 30]
 for l in lengths:
     print(f"length = {l}")
