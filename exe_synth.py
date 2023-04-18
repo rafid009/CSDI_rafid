@@ -320,7 +320,7 @@ train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, ba
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
-filename = "model_csdi_synth.pth"
+filename = "model_csdi_synth_new.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
