@@ -59,7 +59,7 @@ train_loader, valid_loader, test_loader, test_indices = get_dataloader(
     batch_size=config["train"]["batch_size"],
     missing_ratio=config["model"]["test_missing_ratio"],
 )
-
+config['model']['type'] = 'CSDI'
 model_csdi = CSDI_Physio(config, args['device']).to(args['device'])
 model_folder = "saved_model_physio"
 train(
@@ -153,15 +153,15 @@ mse_folder = "results_crps_mse_physio"
 data_folder = "results_physio_data"
 lengths = [10, 20, 30]
 for l in lengths:
-    print(f"length = {l}")
-    print(f"\nBlackout:\n")
+    print(f"\nlength = {l}")
+    print(f"\nBlackout:")
     evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l, test_indices=test_indices)
-    print(f"\nForecasting:\n")
+    print(f"\nForecasting:")
     evaluate_imputation_all(models=models, trials=1, mse_folder=mse_folder, dataset_name='physio', batch_size=16, length=l, forecasting=True, test_indices=test_indices)
 
 miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
-    print(f"\nRandom Missing: ratio ({ratio})\n")
+    print(f"\nRandom Missing: ratio ({ratio})")
     evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='physio', batch_size=16, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
 
 
