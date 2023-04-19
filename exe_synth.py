@@ -349,7 +349,7 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000, # 3000 -> ds3
+        'epochs':2500, # 3000 -> ds3
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -370,8 +370,8 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 0.5,
-        'loss_weight_f': 1,
+        'loss_weight_p': 0.3,
+        'loss_weight_f': 0.7,
         'd_time': 100,
         'n_feature': len(given_features),
         'd_model': 128,
