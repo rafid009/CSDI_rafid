@@ -46,12 +46,12 @@ config["model"]["test_missing_ratio"] = args["testmissingratio"]
 print(f"config_csdi:\n")
 print(json.dumps(config, indent=4))
 
-current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-foldername = "./save/physio_fold" + str(args["nfold"]) + "_" + current_time + "/"
-print('model folder:', foldername)
-os.makedirs(foldername, exist_ok=True)
-with open(foldername + "config.json", "w") as f:
-    json.dump(config, f, indent=4)
+# current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+# foldername = "./save/physio_fold" + str(args["nfold"]) + "_" + current_time + "/"
+# print('model folder:', foldername)
+# os.makedirs(foldername, exist_ok=True)
+# with open(foldername + "config.json", "w") as f:
+#     json.dump(config, f, indent=4)
 
 train_loader, valid_loader, test_loader, test_indices = get_dataloader(
     seed=args["seed"],
@@ -60,24 +60,28 @@ train_loader, valid_loader, test_loader, test_indices = get_dataloader(
     missing_ratio=config["model"]["test_missing_ratio"],
 )
 config['model']['type'] = 'CSDI'
+
 model_csdi = CSDI_Physio(config, args['device']).to(args['device'])
 model_folder = "saved_model_physio"
-train(
-    model_csdi,
-    config["train"],
-    train_loader,
-    valid_loader=valid_loader,
-    foldername=foldername,
-    filename='model_csdi_physio.pth'
-)
+filename = "model_csdi_physio.pth"
+if not os.path.isdir(model_folder):
+    os.makedirs(model_folder)
+# train(
+#     model_csdi,
+#     config["train"],
+#     train_loader,
+#     valid_loader=valid_loader,
+#     foldername=model_folder,
+#     filename='model_csdi_physio.pth'
+# )
 
-# model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
+model_csdi.load_state_dict(torch.load({model_folder}/{filename}))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 5000,
+        'epochs': 2000,
         'batch_size': 16 ,
-        'lr': 1.0e-3
+        'lr': 1.0e-2
     },      
     'diffusion': {
         'layers': 4, 
@@ -93,11 +97,11 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 0.3,
-        'loss_weight_f': 0.7,
+        'loss_weight_p': 0.5,
+        'loss_weight_f': 1,
         'd_time': 48,
         'n_feature': len(attributes),
         'd_model': 128,
