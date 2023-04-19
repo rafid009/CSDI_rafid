@@ -75,7 +75,7 @@ if not os.path.isdir(model_folder):
 #     filename='model_csdi_physio.pth'
 # )
 
-model_csdi.load_state_dict(torch.load({model_folder}/{filename}))
+model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 config_dict_diffsaits = {
     'train': {
