@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_final.pth"
+filename = "model_diffsaits_synth_final_attn1.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_final"
-data_folder = "results_synth_data_final"
+mse_folder = "results_crps_mse_synth_final_attn1"
+data_folder = "results_synth_data_final_attn1"
 lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
