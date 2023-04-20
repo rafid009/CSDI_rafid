@@ -97,7 +97,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "mix",
+        'target_strategy': "random",
         'type': 'SAITS',
         'n_layers': 3,
         'loss_weight_p': 0.5,
@@ -113,7 +113,7 @@ config_dict_diffsaits = {
         'diagonal_attention_mask': True
     }
 }
-
+print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
 filename = 'model_diff_saits_physio.pth'
