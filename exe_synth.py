@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_final_cond.pth"
+filename = "model_diffsaits_synth_final_nocomb.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 train(
@@ -409,23 +409,23 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_final_cond_fore"
-data_folder = "results_synth_data_final_cond_fore"
-lengths = [10, 20, 50, 80]
-# for l in lengths:
-#     print(f"\nlength = {l}")
-#     print(f"\nBlackout:")
-#     evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
+mse_folder = "results_crps_mse_synth_final_nocomb"
+data_folder = "results_synth_data_final_nocomb"
+lengths = [20, 50, 80]
+for l in lengths:
+    print(f"\nlength = {l}")
+    print(f"\nBlackout:")
+    evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
     # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
 
 print(f"\nForecasting:")
 evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=(10, 80), forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
 
-# miss_ratios = [0.2, 0.5, 0.8]
-# for ratio in miss_ratios:
-#     print(f"\nRandom Missing: ratio ({ratio})")
-#     evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
+miss_ratios = [0.2, 0.5, 0.8]
+for ratio in miss_ratios:
+    print(f"\nRandom Missing: ratio ({ratio})")
+    evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
 # lengths = [20]
 # print("For All")
