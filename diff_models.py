@@ -377,9 +377,7 @@ class diff_SAITS_3(nn.Module):
         # combi 2:
         cond_X = X[:,0,:,:] + X[:,1,:,:]
         cond_X = torch.transpose(cond_X, 1, 2)
-        # only combi 2
-        # cond_X, attn_weights_f = self.feature_weights(cond_X)
-        # combi 2 with more layers
+
         for feat_enc_layer in self.layer_stack_for_feature_weights:
             cond_X, attn_weights_f = feat_enc_layer(cond_X)
         cond_X = torch.transpose(cond_X, 1, 2)
@@ -406,8 +404,6 @@ class diff_SAITS_3(nn.Module):
         enc_output = self.dropout(self.position_enc_noise(noise))
         skips_tilde_1 = torch.zeros_like(enc_output)
         for encoder_layer in self.layer_stack_for_first_block:
-            # new time add
-            # enc_output, skip, attn_weights = encoder_layer(enc_output, pos_cond, diff_emb)
             # old stable better
             enc_output, skip, _ = encoder_layer(enc_output, pos_cond, diff_emb)
             skips_tilde_1 += skip
