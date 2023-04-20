@@ -370,8 +370,8 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 0.3,
-        'loss_weight_f': 0.7,
+        'loss_weight_p': 0.2,
+        'loss_weight_f': 0.8,
         'd_time': 100,
         'n_feature': len(given_features),
         'd_model': 128,
@@ -379,14 +379,14 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
+        'dropout': 0.1,
         'diagonal_attention_mask': True
     }
 }
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_final_attn1.pth"
+filename = "model_diffsaits_synth_final_noX.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_final_attn1"
-data_folder = "results_synth_data_final_attn1"
+mse_folder = "results_crps_mse_synth_final_noX"
+data_folder = "results_synth_data_final_noX"
 lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
