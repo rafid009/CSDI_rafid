@@ -190,7 +190,7 @@ def train(
         # pa
     else:
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=[p1], gamma=0.1
+        optimizer, milestones=[p1, p2], gamma=0.1
         )
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
     #     optimizer, T_0=1000, T_mult=1, eta_min=1.0e-7
