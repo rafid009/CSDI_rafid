@@ -383,10 +383,10 @@ config_dict_diffsaits = {
         'diagonal_attention_mask': True
     }
 }
-
+print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_final_noX.pth"
+filename = "model_diffsaits_synth_final_X.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_final_noX"
-data_folder = "results_synth_data_final_noX"
+mse_folder = "results_crps_mse_synth_final_X"
+data_folder = "results_synth_data_final_X"
 lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
