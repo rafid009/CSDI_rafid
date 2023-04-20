@@ -116,8 +116,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_physio.pth'
-config_info = 'model_diff_saits_physio.pth'
+filename = 'model_diff_saits_physio_random.pth'
 
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
@@ -134,7 +133,7 @@ train(
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
-saits_model_file = f"{model_folder}/model_saits_physio.pth"
+saits_model_file = f"{model_folder}/model_saits_physio_random.pth"
 saits = SAITS(n_steps=252, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
 
 X = []
@@ -145,7 +144,7 @@ X = np.array(X)
 
 saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
 pickle.dump(saits, open(saits_model_file, 'wb'))
-saits = pickle.load(open(saits_model_file, 'rb'))
+# saits = pickle.load(open(saits_model_file, 'rb'))
 
 
 models = {
@@ -153,8 +152,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_physio_final"
-data_folder = "results_physio_data_final"
+mse_folder = "results_crps_mse_physio_final_random"
+data_folder = "results_physio_data_final_random"
 lengths = [10, 20, 30]
 for l in lengths:
     print(f"\nlength = {l}")
