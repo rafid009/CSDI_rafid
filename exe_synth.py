@@ -379,7 +379,7 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.1,
+        'dropout': 0.2,
         'diagonal_attention_mask': True
     }
 }

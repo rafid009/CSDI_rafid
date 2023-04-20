@@ -81,7 +81,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 2000,
         'batch_size': 16 ,
-        'lr': 5.0e-3
+        'lr': 1.0e-3
     },      
     'diffusion': {
         'layers': 4, 
@@ -109,7 +109,7 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.1,
+        'dropout': 0.2,
         'diagonal_attention_mask': True
     }
 }
