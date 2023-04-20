@@ -349,7 +349,7 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs':2500, # 3000 -> ds3
+        'epochs':2000, # 3000 -> ds3
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -380,13 +380,13 @@ config_dict_diffsaits = {
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.2,
-        'diagonal_attention_mask': True
+        'diagonal_attention_mask': False
     }
 }
 
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_final_attn1.pth"
+filename = "model_diffsaits_synth_final.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 train(
     model_diff_saits,
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_final_attn1"
-data_folder = "results_synth_data_final_attn1"
+mse_folder = "results_crps_mse_synth_final"
+data_folder = "results_synth_data_final"
 lengths = [10, 20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
