@@ -81,7 +81,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 2000,
         'batch_size': 16 ,
-        'lr': 1.0e-3
+        'lr': 5.0e-3
     },      
     'diffusion': {
         'layers': 4, 
@@ -100,8 +100,8 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 0.3,
-        'loss_weight_f': 0.7,
+        'loss_weight_p': 0.5,
+        'loss_weight_f': 1,
         'd_time': 48,
         'n_feature': len(attributes),
         'd_model': 128,
@@ -109,7 +109,7 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
+        'dropout': 0.1,
         'diagonal_attention_mask': True
     }
 }
