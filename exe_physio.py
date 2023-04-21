@@ -97,7 +97,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "mix",
+        'target_strategy': "random",
         'type': 'SAITS',
         'n_layers': 3,
         'loss_weight_p': 0.5,
@@ -133,7 +133,7 @@ train(
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
-saits_model_file = f"{model_folder}/model_saits_physio_mix.pth"
+saits_model_file = f"{model_folder}/model_saits_physio_random.pth"
 saits = SAITS(n_steps=48, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=args['device'])
 
 X = []
@@ -152,8 +152,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_physio_final_mix"
-data_folder = "results_physio_data_final_mix"
+mse_folder = "results_crps_mse_physio_final_random"
+data_folder = "results_physio_data_final_random"
 lengths = [10, 20, 30]
 for l in lengths:
     print(f"\nlength = {l}")
