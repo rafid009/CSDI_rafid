@@ -347,7 +347,7 @@ class diff_SAITS_3(nn.Module):
         self.reduce_dim_beta = nn.Linear(d_model, d_feature)
         self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
-        # self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
+        self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
 
         # combi 2: trying feature weights here
         # self.feature_weights = EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
@@ -457,19 +457,19 @@ class diff_SAITS_3(nn.Module):
         skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # attention-weighted combine
-        # attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
-        # if len(attn_weights.shape) == 4:
-        #     # if having more than 1 head, then average attention weights from all heads
-        #     attn_weights = torch.transpose(attn_weights, 1, 3)
-        #     attn_weights = attn_weights.mean(dim=3)
-        #     attn_weights = torch.transpose(attn_weights, 1, 2)
+        attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
+        if len(attn_weights.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights = torch.transpose(attn_weights, 1, 3)
+            attn_weights = attn_weights.mean(dim=3)
+            attn_weights = torch.transpose(attn_weights, 1, 2)
 
-        # combining_weights = torch.sigmoid(
-        #     self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
-        # )  # namely term eta
+        combining_weights = torch.sigmoid(
+            self.weight_combine(torch.cat([masks[:, 0, :, :], attn_weights], dim=2))
+        )  # namely term eta
 
-        # skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 + combining_weights * skips_tilde_2
-        skips_tilde_3 = (skips_tilde_1 + skips_tilde_2) / 2
+        skips_tilde_3 = (1 - combining_weights) * skips_tilde_1 + combining_weights * skips_tilde_2
+        # skips_tilde_3 = (skips_tilde_1 + skips_tilde_2) / 2
 
         skips_tilde_1 = torch.transpose(skips_tilde_1, 1, 2)
         skips_tilde_2 = torch.transpose(skips_tilde_2, 1, 2)

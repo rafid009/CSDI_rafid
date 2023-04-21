@@ -79,7 +79,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2000,
+        'epochs': 1000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -97,7 +97,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
         'loss_weight_p': 0.5,
@@ -116,9 +116,9 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_physio_random.pth'
+filename = 'model_diff_saits_physio_mix.pth'
 
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
 train(
     model_diff_saits,
@@ -133,8 +133,8 @@ train(
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
-saits_model_file = f"{model_folder}/model_saits_physio_random.pth"
-saits = SAITS(n_steps=252, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=device)
+saits_model_file = f"{model_folder}/model_saits_physio_mix.pth"
+saits = SAITS(n_steps=48, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=args['device'])
 
 X = []
 for j, test_batch in enumerate(train_loader, start=1):
