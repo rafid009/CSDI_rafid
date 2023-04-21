@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_physio_mix.pth'
+filename = 'model_diff_saits_physio.pth'
 
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
@@ -152,8 +152,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_physio_final_random"
-data_folder = "results_physio_data_final_random"
+mse_folder = "results_crps_mse_physio_final_mix"
+data_folder = "results_physio_data_final_mix"
 lengths = [10, 20, 30]
 for l in lengths:
     print(f"\nlength = {l}")
