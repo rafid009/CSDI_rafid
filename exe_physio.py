@@ -116,7 +116,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_physio.pth'
+filename = 'model_diff_saits_physio_random.pth'
 
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
