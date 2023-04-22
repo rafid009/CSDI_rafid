@@ -735,6 +735,8 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
 
             gt_intact = gt_intact.squeeze(axis=0)
             saits_X = gt_intact #test_batch['obs_data_intact']
+            if batch_size == 1:
+                saits_X = saits_X.unsqueeze(0)
             saits_output = models['SAITS'].impute(saits_X)
 
             if data:
