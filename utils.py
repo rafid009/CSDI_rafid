@@ -866,7 +866,7 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         fp.close()
     else:
         fp = open(f"{mse_folder}/data-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-        json.dump(results_data, fp=fp, indent=4)
+        json.dump(results_data, fp=fp, indent=4, cls=NumpyArrayEncoder)
         fp.close()
 
     
