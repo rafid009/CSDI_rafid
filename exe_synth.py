@@ -349,7 +349,7 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs':3000, # 3000 -> ds3
+        'epochs':1500, # 3000 -> ds3
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -388,7 +388,7 @@ model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(give
 
 filename = "model_diffsaits_synth_qual.pth"
 print(f"\n\DiffSAITS training starts.....\n")
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 train(
     model_diff_saits,
     config_dict_diffsaits["train"],
