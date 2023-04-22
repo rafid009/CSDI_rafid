@@ -664,7 +664,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
         out_file.close()
 
 
-def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=10, length=-1, random_trial=False, forecasting=False, missing_ratio=0.1, test_indices=None):  
+def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=10, length=-1, random_trial=False, forecasting=False, missing_ratio=0.1, test_indices=None, data=False):  
     nsample = 50
     if 'CSDI' in models.keys():
         models['CSDI'].eval()
@@ -680,12 +680,16 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         'diffsaits_trials': {}, 'diffsaits': 0, 
         'saits_trials': {}, 'saits': 0
         }
-    if forecasting:
+    results_data = {}
+    
+    if forecasting and not data:
         range_len = (length[0], length[1])
     else:
         range_len = None
+    if data:
+        trials = 1
     for trial in range(trials):
-        if forecasting:
+        if forecasting and not data:
             length = np.random.randint(low=range_len[0], high=range_len[1] + 1)
         if dataset_name == 'synth':
             test_loader = get_testloader_synth(n_steps=100, n_features=7, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting)
@@ -705,6 +709,7 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
         csdi_crps_avg = 0
         diffsaits_crps_avg = 0
 
+        
         for j, test_batch in enumerate(test_loader, start=1):
             if 'CSDI' in models.keys():
                 output = models['CSDI'].evaluate(test_batch, nsample)
@@ -732,105 +737,135 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
             saits_X = gt_intact #test_batch['obs_data_intact']
             saits_output = models['SAITS'].impute(saits_X)
 
-            ###### MSE ######
+            if data:
+                if 'CSDI' in models.keys():
+                        results_data[j] = {
+                            'target mask': eval_points[0, :, :].cpu().numpy(),
+                            'target': c_target[0, :, :].cpu().numpy(),
+                            # 'csdi_mean': samples_mean[0, :, :].cpu().numpy(),
+                            'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
+                            'csdi_samples': samples[0].cpu().numpy(),
+                            'saits': saits_output[0, :, :],
+                            'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
+                            'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
 
-            rmse_csdi = ((samples_median.values - c_target) * eval_points) ** 2
-            rmse_csdi = rmse_csdi.sum().item() / eval_points.sum().item()
-            csdi_rmse_avg += rmse_csdi
+                            }
+                else:
+                        results_data[j] = {
+                        'target mask': eval_points[0, :, :].cpu().numpy(),
+                        'target': c_target[0, :, :].cpu().numpy(),
+                        'saits': saits_output[0, :, :],
+                        'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
+                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
+                    }
 
-            rmse_diff_saits = ((samples_diff_saits_mean - c_target) * eval_points) ** 2
-            rmse_diff_saits = rmse_diff_saits.sum().item() / eval_points.sum().item()
-            diffsaits_rmse_avg += rmse_diff_saits
+            else:
+                ###### MSE ######
 
-            rmse_saits = ((torch.tensor(saits_output, device=device)- c_target) * eval_points) ** 2
-            rmse_saits = rmse_saits.sum().item() / eval_points.sum().item()
-            saits_rmse_avg += rmse_saits
+                rmse_csdi = ((samples_median.values - c_target) * eval_points) ** 2
+                rmse_csdi = rmse_csdi.sum().item() / eval_points.sum().item()
+                csdi_rmse_avg += rmse_csdi
 
-            ###### MSE ######
+                rmse_diff_saits = ((samples_diff_saits_mean - c_target) * eval_points) ** 2
+                rmse_diff_saits = rmse_diff_saits.sum().item() / eval_points.sum().item()
+                diffsaits_rmse_avg += rmse_diff_saits
 
-            mae_csdi = torch.abs((samples_median.values - c_target) * eval_points)
-            mae_csdi = mae_csdi.sum().item() / eval_points.sum().item()
-            csdi_mae_avg += mae_csdi
+                rmse_saits = ((torch.tensor(saits_output, device=device)- c_target) * eval_points) ** 2
+                rmse_saits = rmse_saits.sum().item() / eval_points.sum().item()
+                saits_rmse_avg += rmse_saits
 
-            mae_diff_saits = torch.abs((samples_diff_saits_mean - c_target) * eval_points)
-            mae_diff_saits = mae_diff_saits.sum().item() / eval_points.sum().item()
-            diffsaits_mae_avg += mae_diff_saits
+                ###### MSE ######
 
-            mae_saits = torch.abs((torch.tensor(saits_output, device=device)- c_target) * eval_points)
-            mae_saits = mae_saits.sum().item() / eval_points.sum().item()
-            saits_mae_avg += mae_saits
+                mae_csdi = torch.abs((samples_median.values - c_target) * eval_points)
+                mae_csdi = mae_csdi.sum().item() / eval_points.sum().item()
+                csdi_mae_avg += mae_csdi
 
-            ###### CRPS ######
+                mae_diff_saits = torch.abs((samples_diff_saits_mean - c_target) * eval_points)
+                mae_diff_saits = mae_diff_saits.sum().item() / eval_points.sum().item()
+                diffsaits_mae_avg += mae_diff_saits
 
-            csdi_crps = calc_quantile_CRPS(c_target, samples, eval_points, 0, 1)
-            csdi_crps_avg += csdi_crps
+                mae_saits = torch.abs((torch.tensor(saits_output, device=device)- c_target) * eval_points)
+                mae_saits = mae_saits.sum().item() / eval_points.sum().item()
+                saits_mae_avg += mae_saits
 
-            diff_saits_crps = calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
-            diffsaits_crps_avg += diff_saits_crps
+                ###### CRPS ######
 
-        results_trials_mse['csdi'][trial] = csdi_rmse_avg / batch_size
-        results_mse['csdi'] += csdi_rmse_avg / batch_size
+                csdi_crps = calc_quantile_CRPS(c_target, samples, eval_points, 0, 1)
+                csdi_crps_avg += csdi_crps
 
-        results_trials_mse['diffsaits'][trial] = diffsaits_rmse_avg / batch_size
-        results_mse['diffsaits'] += diffsaits_rmse_avg / batch_size
+                diff_saits_crps = calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
+                diffsaits_crps_avg += diff_saits_crps
+        if not data:
+            results_trials_mse['csdi'][trial] = csdi_rmse_avg / batch_size
+            results_mse['csdi'] += csdi_rmse_avg / batch_size
 
-        results_trials_mse['saits'][trial] = saits_rmse_avg / batch_size
-        results_mse['saits'] += saits_rmse_avg / batch_size
+            results_trials_mse['diffsaits'][trial] = diffsaits_rmse_avg / batch_size
+            results_mse['diffsaits'] += diffsaits_rmse_avg / batch_size
 
-
-        results_trials_mae['csdi'][trial] = csdi_mae_avg / batch_size
-        results_mae['csdi'] += csdi_mae_avg / batch_size
-
-        results_trials_mae['diffsaits'][trial] = diffsaits_mae_avg / batch_size
-        results_mae['diffsaits'] += diffsaits_mae_avg / batch_size
-
-        results_trials_mae['saits'][trial] = saits_mae_avg / batch_size
-        results_mae['saits'] += saits_mae_avg / batch_size
+            results_trials_mse['saits'][trial] = saits_rmse_avg / batch_size
+            results_mse['saits'] += saits_rmse_avg / batch_size
 
 
-        results_crps['csdi_trials'][trial] = csdi_crps
-        results_crps['csdi'] += csdi_crps
+            results_trials_mae['csdi'][trial] = csdi_mae_avg / batch_size
+            results_mae['csdi'] += csdi_mae_avg / batch_size
 
-        results_crps['diffsaits_trials'][trial] = diffsaits_crps_avg / batch_size
-        results_crps['diffsaits'] += diffsaits_crps_avg / batch_size
+            results_trials_mae['diffsaits'][trial] = diffsaits_mae_avg / batch_size
+            results_mae['diffsaits'] += diffsaits_mae_avg / batch_size
 
-    results_mse['csdi'] /= trials
-    results_mse['diffsaits'] /= trials
-    results_mse['saits'] /= trials
+            results_trials_mae['saits'][trial] = saits_mae_avg / batch_size
+            results_mae['saits'] += saits_mae_avg / batch_size
 
-    print(f"MSE loss:\n\tCSDI: {results_mse['csdi']}\n\tDiffSAITS: {results_mse['diffsaits']}\n\tSAITS: {results_mse['saits']}")
+            results_crps['csdi_trials'][trial] = csdi_crps
+            results_crps['csdi'] += csdi_crps
 
-    results_mae['csdi'] /= trials
-    results_mae['diffsaits'] /= trials
-    results_mae['saits'] /= trials
-
-    print(f"MAE loss:\n\tCSDI: {results_mae['csdi']}\n\tDiffSAITS: {results_mae['diffsaits']}\n\tSAITS: {results_mae['saits']}")
-
-    results_crps['csdi'] /= trials
-    results_crps['diffsaits'] /= trials
-
-    print(f"CRPS:\n\tCSDI: {results_crps['csdi']}\n\tDiffSAITS: {results_crps['diffsaits']}")
-
+            results_crps['diffsaits_trials'][trial] = diffsaits_crps_avg / batch_size
+            results_crps['diffsaits'] += diffsaits_crps_avg / batch_size
+    
     if not os.path.isdir(mse_folder):
         os.makedirs(mse_folder)
-
-    fp = open(f"{mse_folder}/mse-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results_trials_mse, fp=fp, indent=4)
-    fp.close()
-
-    fp = open(f"{mse_folder}/mae-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results_trials_mae, fp=fp, indent=4)
-    fp.close()
-
-    fp = open(f"{mse_folder}/mse-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results_mse, fp=fp, indent=4)
-    fp.close()
-
-    fp = open(f"{mse_folder}/mae-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results_mae, fp=fp, indent=4)
-    fp.close()
     
-    fp = open(f"{mse_folder}/crps-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
-    json.dump(results_crps, fp=fp, indent=4)
-    fp.close()
+    if not data:
+        results_mse['csdi'] /= trials
+        results_mse['diffsaits'] /= trials
+        results_mse['saits'] /= trials
+        print(f"MSE loss:\n\tCSDI: {results_mse['csdi']}\n\tDiffSAITS: {results_mse['diffsaits']}\n\tSAITS: {results_mse['saits']}")
+
+        results_mae['csdi'] /= trials
+        results_mae['diffsaits'] /= trials
+        results_mae['saits'] /= trials
+
+        print(f"MAE loss:\n\tCSDI: {results_mae['csdi']}\n\tDiffSAITS: {results_mae['diffsaits']}\n\tSAITS: {results_mae['saits']}")
+
+        results_crps['csdi'] /= trials
+        results_crps['diffsaits'] /= trials
+
+        print(f"CRPS:\n\tCSDI: {results_crps['csdi']}\n\tDiffSAITS: {results_crps['diffsaits']}")
+
+        
+
+        fp = open(f"{mse_folder}/mse-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+        json.dump(results_trials_mse, fp=fp, indent=4)
+        fp.close()
+
+        fp = open(f"{mse_folder}/mae-trials-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+        json.dump(results_trials_mae, fp=fp, indent=4)
+        fp.close()
+
+        fp = open(f"{mse_folder}/mse-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+        json.dump(results_mse, fp=fp, indent=4)
+        fp.close()
+
+        fp = open(f"{mse_folder}/mae-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+        json.dump(results_mae, fp=fp, indent=4)
+        fp.close()
+        
+        fp = open(f"{mse_folder}/crps-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+        json.dump(results_crps, fp=fp, indent=4)
+        fp.close()
+    else:
+        fp = open(f"{mse_folder}/data-random-{random_trial}-forecasting-{forecasting}-blackout-{not (random_trial or forecasting)}_l_{length}_miss_{missing_ratio}.json", "w")
+        json.dump(results_data, fp=fp, indent=4)
+        fp.close()
+
+    
 

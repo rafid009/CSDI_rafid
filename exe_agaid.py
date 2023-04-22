@@ -166,24 +166,28 @@ models = {
     'DiffSAITS': model_diff_saits#,
     # 'DiffSAITSsimple': model_diff_saits_simple
 }
-mse_folder = "results_agaid_final"
-data_folder = "results_data_agaid_final"
-lengths = [20, 50, 100, 200]
+mse_folder = "results_agaid_qual"
+data_folder = "results_data_agaid_qual"
+lengths = [ 50, 100, 200]
 
 for l in lengths:
     print(f"length = {l}")
     print(f"\nBlackout:\n")
     evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=l)
     # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='agaid', length=l, trials=1, batch_size=1, data=True)
+
 print(f"\nForecasting:\n")
 evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, length=(30, 150), forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forecasting=True, trials=1, data=True)
+evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='agaid', length=l, trials=1, batch_size=1, data=True)
 
 miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})\n")
     evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='agaid', batch_size=16, missing_ratio=ratio, random_trial=True)
     # evaluate_imputation(models, mse_folder=data_folder, random_trial=True, trials=1, data=True, missing_ratio=ratio)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='agaid', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
 
 
 # print("For All")

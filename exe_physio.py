@@ -140,7 +140,7 @@ X = []
 for j, test_batch in enumerate(train_loader, start=1):
     observed_data, _, _, _, _, _, _, _ = model_diff_saits.process_data(test_batch)
     X.append(observed_data)
-X = np.array(X)
+X = np.array(torch.tensor(X).detach().cpu())
 
 saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
 pickle.dump(saits, open(saits_model_file, 'wb'))
