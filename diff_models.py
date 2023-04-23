@@ -429,7 +429,7 @@ class diff_SAITS_3(nn.Module):
             attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
         X_tilde_1 = self.reduce_dim_z(enc_output)
         # Old stable better
-        X_tilde_1 = X_tilde_1 @ attn_weights_f #+ X_tilde_1
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + X_tilde_1
         # new time add
         # X_tilde_1 = torch.transpose(X_tilde_1, 1, 2)
         # X_tilde_1 = X_tilde_1 @ attn_weights + X_tilde_1

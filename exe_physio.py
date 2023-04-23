@@ -134,7 +134,7 @@ model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
 saits_model_file = f"{model_folder}/model_saits_physio.pth" # don't change it
-saits = SAITS(n_steps=48, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=args['device'])
+saits = SAITS(n_steps=48, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=1500, patience=200, device=args['device'])
 
 X = []
 masks = []
