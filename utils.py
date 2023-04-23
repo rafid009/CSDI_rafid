@@ -732,84 +732,78 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
                 samples_diff_saits = samples_diff_saits.permute(0, 1, 3, 2)
                 # samples_diff_saits_median = samples_diff_saits.median(dim=1)
                 samples_diff_saits_mean = samples_diff_saits.mean(dim=1)
-
-            gt_intact = gt_intact.squeeze(axis=0)
-            saits_X = gt_intact #test_batch['obs_data_intact']
-            if batch_size == 1:
-                saits_X = saits_X.unsqueeze(0)
-            saits_output = models['SAITS'].impute(saits_X)
+            
+            if 'SAITS' in models.keys():
+                gt_intact = gt_intact.squeeze(axis=0)
+                saits_X = gt_intact #test_batch['obs_data_intact']
+                if batch_size == 1:
+                    saits_X = saits_X.unsqueeze(0)
+                saits_output = models['SAITS'].impute(saits_X)
 
             if data:
+                results_data[j] = {
+                    'target mask': eval_points[0, :, :].cpu().numpy(),
+                    'target': c_target[0, :, :].cpu().numpy(),
+                }
                 if 'CSDI' in models.keys():
-                        results_data[j] = {
-                            'target mask': eval_points[0, :, :].cpu().numpy(),
-                            'target': c_target[0, :, :].cpu().numpy(),
-                            # 'csdi_mean': samples_mean[0, :, :].cpu().numpy(),
-                            'csdi_median': samples_median.values[0, :, :].cpu().numpy(),
-                            'csdi_samples': samples[0].cpu().numpy(),
-                            'saits': saits_output[0, :, :],
-                            'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
-                            'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
-
-                            }
-                else:
-                        results_data[j] = {
-                        'target mask': eval_points[0, :, :].cpu().numpy(),
-                        'target': c_target[0, :, :].cpu().numpy(),
-                        'saits': saits_output[0, :, :],
-                        'diff_saits_mean': samples_diff_saits_mean[0, :, :].cpu().numpy(),
-                        'diff_saits_samples': samples_diff_saits[0].cpu().numpy(),
-                    }
-
+                        results_data[j]['csdi_median'] = samples_median.values[0, :, :].cpu().numpy()
+                        results_data[j]['csdi_samples'] = samples[0].cpu().numpy()
+                if 'DiffSAITS' in models.keys():
+                        results_data[j]['diff_saits_mean'] = samples_diff_saits_mean[0, :, :].cpu().numpy()
+                        results_data[j]['diff_saits_samples'] = samples_diff_saits[0].cpu().numpy()
+                if 'SAITS' in models.keys():
+                    results_data[j]['saits']: saits_output[0, :, :]
             else:
-                ###### MSE ######
+                ###### CSDI ######
+                if 'CSDI' in models.keys():
+                    rmse_csdi = ((samples_median.values - c_target) * eval_points) ** 2
+                    rmse_csdi = rmse_csdi.sum().item() / eval_points.sum().item()
+                    csdi_rmse_avg += rmse_csdi
 
-                rmse_csdi = ((samples_median.values - c_target) * eval_points) ** 2
-                rmse_csdi = rmse_csdi.sum().item() / eval_points.sum().item()
-                csdi_rmse_avg += rmse_csdi
+                    mae_csdi = torch.abs((samples_median.values - c_target) * eval_points)
+                    mae_csdi = mae_csdi.sum().item() / eval_points.sum().item()
+                    csdi_mae_avg += mae_csdi
 
-                rmse_diff_saits = ((samples_diff_saits_mean - c_target) * eval_points) ** 2
-                rmse_diff_saits = rmse_diff_saits.sum().item() / eval_points.sum().item()
-                diffsaits_rmse_avg += rmse_diff_saits
+                    csdi_crps = calc_quantile_CRPS(c_target, samples, eval_points, 0, 1)
+                    csdi_crps_avg += csdi_crps
 
-                rmse_saits = ((torch.tensor(saits_output, device=device)- c_target) * eval_points) ** 2
-                rmse_saits = rmse_saits.sum().item() / eval_points.sum().item()
-                saits_rmse_avg += rmse_saits
+                ###### DiffSAITS ######
+                if 'DiffSAITS' in models.keys():
+                    rmse_diff_saits = ((samples_diff_saits_mean - c_target) * eval_points) ** 2
+                    rmse_diff_saits = rmse_diff_saits.sum().item() / eval_points.sum().item()
+                    diffsaits_rmse_avg += rmse_diff_saits
 
-                ###### MSE ######
+                    mae_diff_saits = torch.abs((samples_diff_saits_mean - c_target) * eval_points)
+                    mae_diff_saits = mae_diff_saits.sum().item() / eval_points.sum().item()
+                    diffsaits_mae_avg += mae_diff_saits
 
-                mae_csdi = torch.abs((samples_median.values - c_target) * eval_points)
-                mae_csdi = mae_csdi.sum().item() / eval_points.sum().item()
-                csdi_mae_avg += mae_csdi
-
-                mae_diff_saits = torch.abs((samples_diff_saits_mean - c_target) * eval_points)
-                mae_diff_saits = mae_diff_saits.sum().item() / eval_points.sum().item()
-                diffsaits_mae_avg += mae_diff_saits
-
-                mae_saits = torch.abs((torch.tensor(saits_output, device=device)- c_target) * eval_points)
-                mae_saits = mae_saits.sum().item() / eval_points.sum().item()
-                saits_mae_avg += mae_saits
+                    diff_saits_crps = calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
+                    diffsaits_crps_avg += diff_saits_crps
 
                 ###### CRPS ######
+                if 'SAITS' in models.keys():
+                    rmse_saits = ((torch.tensor(saits_output, device=device)- c_target) * eval_points) ** 2
+                    rmse_saits = rmse_saits.sum().item() / eval_points.sum().item()
+                    saits_rmse_avg += rmse_saits
+                
+                    mae_saits = torch.abs((torch.tensor(saits_output, device=device)- c_target) * eval_points)
+                    mae_saits = mae_saits.sum().item() / eval_points.sum().item()
+                    saits_mae_avg += mae_saits
 
-                csdi_crps = calc_quantile_CRPS(c_target, samples, eval_points, 0, 1)
-                csdi_crps_avg += csdi_crps
-
-                diff_saits_crps = calc_quantile_CRPS(c_target, samples_diff_saits, eval_points, 0, 1)
-                diffsaits_crps_avg += diff_saits_crps
+                
         if not data:
-            results_trials_mse['csdi'][trial] = csdi_rmse_avg / batch_size
-            results_mse['csdi'] += csdi_rmse_avg / batch_size
+            if 'CSDI' in models.keys():
+                results_trials_mse['csdi'][trial] = csdi_rmse_avg / batch_size
+                results_mse['csdi'] += csdi_rmse_avg / batch_size
+                results_trials_mae['csdi'][trial] = csdi_mae_avg / batch_size
+            results_mae['csdi'] += csdi_mae_avg / batch_size
 
             results_trials_mse['diffsaits'][trial] = diffsaits_rmse_avg / batch_size
             results_mse['diffsaits'] += diffsaits_rmse_avg / batch_size
 
             results_trials_mse['saits'][trial] = saits_rmse_avg / batch_size
             results_mse['saits'] += saits_rmse_avg / batch_size
-
-
-            results_trials_mae['csdi'][trial] = csdi_mae_avg / batch_size
-            results_mae['csdi'] += csdi_mae_avg / batch_size
+            
 
             results_trials_mae['diffsaits'][trial] = diffsaits_mae_avg / batch_size
             results_mae['diffsaits'] += diffsaits_mae_avg / batch_size
@@ -817,8 +811,8 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
             results_trials_mae['saits'][trial] = saits_mae_avg / batch_size
             results_mae['saits'] += saits_mae_avg / batch_size
 
-            results_crps['csdi_trials'][trial] = csdi_crps
-            results_crps['csdi'] += csdi_crps
+            results_crps['csdi_trials'][trial] = csdi_crps_avg / batch_size
+            results_crps['csdi'] += csdi_crps_avg / batch_size
 
             results_crps['diffsaits_trials'][trial] = diffsaits_crps_avg / batch_size
             results_crps['diffsaits'] += diffsaits_crps_avg / batch_size
