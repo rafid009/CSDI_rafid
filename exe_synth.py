@@ -409,8 +409,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_ablation_no_feat_second"
-data_folder = "results_synth_ablation_no_feat_second"
+mse_folder = "results_synth_qual"#ablation_no_feat_second"
+data_folder = "results_synth_qual"#ablation_no_feat_second"
 lengths = [20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
