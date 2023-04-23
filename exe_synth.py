@@ -388,7 +388,7 @@ model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(give
 
 filename = "model_diffsaits_synth_qual.pth"
 print(f"\n\DiffSAITS training starts.....\n")
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 train(
     model_diff_saits,
     config_dict_diffsaits["train"],
@@ -409,8 +409,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_crps_mse_synth_qual"
-data_folder = "results_synth_data_qual"
+mse_folder = "results_synth_ablation_no_feat_second"
+data_folder = "results_synth_ablation_no_feat_second"
 lengths = [20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
