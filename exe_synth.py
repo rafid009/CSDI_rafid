@@ -349,7 +349,7 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs':2000, # 3000 -> ds3
+        'epochs':3000, # 3000 -> ds3
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -370,8 +370,8 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 0.5,
-        'loss_weight_f': 1,
+        'loss_weight_p': 0.3,
+        'loss_weight_f': 0.7,
         'd_time': 100,
         'n_feature': len(given_features),
         'd_model': 128,
@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_no_feat_second.pth"#"model_diffsaits_synth_qual.pth"
+filename = "model_diffsaits_synth_qual.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 train(
@@ -409,8 +409,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_abl_no_feat_second_qual"
-data_folder = "results_synth_abl_no_feat_second_qual"
+mse_folder = "results_synth_qual"
+data_folder = "results_synth_qual"
 lengths = [20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
