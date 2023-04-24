@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_qual.pth"
+filename = "model_diffsaits_synth_no_feat_second.pth"#"model_diffsaits_synth_qual.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 train(
@@ -409,24 +409,24 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_qual" #abl_no_feat_second_qual"
-data_folder = "results_synth_qual" #abl_no_feat_second_qual"
+mse_folder = "results_synth_abl_no_feat_second_qual"
+data_folder = "results_synth_abl_no_feat_second_qual"
 lengths = [20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=l)
     evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
 
 print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=(10, 80), forecasting=True)
+evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=16, length=(10, 80), forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
 evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
 
 miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
-    evaluate_imputation_all(models=models, trials=20, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=16, missing_ratio=ratio, random_trial=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
     evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
 
