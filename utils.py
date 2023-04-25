@@ -226,8 +226,8 @@ def train(
             # exp_scheduler.step()
             # metric = avg_loss / batch_no
             if is_saits:
-                # lr_scheduler.step()
-                pass
+                lr_scheduler.step()
+                # pass
             else:
                 lr_scheduler.step()
             
