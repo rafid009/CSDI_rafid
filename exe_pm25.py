@@ -9,26 +9,36 @@ from dataset_pm25 import get_dataloader
 from main_model import CSDI_PM25
 from utils import train, evaluate
 
-parser = argparse.ArgumentParser(description="CSDI")
-parser.add_argument("--config", type=str, default="base.yaml")
-parser.add_argument('--device', default='cuda:0', help='Device for Attack')
-parser.add_argument("--modelfolder", type=str, default="")
-parser.add_argument(
-    "--targetstrategy", type=str, default="mix", choices=["mix", "random", "historical"]
-)
-parser.add_argument(
-    "--validationindex", type=int, default=0, help="index of month used for validation (value:[0-7])"
-)
-parser.add_argument("--nsample", type=int, default=100)
-parser.add_argument("--unconditional", action="store_true")
+# parser = argparse.ArgumentParser(description="CSDI")
+# parser.add_argument("--config", type=str, default="base.yaml")
+# parser.add_argument('--device', default='cuda:0', help='Device for Attack')
+# parser.add_argument("--modelfolder", type=str, default="")
+# parser.add_argument(
+#     "--targetstrategy", type=str, default="mix", choices=["mix", "random", "historical"]
+# )
+# parser.add_argument(
+#     "--validationindex", type=int, default=0, help="index of month used for validation (value:[0-7])"
+# )
+# parser.add_argument("--nsample", type=int, default=100)
+# parser.add_argument("--unconditional", action="store_true")
 
-args = parser.parse_args()
+# args = parser.parse_args()
+
+
+args = {
+    'config': 'base.yaml',
+    'device': 'cuda:0',
+    'seed': 1,
+    'testmissingratio': 0.1,
+    'nfold': 0,
+    'unconditional': False,
+    'modelfolder': 'saved_model_pm25',
+    'nsample': 50
+}
 print(args)
-
 path = "config/" + args.config
 with open(path, "r") as f:
     config = yaml.safe_load(f)
-
 config["model"]["is_unconditional"] = args.unconditional
 config["model"]["target_strategy"] = args.targetstrategy
 
