@@ -34,7 +34,7 @@ args = {
     'nfold': 0,
     'unconditional': False,
     'modelfolder': 'saved_model_physio',
-    'nsample': 100
+    'nsample': 50
 }
 
 path = "config/" + args["config"]
