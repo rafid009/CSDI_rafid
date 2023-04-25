@@ -367,7 +367,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
         'loss_weight_p': 0.3,
@@ -380,7 +380,7 @@ config_dict_diffsaits = {
         'd_k': 64,
         'd_v': 64,
         'dropout': 0.2,
-        'diagonal_attention_mask': False
+        'diagonal_attention_mask': True
     }
 }
 print(f"config: {config_dict_diffsaits}")
