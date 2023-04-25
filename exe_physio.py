@@ -79,7 +79,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 2000,
+        'epochs': 3000,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -97,11 +97,11 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "mix",
+        'target_strategy': "random",
         'type': 'SAITS',
-        'n_layers': 3,
-        'loss_weight_p': 0.5,
-        'loss_weight_f': 1,
+        'n_layers': 4,
+        'loss_weight_p': 0.2,
+        'loss_weight_f': 0.8,
         'd_time': 48,
         'n_feature': len(attributes),
         'd_model': 128,
@@ -116,19 +116,19 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Physio(config_dict_diffsaits, args['device'], is_simple=False).to(args['device'])
 # filename_simple = 'model_diff_saits_simple.pth'
-filename = 'model_diff_saits_physio.pth'
+filename = 'model_diff_saits_physio_random.pth'
 
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 # 
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
@@ -172,20 +172,20 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_physio_final_mix"
-data_folder = "results_physio_data_final_mix"
+mse_folder = "results_physio_final_random"
+data_folder = "results_physio_data_final_random"
 lengths = [10, 20, 30]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=l, test_indices=test_indices)
+    evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=l, test_indices=test_indices)
 
 print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
+evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
 
 miss_ratios = [0.1, 0.5, 0.9]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
-    evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
+    evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='physio', batch_size=32, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
 
 
