@@ -434,7 +434,7 @@ class diff_SAITS_3(nn.Module):
 
 
         # Old stable better
-        X_tilde_1 = X_tilde_1 + X[:, 1, :, :] 
+        X_tilde_1 = X_tilde_1 #+ X[:, 1, :, :] 
 
         # second DMSA block
 
