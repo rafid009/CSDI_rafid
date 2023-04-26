@@ -35,6 +35,7 @@ class PM25_Dataset(Dataset):
         self.valid_for_histmask = []  # whether the sample is used for histmask
         self.use_index = []  # to separate train/valid/test
         self.cut_length = []  # excluded from evaluation targets
+        self.gt_intact = [] # test missing values with nan
 
         df = pd.read_csv(
             "./data/pm25/Code/STMVL/SampleData/pm25_ground.txt",
@@ -66,9 +67,14 @@ class PM25_Dataset(Dataset):
                 (current_df.fillna(0).values - self.train_mean) / self.train_std
             ) * c_mask
 
+            c_gt_intact = (
+                (current_df.values - self.train_mean) / self.train_std
+            ) * c_gt_mask
+
             self.observed_mask.append(c_mask)
             self.gt_mask.append(c_gt_mask)
             self.observed_data.append(c_data)
+            self.gt_intact.append(c_gt_intact)
 
             if mode == "test":
                 n_sample = len(current_df) // eval_length
@@ -119,6 +125,9 @@ class PM25_Dataset(Dataset):
                 c_index : c_index + self.eval_length
             ],
             "observed_mask": self.observed_mask[c_month][
+                c_index : c_index + self.eval_length
+            ],
+            "gt_intact": self.gt_intact[c_month][
                 c_index : c_index + self.eval_length
             ],
             "gt_mask": self.gt_mask[c_month][

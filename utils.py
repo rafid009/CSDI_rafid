@@ -695,6 +695,8 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size
             test_loader = get_testloader_synth(n_steps=100, n_features=7, batch_size=batch_size, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting)
         elif dataset_name == 'physio':
             test_loader = get_testloader_physio(test_indices=test_indices, seed=(10+trial), batch_size=batch_size, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting, length=length)
+        elif dataset_name == 'pm25':
+            test_loader = test_indices # this contains the test loader for pm25
         else:
             test_loader = get_testloader_agaid(seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecastig=forecasting, batch_size=batch_size)
         
