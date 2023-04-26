@@ -134,7 +134,7 @@ train(
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
 saits_model_file = f"{model_folder}/model_saits_pm25.pth" # don't change it
-saits = SAITS(n_steps=36, n_features=36, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=1500, patience=200, device=args['device'])
+saits = SAITS(n_steps=36, n_features=36, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2000, patience=200, device=args['device'])
 
 X = []
 masks = []
@@ -172,8 +172,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_pm25_final"
-data_folder = "results_pm25_data_final"
+mse_folder = "results_pm25"
+data_folder = "results_pm25_data"
 
 evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='pm25', batch_size=32, test_indices=test_loader)
 
