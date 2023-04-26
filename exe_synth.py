@@ -369,7 +369,7 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "mix",
         'type': 'SAITS',
-        'n_layers': 3,
+        'n_layers': 4,
         'loss_weight_p': 1,
         'loss_weight_f': 1,
         'd_time': 100,
