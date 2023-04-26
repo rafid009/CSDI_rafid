@@ -42,7 +42,7 @@ path = "config/" + args["config"]
 with open(path, "r") as f:
     config = yaml.safe_load(f)
 config["model"]["is_unconditional"] = args['unconditional']
-config["model"]["target_strategy"] = args['target_strategy']
+# config["model"]["target_strategy"] = args['target_strategy']
 
 print(json.dumps(config, indent=4))
 
