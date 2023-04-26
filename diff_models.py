@@ -276,12 +276,12 @@ class ResidualEncoderLayer_2(nn.Module):
         
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-        y = x_proj + diff_proj + cond
+        y = x_proj + diff_proj #+ cond
 
         # attn1
-        y = torch.transpose(y, 1, 2) # (B, K, channels)
-        y, _ = self.enc_layer_1(y)
-        y = torch.transpose(y, 1, 2)
+        # y = torch.transpose(y, 1, 2) # (B, K, channels)
+        # y, _ = self.enc_layer_1(y)
+        # y = torch.transpose(y, 1, 2)
 
 
         y = self.conv_layer(y)
@@ -410,14 +410,6 @@ class diff_SAITS_3(nn.Module):
         skips_tilde_1 /= math.sqrt(len(self.layer_stack_for_first_block))
         skips_tilde_1 = self.reduce_skip_z(skips_tilde_1)
         
-        # new time add
-        # attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
-        # if len(attn_weights.shape) == 4:
-        #     # if having more than 1 head, then average attention weights from all heads
-        #     attn_weights = torch.transpose(attn_weights, 1, 3)
-        #     attn_weights = attn_weights.mean(dim=3)
-        #     attn_weights = torch.transpose(attn_weights, 1, 2)
-        #     attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
 
         # Feature attention added
         attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.

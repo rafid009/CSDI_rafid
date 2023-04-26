@@ -35,7 +35,8 @@ args = {
     'nfold': 0,
     'unconditional': False,
     'modelfolder': 'saved_model_pm25',
-    'nsample': 50
+    'nsample': 50,
+    'validationindex': 2
 }
 print(args)
 path = "config/" + args["config"]
@@ -47,14 +48,14 @@ config["model"]["is_unconditional"] = args['unconditional']
 print(json.dumps(config, indent=4))
 
 # current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") 
-foldername = (
-    "./save/pm25_validationindex" + str(args['validationindex']) + "/"
-)
+# foldername = (
+#     "./save/pm25_validationindex" + str(args['validationindex']) + "/"
+# )
 
-print('model folder:', foldername)
-os.makedirs(foldername, exist_ok=True)
-with open(foldername + "config.json", "w") as f:
-    json.dump(config, f, indent=4)
+# print('model folder:', foldername)
+# os.makedirs(foldername, exist_ok=True)
+# with open(foldername + "config.json", "w") as f:
+#     json.dump(config, f, indent=4)
 
 train_loader, valid_loader, test_loader, scaler, mean_scaler = get_dataloader(
     config["train"]["batch_size"], device=args['device'], validindex=args['validationindex']
