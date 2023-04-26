@@ -276,12 +276,12 @@ class ResidualEncoderLayer_2(nn.Module):
         
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-        y = x_proj + diff_proj #+ cond
+        y = x_proj + diff_proj + cond
 
         # attn1
-        # y = torch.transpose(y, 1, 2) # (B, K, channels)
-        # y, _ = self.enc_layer_1(y)
-        # y = torch.transpose(y, 1, 2)
+        y = torch.transpose(y, 1, 2) # (B, K, channels)
+        y, _ = self.enc_layer_1(y)
+        y = torch.transpose(y, 1, 2)
 
 
         y = self.conv_layer(y)
