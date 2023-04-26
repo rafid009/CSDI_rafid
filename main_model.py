@@ -326,9 +326,11 @@ class CSDI_PM25(CSDI_base):
         gt_mask = batch["gt_mask"].to(self.device).float()
         cut_length = batch["cut_length"].to(self.device).long()
         for_pattern_mask = batch["hist_mask"].to(self.device).float()
+        gt_intact = batch["gt_intact"].to(self.device).float()
         observed_data = observed_data.permute(0, 2, 1)
         observed_mask = observed_mask.permute(0, 2, 1)
         gt_mask = gt_mask.permute(0, 2, 1)
+        gt_intact = gt_intact.permute(0, 2, 1)
         for_pattern_mask = for_pattern_mask.permute(0, 2, 1)
 
         return (
@@ -338,6 +340,8 @@ class CSDI_PM25(CSDI_base):
             gt_mask,
             for_pattern_mask,
             cut_length,
+            None,
+            gt_intact
         )
 
 
