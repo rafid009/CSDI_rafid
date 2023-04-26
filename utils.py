@@ -665,7 +665,7 @@ def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=Non
 
 
 def evaluate_imputation_all(models, mse_folder, dataset_name='agaid', batch_size=16, trials=10, length=-1, random_trial=False, forecasting=False, missing_ratio=0.1, test_indices=None, data=False):  
-    nsample = 100
+    nsample = 50
     if 'CSDI' in models.keys():
         models['CSDI'].eval()
     if 'DiffSAITS' in models.keys():

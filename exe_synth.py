@@ -349,7 +349,7 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs':5000, # 3000 -> ds3
+        'epochs':4000, # 3000 -> ds3
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -379,8 +379,8 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
-        'diagonal_attention_mask': True
+        'dropout': 0.1,
+        'diagonal_attention_mask': False
     }
 }
 print(f"config: {config_dict_diffsaits}")
