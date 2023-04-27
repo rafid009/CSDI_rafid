@@ -174,18 +174,20 @@ models = {
 }
 mse_folder = "results_physio_final_random"
 data_folder = "results_physio_data_final_random"
-lengths = [10, 20, 30]
-for l in lengths:
-    print(f"\nlength = {l}")
-    print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=l, test_indices=test_indices)
-
-print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
 
 miss_ratios = [0.1, 0.5, 0.9]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
-    evaluate_imputation_all(models=models, trials=3, mse_folder=mse_folder, dataset_name='physio', batch_size=32, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
+    evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
+
+print(f"\nForecasting:")
+evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
+
+lengths = [10, 20, 30]
+for l in lengths:
+    print(f"\nlength = {l}")
+    print(f"\nBlackout:")
+    evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=l, test_indices=test_indices)
+
 
 
