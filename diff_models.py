@@ -243,7 +243,7 @@ class ResidualEncoderLayer_2(nn.Module):
         # cmobi 2
         self.conv_layer = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
 
-        self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
+        # self.cond_proj = Conv1d_with_init_saits_new(d_model, channels, 1)
 
         # before combi 2
         # self.conv_noisy = Conv1d_with_init_saits_new(channels, 2 * channels, kernel_size=1)
@@ -272,7 +272,7 @@ class ResidualEncoderLayer_2(nn.Module):
         x_proj = self.init_proj(x_proj)
 
         cond = torch.transpose(cond, 1, 2) # (B, L, K)
-        cond = self.cond_proj(cond)
+        # cond = self.cond_proj(cond)
         
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
