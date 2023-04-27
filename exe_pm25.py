@@ -138,34 +138,34 @@ print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 saits_model_file = f"{model_folder}/model_saits_pm25.pth" # don't change it
 saits = SAITS(n_steps=36, n_features=36, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2000, patience=200, device=args['device'])
 
-# X = []
-# masks = []
-# for j, train_batch in enumerate(train_loader, start=1):
-#     observed_data, observed_mask, _, _, _, _, _, _ = model_diff_saits.process_data(train_batch)
-#     observed_data = observed_data.permute(0, 2, 1)
-#     observed_mask = observed_mask.permute(0, 2, 1)
-#     if isinstance(observed_data, torch.Tensor):
-#         X.append(observed_data.detach().cpu().numpy())
-#         masks.append(observed_mask.detach().cpu().numpy())
-#     elif isinstance(observed_data, list):
-#         X.append(np.asarray(observed_data))
-#         masks.append(np.asarray(observed_mask))
-#     else:
-#         X.append(observed_data)
-#         masks.append(observed_mask)
+X = []
+masks = []
+for j, train_batch in enumerate(train_loader, start=1):
+    observed_data, observed_mask, _, _, _, _, _, _ = model_diff_saits.process_data(train_batch)
+    observed_data = observed_data.permute(0, 2, 1)
+    observed_mask = observed_mask.permute(0, 2, 1)
+    if isinstance(observed_data, torch.Tensor):
+        X.append(observed_data.detach().cpu().numpy())
+        masks.append(observed_mask.detach().cpu().numpy())
+    elif isinstance(observed_data, list):
+        X.append(np.asarray(observed_data))
+        masks.append(np.asarray(observed_mask))
+    else:
+        X.append(observed_data)
+        masks.append(observed_mask)
     
-# X = np.concatenate(X, axis=0)
-# masks = np.concatenate(masks, axis=0)
-# masks = np.ma.make_mask(masks, copy=True, shrink=False)
-# shp = X.shape
-# print(f"X shape: {shp}")
-# X = X.reshape(-1).copy()
-# masks = masks.reshape(-1)
-# masks = ~masks
-# X[masks] = np.nan
-# X = X.reshape(shp)
-# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-# pickle.dump(saits, open(saits_model_file, 'wb'))
+X = np.concatenate(X, axis=0)
+masks = np.concatenate(masks, axis=0)
+masks = np.ma.make_mask(masks, copy=True, shrink=False)
+shp = X.shape
+print(f"X shape: {shp}")
+X = X.reshape(-1).copy()
+masks = masks.reshape(-1)
+masks = ~masks
+X[masks] = np.nan
+X = X.reshape(shp)
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
 saits = pickle.load(open(saits_model_file, 'rb'))
 
 
