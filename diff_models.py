@@ -422,7 +422,7 @@ class diff_SAITS_3(nn.Module):
         X_tilde_1 = self.reduce_dim_z(enc_output)
 
         # Feature encode for second block
-        X_tilde_1 = X_tilde_1 @ attn_weights_f + X[:, 1, :, :] #+ X_tilde_1
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X #X[:, 1, :, :] #+ X_tilde_1
 
 
         # Old stable better
