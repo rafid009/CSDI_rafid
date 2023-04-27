@@ -221,8 +221,8 @@ class ResidualEncoderLayer_2(nn.Module):
         # self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  diagonal_attention_mask)
         # combi 2
-        # self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
-        #                  diagonal_attention_mask)
+        self.enc_layer_1 = EncoderLayer(d_time, actual_d_feature, channels, d_inner, n_head, d_k, d_v, dropout, 0,
+                         diagonal_attention_mask)
         
         self.enc_layer_2 = EncoderLayer(d_time, actual_d_feature, 2 * channels, d_inner, n_head, d_k, d_v, dropout, 0,
                          diagonal_attention_mask)
@@ -276,12 +276,12 @@ class ResidualEncoderLayer_2(nn.Module):
         
 
         diff_proj = self.diffusion_projection(diffusion_emb).unsqueeze(-1)
-        y = x_proj + diff_proj #+ cond
+        y = x_proj + diff_proj + cond
 
         # attn1
-        # y = torch.transpose(y, 1, 2) # (B, K, channels)
-        # y, _ = self.enc_layer_1(y)
-        # y = torch.transpose(y, 1, 2)
+        y = torch.transpose(y, 1, 2) # (B, K, channels)
+        y, _ = self.enc_layer_1(y)
+        y = torch.transpose(y, 1, 2)
 
 
         y = self.conv_layer(y)
@@ -418,7 +418,7 @@ class diff_SAITS_3(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3) 
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-            attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
+            # attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
         X_tilde_1 = self.reduce_dim_z(enc_output)
 
         # Feature encode for second block
