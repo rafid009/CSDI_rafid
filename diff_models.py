@@ -418,7 +418,7 @@ class diff_SAITS_3(nn.Module):
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
             attn_weights_f = attn_weights_f.mean(dim=3) 
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-            # attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
+            attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
         X_tilde_1 = self.reduce_dim_z(enc_output)
 
         # Feature encode for second block

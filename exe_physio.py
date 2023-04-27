@@ -99,9 +99,9 @@ config_dict_diffsaits = {
         'featureemb': 16,
         'target_strategy': "random",
         'type': 'SAITS',
-        'n_layers': 4,
-        'loss_weight_p': 0.2,
-        'loss_weight_f': 0.8,
+        'n_layers': 3,
+        'loss_weight_p': 1,
+        'loss_weight_f': 1,
         'd_time': 48,
         'n_feature': len(attributes),
         'd_model': 128,
@@ -109,8 +109,8 @@ config_dict_diffsaits = {
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
-        'diagonal_attention_mask': True
+        'dropout': 0.1,
+        'diagonal_attention_mask': False
     }
 }
 print(f"config: {config_dict_diffsaits}")

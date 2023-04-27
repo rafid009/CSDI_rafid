@@ -80,7 +80,7 @@ train(
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 3500,
         'batch_size': 16 ,
         'lr': 1.0e-3
     },      
@@ -98,19 +98,19 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random",
+        'target_strategy': "mix",
         'type': 'SAITS',
-        'n_layers': 4,
+        'n_layers': 3,
         'loss_weight_p': 1,
         'loss_weight_f': 1,
-        'd_time': 48,
+        'd_time': 36,
         'n_feature': 36, #len(attributes),
         'd_model': 128,
         'd_inner': 128,
         'n_head': 8,
         'd_k': 64,
         'd_v': 64,
-        'dropout': 0.2,
+        'dropout': 0.1,
         'diagonal_attention_mask': False
     }
 }
