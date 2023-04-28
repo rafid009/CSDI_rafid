@@ -375,13 +375,13 @@ class diff_SAITS_3(nn.Module):
         masks = torch.transpose(masks, 2, 3)
 
         # combi 2:
-        cond_X = 0
-        # cond_X = X[:,0,:,:] + X[:,1,:,:]
-        # cond_X = torch.transpose(cond_X, 1, 2)
+        # cond_X = 0
+        cond_X = X[:,0,:,:] + X[:,1,:,:]
+        cond_X = torch.transpose(cond_X, 1, 2)
 
-        # for feat_enc_layer in self.layer_stack_for_feature_weights:
-        #     cond_X, attn_weights_f = feat_enc_layer(cond_X)
-        # cond_X = torch.transpose(cond_X, 1, 2)
+        for feat_enc_layer in self.layer_stack_for_feature_weights:
+            cond_X, attn_weights_f = feat_enc_layer(cond_X)
+        cond_X = torch.transpose(cond_X, 1, 2)
         
 
         # before combi 2
@@ -413,21 +413,21 @@ class diff_SAITS_3(nn.Module):
         
 
         # Feature attention added
-        # attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
-        # if len(attn_weights_f.shape) == 4:
-        #     # if having more than 1 head, then average attention weights from all heads
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-        #     attn_weights_f = attn_weights_f.mean(dim=3) 
-        #     attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
-        #     attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
+        attn_weights_f = attn_weights_f.squeeze(dim=1)  # namely term A_hat in Eq.
+        if len(attn_weights_f.shape) == 4:
+            # if having more than 1 head, then average attention weights from all heads
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
+            attn_weights_f = attn_weights_f.mean(dim=3) 
+            attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
+            attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
         X_tilde_1 = self.reduce_dim_z(enc_output)
 
         # Feature encode for second block
-        # X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X #X[:, 1, :, :] #+ X_tilde_1
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X + X[:, 1, :, :] #+ X_tilde_1
 
 
         # Old stable better
-        X_tilde_1 = X_tilde_1 + X[:, 1, :, :] 
+        # X_tilde_1 = X_tilde_1 + X[:, 1, :, :] 
 
         # second DMSA block
 
