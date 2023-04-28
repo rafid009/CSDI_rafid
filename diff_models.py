@@ -345,7 +345,7 @@ class diff_SAITS_3(nn.Module):
         self.embedding_2 = nn.Linear(actual_d_feature, d_model)
         self.reduce_skip_z = nn.Linear(d_model, d_feature)
         self.reduce_dim_beta = nn.Linear(d_model, d_feature)
-        # self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
+        self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
 
@@ -446,7 +446,7 @@ class diff_SAITS_3(nn.Module):
 
         # skip_tilde_2
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-        skips_tilde_2 = self.reduce_dim_beta(skips_tilde_2) # self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
