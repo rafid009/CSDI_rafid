@@ -382,6 +382,7 @@ class diff_SAITS_3(nn.Module):
         for feat_enc_layer in self.layer_stack_for_feature_weights:
             cond_X, attn_weights_f = feat_enc_layer(cond_X)
         cond_X = torch.transpose(cond_X, 1, 2)
+        cond_X = (cond_X + X[:, 1, :, :]) / 2
         
 
         # before combi 2
@@ -389,7 +390,7 @@ class diff_SAITS_3(nn.Module):
         # input_X_for_first = self.embedding_1(input_X_for_first)
 
         # combi 2
-        input_X_for_first = torch.cat([cond_X + X[:, 1, :, :], masks[:,1,:,:]], dim=2)
+        input_X_for_first = torch.cat([cond_X, masks[:,1,:,:]], dim=2)
         input_X_for_first = self.embedding_1(input_X_for_first)
 
 
@@ -423,7 +424,7 @@ class diff_SAITS_3(nn.Module):
         X_tilde_1 = self.reduce_dim_z(enc_output)
 
         # Feature encode for second block
-        X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X + X[:, 1, :, :] #+ X_tilde_1
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X #+ X_tilde_1
 
 
         # Old stable better
