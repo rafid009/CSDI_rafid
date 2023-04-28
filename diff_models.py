@@ -354,11 +354,11 @@ class diff_SAITS_3(nn.Module):
         #                  True)
         
         # combi 2 more layers
-        # self.layer_stack_for_feature_weights = nn.ModuleList([
-        #     EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
-        #                  True)
-        #     for _ in range(n_layers)
-        # ])
+        self.layer_stack_for_feature_weights = nn.ModuleList([
+            EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
+                         True)
+            for _ in range(n_layers)
+        ])
 
         
 
