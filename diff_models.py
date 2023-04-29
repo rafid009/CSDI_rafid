@@ -304,7 +304,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = (attn_weights_1 + attn_weights_2) / 2
+        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights
 
@@ -418,7 +418,7 @@ class diff_SAITS_3(nn.Module):
         if len(attn_weights_f.shape) == 4:
             # if having more than 1 head, then average attention weights from all heads
             attn_weights_f = torch.transpose(attn_weights_f, 1, 3)
-            attn_weights_f = attn_weights_f.mean(dim=3) 
+            attn_weights_f = attn_weights_f.mean(dim=3)
             attn_weights_f = torch.transpose(attn_weights_f, 1, 2)
             attn_weights_f = torch.softmax(attn_weights_f, dim=-1)
         X_tilde_1 = self.reduce_dim_z(enc_output)
