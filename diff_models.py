@@ -345,7 +345,7 @@ class diff_SAITS_3(nn.Module):
         self.embedding_2 = nn.Linear(actual_d_feature, d_model)
         self.reduce_skip_z = nn.Linear(d_model, d_feature)
         self.reduce_dim_beta = nn.Linear(d_model, d_feature)
-        self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
+        # self.reduce_dim_gamma = nn.Linear(d_feature, d_feature)
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
 
@@ -382,7 +382,7 @@ class diff_SAITS_3(nn.Module):
         for feat_enc_layer in self.layer_stack_for_feature_weights:
             cond_X, attn_weights_f = feat_enc_layer(cond_X)
         cond_X = torch.transpose(cond_X, 1, 2)
-        cond_X = (cond_X + X[:, 1, :, :]) / 2
+        
         
 
         # before combi 2
@@ -424,6 +424,7 @@ class diff_SAITS_3(nn.Module):
         X_tilde_1 = self.reduce_dim_z(enc_output)
 
         # Feature encode for second block
+        cond_X = (cond_X + X[:, 1, :, :]) / 2
         X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X #+ X_tilde_1
 
 
@@ -446,7 +447,7 @@ class diff_SAITS_3(nn.Module):
 
         # skip_tilde_2
         skips_tilde_2 /= math.sqrt(len(self.layer_stack_for_second_block))
-        skips_tilde_2 = self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
+        skips_tilde_2 = self.reduce_dim_beta(skips_tilde_2) #self.reduce_dim_gamma(F.relu(self.reduce_dim_beta(skips_tilde_2)))
 
         # attention-weighted combine
         attn_weights = attn_weights.squeeze(dim=1)  # namely term A_hat in Eq.
