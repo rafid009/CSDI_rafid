@@ -349,7 +349,7 @@ class diff_SAITS_3(nn.Module):
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
 
         # masking test before feature attn
-        self.feat_attn_mask_embed = nn.Linear(actual_d_feature, d_feature)
+        # self.feat_attn_mask_embed = nn.Linear(actual_d_feature, d_feature)
 
         # combi 2: trying feature weights here
         # self.feature_weights = EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
@@ -381,7 +381,7 @@ class diff_SAITS_3(nn.Module):
         # cond_X = 0
         cond_X = X[:,0,:,:] + X[:,1,:,:]
         # masking test
-        cond_X = self.feat_attn_mask_embed(torch.cat([cond_X, masks[:,1,:,:]], dim=2))
+        # cond_X = self.feat_attn_mask_embed(torch.cat([cond_X, masks[:,1,:,:]], dim=2))
         cond_X = torch.transpose(cond_X, 1, 2)
 
         for feat_enc_layer in self.layer_stack_for_feature_weights:
