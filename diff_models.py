@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.utils.weight_norm as weight_norm
 import math
 from pypots.imputation.transformer import EncoderLayer, PositionalEncoding
 from pypots.imputation import SAITS
@@ -304,7 +303,7 @@ class ResidualEncoderLayer_2(nn.Module):
         skip = torch.transpose(skip, 1, 2) # (B, K, L)
 
 
-        attn_weights = torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
+        attn_weights = (attn_weights_1 + attn_weights_2) / 2 #torch.softmax(attn_weights_1 + attn_weights_2, dim=-1)
 
         return (x + residual) * math.sqrt(0.5), skip, attn_weights
 
@@ -349,6 +348,9 @@ class diff_SAITS_3(nn.Module):
         # for delta decay factor
         self.weight_combine = nn.Linear(d_feature + d_time, d_feature)
 
+        # masking test before feature attn
+        self.feat_attn_mask_embed = nn.Linear(actual_d_feature, d_feature)
+
         # combi 2: trying feature weights here
         # self.feature_weights = EncoderLayer(d_feature, d_time, d_time, d_inner, n_head, d_k, d_v, dropout, 0,
         #                  True)
@@ -374,9 +376,12 @@ class diff_SAITS_3(nn.Module):
         X = torch.transpose(X, 2, 3)
         masks = torch.transpose(masks, 2, 3)
 
+    
         # combi 2:
         # cond_X = 0
         cond_X = X[:,0,:,:] + X[:,1,:,:]
+        # masking test
+        cond_X = self.feat_attn_mask_embed(torch.cat([cond_X, masks[:,1,:,:]], dim=2))
         cond_X = torch.transpose(cond_X, 1, 2)
 
         for feat_enc_layer in self.layer_stack_for_feature_weights:
