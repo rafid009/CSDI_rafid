@@ -90,7 +90,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 50,
+        'num_steps': 70,
         'schedule': "quad"
     },
     'model': {
@@ -134,37 +134,37 @@ train(
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
 saits_model_file = f"{model_folder}/model_saits_physio.pth" # don't change it
-# saits = SAITS(n_steps=48, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=1500, patience=200, device=args['device'])
+saits = SAITS(n_steps=48, n_features=len(attributes), n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=3000, patience=200, device=args['device'])
 
-# X = []
-# masks = []
-# for j, train_batch in enumerate(train_loader, start=1):
-#     observed_data, observed_mask, _, _, _, _, _, _ = model_diff_saits.process_data(train_batch)
-#     observed_data = observed_data.permute(0, 2, 1)
-#     observed_mask = observed_mask.permute(0, 2, 1)
-#     if isinstance(observed_data, torch.Tensor):
-#         X.append(observed_data.detach().cpu().numpy())
-#         masks.append(observed_mask.detach().cpu().numpy())
-#     elif isinstance(observed_data, list):
-#         X.append(np.asarray(observed_data))
-#         masks.append(np.asarray(observed_mask))
-#     else:
-#         X.append(observed_data)
-#         masks.append(observed_mask)
+X = []
+masks = []
+for j, train_batch in enumerate(train_loader, start=1):
+    observed_data, observed_mask, _, _, _, _, _, _ = model_diff_saits.process_data(train_batch)
+    observed_data = observed_data.permute(0, 2, 1)
+    observed_mask = observed_mask.permute(0, 2, 1)
+    if isinstance(observed_data, torch.Tensor):
+        X.append(observed_data.detach().cpu().numpy())
+        masks.append(observed_mask.detach().cpu().numpy())
+    elif isinstance(observed_data, list):
+        X.append(np.asarray(observed_data))
+        masks.append(np.asarray(observed_mask))
+    else:
+        X.append(observed_data)
+        masks.append(observed_mask)
     
-# X = np.concatenate(X, axis=0)
-# masks = np.concatenate(masks, axis=0)
-# masks = np.ma.make_mask(masks, copy=True, shrink=False)
-# shp = X.shape
-# print(f"X shape: {shp}")
-# X = X.reshape(-1).copy()
-# masks = masks.reshape(-1)
-# masks = ~masks
-# X[masks] = np.nan
-# X = X.reshape(shp)
-# saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
-# pickle.dump(saits, open(saits_model_file, 'wb'))
-saits = pickle.load(open(saits_model_file, 'rb'))
+X = np.concatenate(X, axis=0)
+masks = np.concatenate(masks, axis=0)
+masks = np.ma.make_mask(masks, copy=True, shrink=False)
+shp = X.shape
+print(f"X shape: {shp}")
+X = X.reshape(-1).copy()
+masks = masks.reshape(-1)
+masks = ~masks
+X[masks] = np.nan
+X = X.reshape(shp)
+saits.fit(X)  # train the model. Here I use the whole dataset as the training set, because ground truth is not visible to the model.
+pickle.dump(saits, open(saits_model_file, 'wb'))
+# saits = pickle.load(open(saits_model_file, 'rb'))
 
 
 models = {
@@ -180,14 +180,14 @@ for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
     evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
 
-print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
+# print(f"\nForecasting:")
+# evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
 
-lengths = [10, 20, 30]
-for l in lengths:
-    print(f"\nlength = {l}")
-    print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=l, test_indices=test_indices)
+# lengths = [10, 20, 30]
+# for l in lengths:
+#     print(f"\nlength = {l}")
+#     print(f"\nBlackout:")
+#     evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=l, test_indices=test_indices)
 
 
 
