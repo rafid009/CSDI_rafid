@@ -81,7 +81,7 @@ config_dict_diffsaits = {
     'train': {
         'epochs': 3000,
         'batch_size': 16 ,
-        'lr': 1.0e-3
+        'lr': 1.0e-4
     },      
     'diffusion': {
         'layers': 4, 
@@ -100,7 +100,7 @@ config_dict_diffsaits = {
         'target_strategy': "random",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 1,
+        'loss_weight_p': 0.7,
         'loss_weight_f': 1,
         'd_time': 48,
         'n_feature': len(attributes),
