@@ -360,7 +360,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 50,
+        'num_steps': 100,
         'schedule': "quad"
     },
     'model': {
@@ -386,7 +386,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_qual_stable_attn_both_plus_mask.pth"
+filename = "model_diffsaits_synth_qual_stable_attn_both_100.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 train(
@@ -409,8 +409,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_qual_stable_attn_both_plus_mask"
-data_folder = "results_synth_qual_stable_attn_both_plus_mask"
+mse_folder = "results_synth_qual_stable_attn_both_100"
+data_folder = "results_synth_qual_stable_attn_both_100"
 lengths = [20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
