@@ -79,7 +79,7 @@ model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs': 3000,
+        'epochs': 3500,
         'batch_size': 16 ,
         'lr': 1.0e-4
     },      
@@ -90,7 +90,7 @@ config_dict_diffsaits = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 70,
+        'num_steps': 50,
         'schedule': "quad"
     },
     'model': {
@@ -180,8 +180,8 @@ for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
     evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, missing_ratio=ratio, random_trial=True, test_indices=test_indices)
 
-# print(f"\nForecasting:")
-# evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
+print(f"\nForecasting:")
+evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='physio', batch_size=32, length=(10, 30), forecasting=True, test_indices=test_indices)
 
 # lengths = [10, 20, 30]
 # for l in lengths:

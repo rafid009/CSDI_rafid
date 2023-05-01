@@ -432,7 +432,7 @@ class diff_SAITS_3(nn.Module):
 
         # Feature encode for second block
         # cond_X = (cond_X + X[:, 1, :, :])
-        X_tilde_1 = X_tilde_1 @ attn_weights_f + ((cond_X + X[:, 1, :, :]) * (1 - masks[:, 1, :, :])) / 2 #cond_X #+ X_tilde_1
+        X_tilde_1 = X_tilde_1 @ attn_weights_f + cond_X #((cond_X + X[:, 1, :, :]) * (1 - masks[:, 1, :, :])) / 2 #cond_X #+ X_tilde_1
 
         # Old stable better
         # X_tilde_1 = X_tilde_1 + X[:, 1, :, :] 
