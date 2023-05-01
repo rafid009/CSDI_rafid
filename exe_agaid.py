@@ -103,8 +103,8 @@ config_dict_diffsaits = {
         'target_strategy': "random",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_f': 1.0,
-        'loss_weight_p': 0.5,
+        'loss_weight_p': 1,
+        'loss_weight_f': 1,
         'd_time': 252,
         'n_feature': len(features),
         'd_model': 128,
@@ -132,7 +132,8 @@ train(
     valid_loader=valid_loader,
     foldername=model_folder,
     filename=f"{filename}",
-    is_saits=True
+    is_saits=True,
+    data_type='agaid'
 )
 # nsample = 100
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))

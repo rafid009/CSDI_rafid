@@ -289,7 +289,7 @@ config_dict_csdi = {
         'diffusion_embedding_dim': 128,
         'beta_start': 0.0001,
         'beta_end': 0.5,
-        'num_steps': 100,
+        'num_steps': 50,
         'schedule': "quad"
     },
     'model': {
@@ -320,20 +320,20 @@ train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, ba
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
-filename = "model_csdi_synth_final_new_time.pth"
+filename = "model_csdi_synth_final_new_time_50.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
-# train(
-#     model_csdi,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
-model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+train(
+    model_csdi,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
@@ -410,25 +410,25 @@ models = {
     'DiffSAITS': model_diff_saits
 }
 mse_folder = "results_synth_qual_stable_condX"
-data_folder = "results_synth_qual_stable_condX"
+data_folder = "results_synth_qual_data_stable_condX"
 lengths = [20, 50, 80]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, length=l)
-    # evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
+    # evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, length=l)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
 
 print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, length=(10, 80), forecasting=True)
+# evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, length=(10, 80), forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-# evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
+evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
 
 miss_ratios = [0.2, 0.5, 0.8]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, missing_ratio=ratio, random_trial=True)
+    # evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, missing_ratio=ratio, random_trial=True)
 #     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
-#     evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
 
 # lengths = [20]
 # print("For All")
