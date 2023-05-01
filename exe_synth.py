@@ -423,7 +423,7 @@ print(f"\nForecasting:")
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
 evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
 
-miss_ratios = [0.2, 0.5, 0.8]
+miss_ratios = [0.1, 0.5, 0.9]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
     # evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, missing_ratio=ratio, random_trial=True)
