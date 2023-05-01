@@ -170,7 +170,8 @@ def train(
     valid_epoch_interval=5,
     foldername="",
     filename="",
-    is_saits=False
+    is_saits=False,
+    data_type=""
 ):
     optimizer = Adam(model.parameters(), lr=config["lr"], weight_decay=1e-6)
     if foldername != "":
@@ -226,7 +227,8 @@ def train(
             # exp_scheduler.step()
             # metric = avg_loss / batch_no
             if is_saits:
-                lr_scheduler.step()
+                if data_type != 'pm25':
+                    lr_scheduler.step()
                 # pass
             else:
                 lr_scheduler.step()
