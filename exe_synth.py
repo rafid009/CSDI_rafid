@@ -411,7 +411,7 @@ models = {
 }
 mse_folder = "results_synth_qual_stable_condX"
 data_folder = "results_synth_qual_data_stable_condX"
-lengths = [20, 50, 80]
+lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")
