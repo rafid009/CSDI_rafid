@@ -387,7 +387,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_v2_qual{'_noise' if noise else ''}.pth"
+filename = f"model_diffsaits_synth_v2_qual{'_noise' if noise else ''}.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 
 train(
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_v2_qual{'_noise' if noise else ''}"
-data_folder = "results_synth_v2_qual{'_noise' if noise else ''}"
+mse_folder = f"results_synth_v2_qual{'_noise' if noise else ''}"
+data_folder = f"results_synth_v2_qual{'_noise' if noise else ''}"
 lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
