@@ -701,7 +701,7 @@ def evaluate_imputation_all(models, mse_folder, dataset_name='', batch_size=16, 
         if dataset_name == 'synth':
             test_loader = get_testloader_synth(n_steps=100, n_features=7, batch_size=batch_size, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting)
         elif dataset_name == 'synth_v2':
-            test_loader = get_testloader_synth(n_steps=100, n_features=7, batch_size=batch_size, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting, v2=True)
+            test_loader = get_testloader_synth(n_steps=100, n_features=3, batch_size=batch_size, num_seasons=16, seed=(10 + trial), length=length, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting, v2=True)
         elif dataset_name == 'physio':
             test_loader = get_testloader_physio(test_indices=test_indices, seed=(10+trial), batch_size=batch_size, missing_ratio=missing_ratio, random_trial=random_trial, forecasting=forecasting, length=length)
         elif dataset_name == 'pm25':
