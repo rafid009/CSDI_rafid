@@ -9,7 +9,7 @@ from pypots.imputation import SAITS
 import matplotlib.pyplot as plt
 import matplotlib
 import pickle
-from synthetic_data import create_synthetic_data
+from synthetic_data import create_synthetic_data_v2, feats_v2
 import json
 from json import JSONEncoder
 import math
@@ -26,7 +26,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-given_features = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
+given_features = feats_v2 #['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
 
 def evaluate_imputation(models, mse_folder, exclude_key='', exclude_features=None, trials=20, length=100, season_idx=None, random_trial=False, forward_trial=False, data=False, missing_ratio=0.2):
     # given_features = given_features = ['sin', 'cos2', 'harmonic', 'weight', 'inv'] 
@@ -316,7 +316,7 @@ nsample = 50
 n_steps = 100
 n_features = len(given_features)
 num_seasons = 32
-train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False)
+train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=True)
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
@@ -324,25 +324,25 @@ filename = "model_csdi_synth_final_new_time_50.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
-# train(
-#     model_csdi,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
-model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+train(
+    model_csdi,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
 saits_model_file = f"{model_folder}/saits_model_synth.pkl"
 saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2500, patience=400, device=device)
-# X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=10)
-# print(f"\n\SAITS training starts.....\n")
-# saits.fit(X)
-# pickle.dump(saits, open(saits_model_file, 'wb'))
+X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=10)
+print(f"\n\SAITS training starts.....\n")
+saits.fit(X)
+pickle.dump(saits, open(saits_model_file, 'wb'))
 
 
 saits = pickle.load(open(saits_model_file, 'rb'))
@@ -386,21 +386,21 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_qual_stable_condX.pth"
+filename = "model_diffsaits_synth_v2_qual.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 # model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
-# train(
-#     model_diff_saits,
-#     config_dict_diffsaits["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
+train(
+    model_diff_saits,
+    config_dict_diffsaits["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
 
 
-model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
 models = {
@@ -408,52 +408,23 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_qual_stable_condX"
-data_folder = "results_synth_qual_data_stable_condX"
+mse_folder = "results_synth_v2_qual"
+data_folder = "results_synth_v2_qual"
 lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, length=l)
-    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, length=l)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth_v2', length=l, trials=1, batch_size=1, data=True)
 
 print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, length=(10, 80), forecasting=True)
+evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, length=(10, 80), forecasting=True)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth', length=l, trials=1, batch_size=1, data=True)
+evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth_v2', length=l, trials=1, batch_size=1, data=True)
 
 miss_ratios = [0.1, 0.5, 0.9]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth', batch_size=32, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, missing_ratio=ratio, random_trial=True)
 #     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
-    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
-
-# lengths = [20]
-# print("For All")
-# for l in lengths:
-#     print(f"For length: {l}")
-#     # evaluate_imputation(models, mse_folder, length=l, trials=1)
-#     print(f"blackout Missing:\n")
-#     evaluate_imputation(models, mse_folder, length=l, trials=10)
-#     # evaluate_imputation(models, data_folder, length=l, trials=1, data=True)
-#     print(f"Forecasting case:\n")
-#     evaluate_imputation(models, mse_folder=mse_folder, length=l, forward_trial=True, trials=1)
-#     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-#     print(f"Random Missing:")
-#     evaluate_imputation(models, mse_folder=mse_folder, length=l, random_trial=True, trials=10, missing_ratio=0.2)
-    # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True)
-    # evaluate_imputation_data(models, length=l)
-
-# feature_combinations = {
-#     'sin': ['sin'],
-#     'cos': ['cos2'],
-#     'sin-cos': ['sin', 'cos2']
-# }
-# print(f"The exclusions")
-# for key in feature_combinations.keys():
-#     for l in lengths:
-#         print(f"For length: {l}")
-#         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=1)
-#         evaluate_imputation(models, mse_folder, exclude_key=key, exclude_features=feature_combinations[key], length=l, trials=10)
-        # evaluate_imputation_data(models, exclude_key=key, exclude_features=feature_combinations[key], length=l)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth_v2', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
