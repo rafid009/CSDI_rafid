@@ -320,7 +320,7 @@ train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, ba
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
-filename = "model_csdi_synth_final_new_time_50.pth"
+filename = "model_csdi_synth_v2.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
@@ -337,7 +337,7 @@ train(
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
-saits_model_file = f"{model_folder}/saits_model_synth.pkl"
+saits_model_file = f"{model_folder}/saits_model_synth_v2.pkl"
 saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2500, patience=400, device=device)
 X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=10)
 print(f"\n\SAITS training starts.....\n")
@@ -388,7 +388,7 @@ model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(give
 
 filename = "model_diffsaits_synth_v2_qual.pth"
 print(f"\n\DiffSAITS training starts.....\n")
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+
 train(
     model_diff_saits,
     config_dict_diffsaits["train"],
@@ -399,8 +399,7 @@ train(
     is_saits=True
 )
 
-
-# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/model_diffsaits.pth"))
+# model_diff_saits.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"DiffSAITS params: {get_num_params(model_diff_saits)}")
 
 models = {
