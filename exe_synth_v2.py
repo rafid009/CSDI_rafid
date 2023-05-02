@@ -316,11 +316,12 @@ nsample = 50
 n_steps = 100
 n_features = len(given_features)
 num_seasons = 32
-train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=True)
+noise = True
+train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=True, noise=noise)
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
-filename = "model_csdi_synth_v2.pth"
+filename = "model_csdi_synth_v2_noise.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
@@ -337,9 +338,9 @@ train(
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
-saits_model_file = f"{model_folder}/saits_model_synth_v2.pkl"
+saits_model_file = f"{model_folder}/saits_model_synth_v2_noise.pkl"
 saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2500, patience=400, device=device)
-X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=10)
+X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=10, noise=noise)
 print(f"\n\SAITS training starts.....\n")
 saits.fit(X)
 pickle.dump(saits, open(saits_model_file, 'wb'))
@@ -386,7 +387,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_v2_qual.pth"
+filename = "model_diffsaits_synth_v2_qual_noise.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 
 train(
@@ -407,23 +408,23 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_v2_qual"
-data_folder = "results_synth_v2_qual"
+mse_folder = "results_synth_v2_qual_noise"
+data_folder = "results_synth_v2_qual_noise"
 lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
     print(f"\nBlackout:")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, length=l)
-    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth_v2', length=l, trials=1, batch_size=1, data=True)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, length=l, noise=noise)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth_v2', length=l, trials=1, batch_size=1, data=True, noise=noise)
 
 print(f"\nForecasting:")
-evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, length=(10, 80), forecasting=True)
+evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, length=(10, 80), forecasting=True, noise=noise)
     # evaluate_imputation(models, mse_folder=data_folder, length=l, forward_trial=True, trials=1, data=True)
-evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth_v2', length=l, trials=1, batch_size=1, data=True)
+evaluate_imputation_all(models=models, mse_folder=data_folder, forecasting=True, dataset_name='synth_v2', length=l, trials=1, batch_size=1, data=True, noise=noise)
 
 miss_ratios = [0.1, 0.5, 0.9]
 for ratio in miss_ratios:
     print(f"\nRandom Missing: ratio ({ratio})")
-    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='synth_v2', batch_size=32, missing_ratio=ratio, random_trial=True, noise=noise)
 #     # evaluate_imputation(models, mse_folder=data_folder, length=l, random_trial=True, trials=1, data=True, missing_ratio=ratio)
-    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth_v2', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True)
+    evaluate_imputation_all(models=models, mse_folder=data_folder, dataset_name='synth_v2', trials=1, batch_size=1, data=True, missing_ratio=ratio, random_trial=True, noise=noise)

@@ -1,6 +1,6 @@
 import numpy as np
 feats = ['sin', 'cos2', 'harmonic', 'weight', 'lin_comb', 'non_lin_comb', 'mixed_history']
-feats_v2 = ['sin', 'cos2', 'tanh']
+feats_v2 = ['sin', 'cos2', 'tan']
 
 
 def add_rn_missing(X, length=-1, rate=-1):
@@ -96,7 +96,7 @@ def create_synthetic_data_v2(n_steps, num_seasons, seed=10, rate=0.05, length_ra
     synth_features = {
         'sin': (0.00001, 2 * np.pi/3, np.pi/2), # f1
         'cos2': (0, 2*np.pi, np.pi/4), # f2
-        'tanh': (-np.pi/3, np.pi/3, np.pi/4) # f3
+        'tan': (0, np.pi/3, np.pi/16) # f3
     }
     num_steps = n_steps # config['n_steps']
     num_features = len(feats_v2) # config['n_features']
@@ -116,7 +116,7 @@ def create_synthetic_data_v2(n_steps, num_seasons, seed=10, rate=0.05, length_ra
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
                 data[i, :, feats_v2.index(feature)] = (np.cos(np.linspace(low, high, data.shape[1])) ** 2)
-            elif feature == 'tanh':
+            elif feature == 'tan':
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
                 f1_sin = np.sin(np.linspace(low, high, data.shape[1]))
@@ -124,13 +124,16 @@ def create_synthetic_data_v2(n_steps, num_seasons, seed=10, rate=0.05, length_ra
                 low = np.random.uniform(args[0], args[0]) + np.random.uniform(0, args[2])
                 high = np.random.uniform(args[1], args[1]) + np.random.uniform(0, args[2])
                 f2_cos = (np.cos(np.linspace(low, high, data.shape[1])) ** 2)
-
-                data[i, :, feats_v2.index(feature)] = f1_sin / (f2_cos + 1e-5)
-
-            if feature == 'sin' or feature == 'cos2' or feature == 'tanh':
-                data[i, :, feats_v2.index(feature)] = add_rn_missing(data[i, :, feats_v2.index(feature)], length=lr)
+                
+                data[i, :, feats_v2.index(feature)] = f1_sin / (f2_cos + 1e-5) #+ np.random.rand(data.shape[1])
             if noise:
-                data[i, :, feats_v2.index(feature)] += (np.random.rand(data.shape[1]) ** (1/8))
+                noise_level = np.random.rand(data.shape[1]) * 0.5
+                data[i, :, feats_v2.index(feature)] += noise_level
+
+
+            if feature == 'sin' or feature == 'cos2' or feature == 'tan':
+                data[i, :, feats_v2.index(feature)] = add_rn_missing(data[i, :, feats_v2.index(feature)], length=lr)
+            
         data[i] = add_rn_missing(data[i], rate=rate)
             # elif feature == 'inv':
             #     data[i, :, feats.index(feature)] = (synth_features['inv'][0] * data[i, :, feats.index('sin')] - synth_features['inv'][1] / data[i, :, feats.index('sin')])

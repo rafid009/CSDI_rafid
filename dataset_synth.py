@@ -64,7 +64,7 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
     return obs_data, obs_mask, mask, sample, gt_intact
 
 class Synth_Dataset(Dataset):
-    def __init__(self, n_steps, n_features, num_seasons, rate=0.1, is_test=False, length=100, exclude_features=None, seed=10, forward_trial=-1, random_trial=False, v2=False) -> None:
+    def __init__(self, n_steps, n_features, num_seasons, rate=0.1, is_test=False, length=100, exclude_features=None, seed=10, forward_trial=-1, random_trial=False, v2=False, noise=False) -> None:
         super().__init__()
         self.eval_length = n_steps
         self.observed_values = []
@@ -75,7 +75,7 @@ class Synth_Dataset(Dataset):
         if not v2:
             X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=seed)
         else:
-            X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=seed)
+            X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=seed, noise=noise)
         self.mean = mean
         self.std = std
 
@@ -122,33 +122,33 @@ class Synth_Dataset(Dataset):
         return len(self.observed_values)
 
 
-def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=False):
+def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=False,  noise=False):
     np.random.seed(seed=seed)
-    train_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, seed=seed, v2=v2)
+    train_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, seed=seed, v2=v2, noise=noise)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataset = Synth_Dataset(n_steps, n_features, 2, rate=missing_ratio, seed=seed*5, v2=v2)
+    test_dataset = Synth_Dataset(n_steps, n_features, 2, rate=missing_ratio, seed=seed*5, v2=v2, noise=noise)
     if is_test:
         test_loader = DataLoader(test_dataset, batch_size=1)
     else:
         test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
 
-def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=False, random_trial=False, v2=False):
+def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=False, random_trial=False, v2=False, noise=False):
     np.random.seed(seed=seed)
     if forward_trial:
         forward = n_steps - length
-        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, forward_trial=forward, v2=v2)
+        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, forward_trial=forward, v2=v2, noise=noise)
     else:
-        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, random_trial=random_trial, v2=v2)
+        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, random_trial=random_trial, v2=v2, noise=noise)
     test_loader = DataLoader(test_dataset, batch_size=1)
     return test_loader
 
-def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forecasting=False, random_trial=False, v2=False):
+def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forecasting=False, random_trial=False, v2=False, noise=False):
     np.random.seed(seed=seed)
     if forecasting:
         forward = n_steps - length
-        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, forward_trial=forward, v2=v2)
+        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, forward_trial=forward, v2=v2, noise=noise)
     else:
-        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, random_trial=random_trial, v2=v2)
+        test_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, is_test=True, length=length, exclude_features=exclude_features, seed=seed, random_trial=random_trial, v2=v2, noise=noise)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
     return test_loader
