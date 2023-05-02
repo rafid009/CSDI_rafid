@@ -321,7 +321,7 @@ train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, ba
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
 model_folder = "./saved_model_synth"
-filename = "model_csdi_synth_v2_noise.pth"
+filename = f"model_csdi_synth_v2{'_noise' if noise else ''}.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
@@ -338,7 +338,7 @@ train(
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
-saits_model_file = f"{model_folder}/saits_model_synth_v2_noise.pkl"
+saits_model_file = f"{model_folder}/saits_model_synth_v2{'_noise' if noise else ''}.pkl"
 saits = SAITS(n_steps=n_steps, n_features=n_features, n_layers=3, d_model=256, d_inner=128, n_head=4, d_k=64, d_v=64, dropout=0.1, epochs=2500, patience=400, device=device)
 X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=10, noise=noise)
 print(f"\n\SAITS training starts.....\n")
@@ -387,7 +387,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = "model_diffsaits_synth_v2_qual_noise.pth"
+filename = "model_diffsaits_synth_v2_qual{'_noise' if noise else ''}.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 
 train(
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = "results_synth_v2_qual_noise"
-data_folder = "results_synth_v2_qual_noise"
+mse_folder = "results_synth_v2_qual{'_noise' if noise else ''}"
+data_folder = "results_synth_v2_qual{'_noise' if noise else ''}"
 lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
