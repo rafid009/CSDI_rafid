@@ -316,7 +316,7 @@ nsample = 50
 n_steps = 100
 n_features = len(given_features)
 num_seasons = 32
-noise = True
+noise = False
 train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=True, noise=noise)
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
@@ -350,7 +350,7 @@ saits = pickle.load(open(saits_model_file, 'rb'))
 
 config_dict_diffsaits = {
     'train': {
-        'epochs':2500, # 3000 -> ds3
+        'epochs':3000, # 3000 -> ds3
         'batch_size': 16 ,
         'lr': 1.0e-4
     },      
