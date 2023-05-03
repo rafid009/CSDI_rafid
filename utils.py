@@ -232,7 +232,7 @@ def train(
             # exp_scheduler.step()
             # metric = avg_loss / batch_no
             if is_saits:
-                if data_type != 'pm25':
+                if data_type != 'pm25' and data_type != 'synth_v2':
                     lr_scheduler.step()
                 # pass
             else:
