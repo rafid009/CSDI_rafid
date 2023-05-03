@@ -316,7 +316,7 @@ nsample = 50
 n_steps = 100
 n_features = len(given_features)
 num_seasons = 32
-noise = True
+noise = False
 train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=True, noise=noise)
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
@@ -368,7 +368,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "mix", # noise mix
+        'target_strategy': "random", # noise mix
         'type': 'SAITS',
         'n_layers': 3,
         'loss_weight_p': 1,
