@@ -102,7 +102,7 @@ config_dict_diffsaits = {
         'target_strategy': "mix",
         'type': 'SAITS',
         'n_layers': 3,
-        'loss_weight_p': 1,
+        'loss_weight_p': 0.5,
         'loss_weight_f': 1,
         'd_time': 36,
         'n_feature': 36, #len(attributes),
@@ -178,7 +178,7 @@ models = {
 mse_folder = "results_pm25"
 data_folder = "results_pm25_data"
 
-evaluate_imputation_all(models=models, trials=10, mse_folder=mse_folder, dataset_name='pm25', batch_size=32, test_indices=test_loader)
+evaluate_imputation_all(models=models, trials=5, mse_folder=mse_folder, dataset_name='pm25', batch_size=32, test_indices=test_loader)
 
 # lengths = [10, 20, 30]
 # for l in lengths:
