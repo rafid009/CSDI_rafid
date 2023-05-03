@@ -368,7 +368,7 @@ config_dict_diffsaits = {
         'is_unconditional': 0,
         'timeemb': 128,
         'featureemb': 16,
-        'target_strategy': "random", # noise mix
+        'target_strategy': "mix", # noise mix
         'type': 'SAITS',
         'n_layers': 3,
         'loss_weight_p': 1,
@@ -387,7 +387,7 @@ config_dict_diffsaits = {
 print(f"config: {config_dict_diffsaits}")
 model_diff_saits = CSDI_Synth(config_dict_diffsaits, device, target_dim=len(given_features)).to(device)
 
-filename = f"model_diffsaits_synth_v3_qual{'_noise' if noise else ''}_random.pth"
+filename = f"model_diffsaits_synth_v3_qual{'_noise' if noise else ''}_mix.pth"
 print(f"\n\DiffSAITS training starts.....\n")
 
 train(
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_random"
-data_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_random"
+mse_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_mix"
+data_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_mix"
 lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
