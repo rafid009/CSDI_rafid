@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
-from synthetic_data import create_synthetic_data, feats, create_synthetic_data_v2, feats_v2
+from synthetic_data import create_synthetic_data, create_synthetic_data_v2, create_synthetic_data_v3
 
 def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=None, forward_trial=-1, lte_idx=None, random_trial=False):
     """Get mask of random points (missing at random) across channels based on k,
@@ -64,7 +64,7 @@ def parse_data(sample, rate=0.3, is_test=False, length=100, include_features=Non
     return obs_data, obs_mask, mask, sample, gt_intact
 
 class Synth_Dataset(Dataset):
-    def __init__(self, n_steps, n_features, num_seasons, rate=0.1, is_test=False, length=100, exclude_features=None, seed=10, forward_trial=-1, random_trial=False, v2=False, noise=False) -> None:
+    def __init__(self, n_steps, n_features, num_seasons, rate=0.1, is_test=False, length=100, exclude_features=None, seed=10, forward_trial=-1, random_trial=False, v2='v1', noise=False) -> None:
         super().__init__()
         self.eval_length = n_steps
         self.observed_values = []
@@ -72,10 +72,12 @@ class Synth_Dataset(Dataset):
         self.observed_masks = []
         self.gt_masks = []
         self.gt_intact = []
-        if not v2:
+        if v2 == 'v1':
             X, mean, std = create_synthetic_data(n_steps, num_seasons, seed=seed)
-        else:
+        elif v2 == 'v2':
             X, mean, std = create_synthetic_data_v2(n_steps, num_seasons, seed=seed, noise=noise)
+        else:
+            X, mean, std = create_synthetic_data_v3(n_steps, num_seasons, seed=seed, noise=noise)
         self.mean = mean
         self.std = std
 
@@ -122,7 +124,7 @@ class Synth_Dataset(Dataset):
         return len(self.observed_values)
 
 
-def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=False,  noise=False):
+def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2='v1',  noise=False):
     np.random.seed(seed=seed)
     train_dataset = Synth_Dataset(n_steps, n_features, num_seasons, rate=missing_ratio, seed=seed, v2=v2, noise=noise)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -133,7 +135,7 @@ def get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_rati
         test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
     return train_loader, test_loader
 
-def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=False, random_trial=False, v2=False, noise=False):
+def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forward_trial=False, random_trial=False, v2='v1', noise=False):
     np.random.seed(seed=seed)
     if forward_trial:
         forward = n_steps - length
@@ -143,7 +145,7 @@ def get_testloader(n_steps, n_features, num_seasons, missing_ratio=0.2, seed=10,
     test_loader = DataLoader(test_dataset, batch_size=1)
     return test_loader
 
-def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forecasting=False, random_trial=False, v2=False, noise=False):
+def get_testloader_synth(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.2, seed=10, exclude_features=None, length=100, forecasting=False, random_trial=False, v2='v1', noise=False):
     np.random.seed(seed=seed)
     if forecasting:
         forward = n_steps - length
