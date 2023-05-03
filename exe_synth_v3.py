@@ -316,7 +316,7 @@ nsample = 50
 n_steps = 100
 n_features = len(given_features)
 num_seasons = 32
-noise = False
+noise = True
 train_loader, valid_loader = get_dataloader(n_steps, n_features, num_seasons, batch_size=16, missing_ratio=0.1, seed=10, is_test=False, v2=True, noise=noise)
 
 model_csdi = CSDI_Synth(config_dict_csdi, device, target_dim=len(given_features)).to(device)
@@ -325,16 +325,16 @@ filename = f"model_csdi_synth_v3{'_noise' if noise else ''}.pth"
 if not os.path.isdir(model_folder):
     os.makedirs(model_folder)
 print(f"\n\nCSDI training starts.....\n")
-# train(
-#     model_csdi,
-#     config_dict_csdi["train"],
-#     train_loader,
-#     valid_loader=valid_loader,
-#     foldername=model_folder,
-#     filename=f"{filename}",
-#     is_saits=True
-# )
-model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
+train(
+    model_csdi,
+    config_dict_csdi["train"],
+    train_loader,
+    valid_loader=valid_loader,
+    foldername=model_folder,
+    filename=f"{filename}",
+    is_saits=True
+)
+# model_csdi.load_state_dict(torch.load(f"{model_folder}/{filename}"))
 print(f"CSDI params: {get_num_params(model_csdi)}")
 
 
@@ -408,8 +408,8 @@ models = {
     'SAITS': saits,
     'DiffSAITS': model_diff_saits
 }
-mse_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_random"
-data_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_random"
+mse_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_mix"
+data_folder = f"results_synth_v3_qual{'_noise' if noise else ''}_mix"
 lengths = [10, 50, 90]
 for l in lengths:
     print(f"\nlength = {l}")
